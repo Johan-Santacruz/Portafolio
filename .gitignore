@@ -1,0 +1,14 @@
+node_modules
+dist
+.DS_Store
+*.local
+.env
+.vite
+*.tsbuildinfo
+test-results
+playwright-report
+
+# Capturas a resolución completa de los proyectos (11 MB). Son material de
+# origen, no hacen falta para construir el sitio: las versiones comprimidas
+# que sí se publican viven en public/imagenes/.
+capturas

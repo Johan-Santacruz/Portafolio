@@ -1,0 +1,40 @@
+.pie {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  color: var(--muted);
+  font-size: 0.66rem;
+  padding-block: 27px;
+}
+.pie > .mono {
+  font-size: 0.53rem;
+}
+.pie a {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 44px;
+}
+.pie a:hover {
+  color: var(--primary);
+}
+.pie a > span {
+  font-size: 19px;
+}
+@media (max-width: 760px) {
+  .pie {
+    flex-wrap: wrap;
+    gap: 0 20px;
+    padding-block: 20px;
+  }
+  .pie > .mono {
+    display: none;
+  }
+  .pie-ubicacion {
+    display: none;
+  }
+  .pie {
+    font-size: 0.61rem;
+  }
+}

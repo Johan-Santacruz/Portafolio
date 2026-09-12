@@ -1,0 +1,268 @@
+.visual-proyecto {
+  position: relative;
+  height: 278px;
+  overflow: hidden;
+  padding: 26px 32px;
+  border-bottom: 1px solid var(--line);
+}
+.visual-nota {
+  position: relative;
+  z-index: 1;
+  font-size: 0.48rem;
+  opacity: 0.75;
+  letter-spacing: 0.09em;
+}
+.visual-marca {
+  font-size: 76px;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: -0.065em;
+}
+.visual-marca > span {
+  font-size: 23px;
+  vertical-align: top;
+  letter-spacing: 0;
+}
+.visual-leyenda {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.48rem;
+}
+.visual-senda {
+  background: #2e2117;
+  color: #f0e3d2;
+}
+.visual-senda::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(#d8b88c0b 1px, transparent 1px),
+    linear-gradient(90deg, #d8b88c0b 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.visual-senda-contenido {
+  position: relative;
+  padding-top: 18px;
+}
+.visual-senda .visual-marca {
+  color: #ecd9bf;
+}
+.visual-senda .visual-marca > span {
+  margin-left: 8px;
+}
+.onda {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 90px;
+  margin: -3px 0 8px;
+}
+.onda i {
+  background: #c08e56;
+  flex: 1;
+  border-radius: 1px;
+  opacity: 0.75;
+  transition: transform 0.5s;
+}
+.visual-clara {
+  background: #efe5d6;
+  color: #4a3324;
+}
+.visual-clara-contenido {
+  position: relative;
+  padding-top: 34px;
+}
+.clara-estrella {
+  position: absolute;
+  top: -4px;
+  right: 6px;
+  color: #8f5023;
+  font-size: 105px;
+  line-height: 1;
+  transition: transform 0.8s;
+}
+.visual-clara .visual-marca {
+  font-size: 83px;
+}
+.visual-clara .visual-marca > span {
+  font-size: inherit;
+  color: #8f5023;
+}
+.clara-captura {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px 14px;
+  font-family: var(--mono);
+  font-size: 0.54rem;
+}
+.clara-validado {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #cbb79c;
+  padding: 6px 8px;
+  border-radius: 3px;
+  color: #55612f;
+  background: #f7f2e7;
+}
+.clara-validado .icono {
+  width: 13px;
+  height: 13px;
+}
+.visual-robots-zoho {
+  background: #ece3d7;
+  color: #55402f;
+  background-image: radial-gradient(#a8927c40 0.7px, transparent 0.7px);
+  background-size: 13px 13px;
+}
+.visual-robots-contenido {
+  padding-top: 42px;
+}
+.flujo-nodos {
+  display: flex;
+  align-items: center;
+  margin-bottom: 34px;
+}
+.flujo-nodos > span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #faf6f0;
+  border: 1px solid #cbb9a3;
+  border-radius: 8px;
+  width: 80px;
+  height: 83px;
+  font: 0.57rem var(--mono);
+}
+.flujo-nodos > span.flujo-centro {
+  background: #3f2c1e;
+  color: #f1e6d8;
+  border-color: #3f2c1e;
+  width: 96px;
+  height: 99px;
+  box-shadow: 0 7px 20px #3f2c1e1a;
+}
+.flujo-nodos > i {
+  flex: 1;
+  height: 1px;
+  background: #b5a18b;
+  position: relative;
+}
+.flujo-nodos > i::after {
+  content: "";
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: #8d7660;
+  right: 0;
+  top: -2px;
+  border-radius: 50%;
+}
+.visual-pav-mood {
+  background: #e9dcc7;
+  color: #423225;
+}
+.visual-pav-contenido {
+  padding-top: 24px;
+}
+.visual-pav-contenido .visual-marca {
+  position: relative;
+  z-index: 1;
+  font-size: 75px;
+  line-height: 0.8;
+  font-weight: 400;
+}
+.visual-pav-contenido .visual-marca > span {
+  font-size: 70px;
+}
+.pav-nota {
+  position: absolute;
+  left: 32px;
+  bottom: 25px;
+  font-size: 0.48rem;
+}
+@media (max-width: 1000px) {
+  .visual-proyecto {
+    padding-inline: 24px;
+  }
+  .clara-captura {
+    font-size: 0.49rem;
+  }
+  .clara-estrella {
+    font-size: 80px;
+  }
+}
+@media (max-width: 760px) {
+  .visual-proyecto {
+    height: 262px;
+  }
+  .visual-marca {
+    font-size: 68px;
+  }
+  .clara-estrella {
+    font-size: 85px;
+  }
+  .flujo-nodos > span {
+    width: 70px;
+  }
+  .visual-robots-contenido {
+    padding-top: 30px;
+  }
+}
+
+/* --- Fotografía real de los proyectos -------------------------------------
+   SENDA usa la imagen documental de su propio repositorio, teñida con la
+   tinta café de la tarjeta; PavéMood muestra el producto sobre su cartón. */
+.visual-foto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.12);
+  opacity: 0.72;
+}
+.visual-senda::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    #2e2117 26%,
+    #2e2117d4 54%,
+    #2e21173d 100%
+  );
+}
+.visual-senda-contenido {
+  z-index: 1;
+}
+.pav-foto {
+  position: absolute;
+  right: 30px;
+  top: 50%;
+  width: 196px;
+  height: 196px;
+  object-fit: cover;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  box-shadow: 0 14px 30px #4a332016;
+}
+@media (max-width: 760px) {
+  .pav-foto {
+    width: 150px;
+    height: 150px;
+    right: 18px;
+  }
+  .visual-pav-contenido .visual-marca {
+    font-size: 60px;
+  }
+  .visual-pav-contenido .visual-marca > span {
+    font-size: 56px;
+  }
+}
