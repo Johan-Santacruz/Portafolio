@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { MotorRetrato } from "../retrato/motor";
+import { SecuenciaFotogramas } from "../retrato/secuencia";
 import { trabajos } from "../datos/trabajos";
 import "./Retrato.css";
 
@@ -192,17 +193,22 @@ export function Retrato() {
     const alDesenfocar = () => m?.salir();
 
     // --- Secuencia de fotogramas -------------------------------------------
-    const cuadros: (HTMLImageElement | null)[] = Array(FOTOGRAMAS).fill(null);
     let cuadroPintado = -1;
     let cuadroPedido = 0;
     let avanceSecuencia = 0;
     const ctxSecuencia = canvasSecuencia.getContext("2d");
 
-    const pintarCuadro = (i: number) => {
-      const img = cuadros[i];
-      if (!img || !img.complete || !img.naturalWidth || !ctxSecuencia)
-        return false;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const pintarCuadro = (pedido: number) => {
+      // Si el exacto no ha llegado, el más cercano que ya esté.
+      const i = secuencia.cercano(pedido);
+      const img = i >= 0 ? secuencia.cuadros[i] : null;
+      if (!img || !ctxSecuencia) return false;
+      // Sin más resolución que la del fotograma: más píxeles no añaden
+      // detalle y cada uno hay que subirlo a la GPU en cada scroll.
+      const dpr = Math.min(
+        window.devicePixelRatio || 1,
+        Math.max(1, img.naturalWidth / canvasSecuencia.clientWidth),
+      );
       const ancho = canvasSecuencia.clientWidth;
       const alto = canvasSecuencia.clientHeight;
       const w = Math.round(ancho * dpr);
@@ -243,26 +249,12 @@ export function Retrato() {
       );
       cuadroPintado = -1;
     };
-    // Carga en orden, de cuatro en cuatro, sin bloquear la primera pintura.
-    // Si el scroll pide un cuadro que aún no está, se pinta al llegar.
-    let cargando = 0;
-    const cargarSiguiente = () => {
-      while (cargando < 4) {
-        const i = cuadros.findIndex((c) => c === null);
-        if (i < 0 || cancelado) return;
-        const img = new Image();
-        cuadros[i] = img;
-        cargando++;
-        img.onload = img.onerror = () => {
-          cargando--;
-          if (i === cuadroPedido && cuadroPintado !== i && enSecuencia) {
-            pintarCuadro(i);
-          }
-          cargarSiguiente();
-        };
-        img.src = fotograma(i);
-      }
-    };
+    // Al llegar un fotograma más próximo al pedido que el pintado, se cambia.
+    const secuencia = new SecuenciaFotogramas(FOTOGRAMAS, fotograma, (i) => {
+      if (!enSecuencia) return;
+      if (Math.abs(i - cuadroPedido) < Math.abs(cuadroPintado - cuadroPedido))
+        pintarCuadro(cuadroPedido);
+    });
 
     // --- Recorrido con scroll ------------------------------------------------
     const recorrido = zona.closest<HTMLElement>("[data-recorrido]");
@@ -285,6 +277,7 @@ export function Retrato() {
         const p = (avance - TRAMO_REVELADO) / (1 - TRAMO_REVELADO);
         avanceSecuencia = p;
         cuadroPedido = Math.round(p * (FOTOGRAMAS - 1));
+        secuencia.pedir(cuadroPedido);
         // En vertical el recorte cambia con el avance: se repinta siempre.
         if (
           cuadroPedido !== cuadroPintado ||
@@ -328,8 +321,9 @@ export function Retrato() {
       temporizadorInsinuar = window.setTimeout(() => {
         if (!zona.matches(":hover") && !enSecuencia) m?.insinuar();
       }, 1400);
-      // Los fotogramas se cargan después, cuando la portada ya está pintada.
-      window.setTimeout(cargarSiguiente, 800);
+      // Los fotogramas, en cuanto la portada está lista: quien baja deprisa
+      // tiene que encontrarlos ya en camino.
+      secuencia.empezar();
     };
 
     if (imagen.complete && imagen.naturalWidth) arrancar();
@@ -337,7 +331,7 @@ export function Retrato() {
 
     const observador = new ResizeObserver(() => {
       m?.redimensionar();
-      if (cuadroPintado >= 0) pintarCuadro(cuadroPintado);
+      if (cuadroPintado >= 0) pintarCuadro(cuadroPedido);
     });
     observador.observe(canvas);
     // Si cambia la preferencia de movimiento, el motor se reinicia con ella.
@@ -351,6 +345,7 @@ export function Retrato() {
 
     return () => {
       cancelado = true;
+      secuencia.detener();
       clearTimeout(temporizadorPulsacion);
       clearTimeout(temporizadorInsinuar);
       observador.disconnect();

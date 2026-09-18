@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { perfil } from "../datos/perfil";
 import { Icono } from "./Icono";
+import { SecuenciaFotogramas } from "../retrato/secuencia";
 import "./Cierre.css";
 
 const CIERRE = `${import.meta.env.BASE_URL}imagenes/cierre/`;
@@ -99,16 +100,20 @@ export function Cierre() {
     if (!raiz || !canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    const cuadros: (HTMLImageElement | null)[] = Array(FOTOGRAMAS).fill(null);
     let pintado = -1;
     let pedido = 0;
     let pendiente = false;
-    let cancelado = false;
 
-    const pintar = (i: number) => {
-      const img = cuadros[i];
-      if (!img || !img.complete || !img.naturalWidth) return;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const pintar = (quiero: number) => {
+      // Si el exacto no ha llegado, el más cercano que ya esté.
+      const i = secuencia.cercano(quiero);
+      const img = i >= 0 ? secuencia.cuadros[i] : null;
+      if (!img) return;
+      // Sin más resolución que la del fotograma (ver Retrato.tsx).
+      const dpr = Math.min(
+        window.devicePixelRatio || 1,
+        Math.max(1, img.naturalWidth / canvas.clientWidth),
+      );
       const ancho = canvas.clientWidth;
       const alto = canvas.clientHeight;
       const w = Math.round(ancho * dpr);
@@ -126,28 +131,15 @@ export function Cierre() {
       pintado = i;
     };
 
-    // Carga en orden, de seis en seis; el primero, antes que ninguno.
-    let cargando = 0;
-    const cargarSiguiente = () => {
-      while (cargando < 6) {
-        const i = cuadros.findIndex((c) => c === null);
-        if (i < 0 || cancelado) return;
-        const img = new Image();
-        cuadros[i] = img;
-        cargando++;
-        img.onload = img.onerror = () => {
-          cargando--;
-          if (i === pedido) pintar(i);
-          cargarSiguiente();
-        };
-        img.src = fotograma(i);
-      }
-    };
+    const secuencia = new SecuenciaFotogramas(FOTOGRAMAS, fotograma, (i) => {
+      if (pintado < 0 || Math.abs(i - pedido) < Math.abs(pintado - pedido))
+        pintar(pedido);
+    });
     const vigia = new IntersectionObserver(
       ([entrada]) => {
         if (!entrada.isIntersecting) return;
         vigia.disconnect();
-        cargarSiguiente();
+        secuencia.empezar();
       },
       { rootMargin: "150% 0px" },
     );
@@ -166,6 +158,7 @@ export function Cierre() {
       // El vídeo ocupa el 80 % del recorrido; el resto, quieto al final.
       const t = Math.min(1, avance / 0.8);
       pedido = Math.round(t * (FOTOGRAMAS - 1));
+      secuencia.pedir(pedido);
       if (pedido !== pintado) pintar(pedido);
     };
     const alScroll = () => {
@@ -174,14 +167,14 @@ export function Cierre() {
       requestAnimationFrame(medir);
     };
     const observador = new ResizeObserver(() => {
-      if (pintado >= 0) pintar(pintado);
+      if (pintado >= 0) pintar(pedido);
     });
     observador.observe(canvas);
     medir();
     window.addEventListener("scroll", alScroll, { passive: true });
     window.addEventListener("resize", alScroll);
     return () => {
-      cancelado = true;
+      secuencia.detener();
       vigia.disconnect();
       observador.disconnect();
       window.removeEventListener("scroll", alScroll);

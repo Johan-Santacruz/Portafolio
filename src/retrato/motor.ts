@@ -115,7 +115,12 @@ export class MotorRetrato {
     const caja = this.lienzo.getBoundingClientRect();
     this.ancho = caja.width;
     this.alto = caja.height;
-    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // Sin pasar de la resolución de la imagen oculta: el lienzo ocupa la
+    // pantalla entera y se repinta en cada scroll del revelado; píxeles de
+    // más solo encarecen subirlo a la GPU.
+    const caja0 = this.lienzo.getBoundingClientRect();
+    const tope = Math.max(1, (this.imagen.naturalWidth || 1) / (caja0.width || 1));
+    this.dpr = Math.min(window.devicePixelRatio || 1, 1.5, tope);
     this.lienzo.width = Math.round(this.ancho * this.dpr);
     this.lienzo.height = Math.round(this.alto * this.dpr);
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
@@ -494,12 +499,17 @@ export class MotorRetrato {
         const alcanceMax = Math.hypot(ancho, alto) * 0.62;
         const rb = base * alcanceMax;
         const { x, y } = this.puntero;
-        m.save();
-        if (this.conFiltro) m.filter = `blur(${8 + rb * 0.12}px)`;
+        // Borde suave con un degradado radial: el mismo aspecto que un
+        // desenfoque, a una fracción del coste (esto se pinta en cada scroll).
+        const borde = 8 + rb * 0.12;
+        const g = m.createRadialGradient(x, y, Math.max(0, rb - borde), x, y, rb + borde);
+        g.addColorStop(0, "rgba(255,255,255,1)");
+        g.addColorStop(1, "rgba(255,255,255,0)");
+        m.fillStyle = g;
         m.beginPath();
-        m.arc(x, y, rb, 0, Math.PI * 2);
+        m.arc(x, y, rb + borde, 0, Math.PI * 2);
         m.fill();
-        m.restore();
+        m.fillStyle = "#fff";
       }
       if (r >= 0.5) {
         m.save();

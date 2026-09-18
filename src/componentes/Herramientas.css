@@ -112,19 +112,34 @@
   );
   will-change: transform;
 }
+/* Dos capas por palabra para que el scroll no repinte texto: el contorno,
+   fijo, y encima el relleno (::after), que solo cambia de opacidad. La
+   opacidad y el desplazamiento los anima la GPU sin volver a pintar. */
 .herr-palabras li {
   --d: max(var(--i) - var(--p), var(--p) - var(--i));
   --luz: clamp(0, 1 - var(--d) * 1.6, 1);
+  position: relative;
   height: var(--fila);
   display: flex;
   align-items: center;
   white-space: nowrap;
   letter-spacing: 0.005em;
-  /* Encendida: tinta llena. Apagada: solo el contorno. */
-  color: rgb(29 31 34 / var(--luz));
-  -webkit-text-stroke: 1.2px rgb(29 31 34 / calc(0.22 + var(--luz) * 0.78));
+  color: transparent;
+  -webkit-text-stroke: 1.2px rgba(29, 31, 34, 0.24);
   opacity: clamp(0.15, 1 - var(--d) * 0.22, 1);
   transform: translate3d(calc(var(--luz) * 10px), 0, 0);
+  will-change: transform, opacity;
+}
+.herr-palabras li::after {
+  content: attr(data-texto);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  color: #1d1f22;
+  -webkit-text-stroke: 1.2px #1d1f22;
+  opacity: var(--luz);
+  will-change: opacity;
 }
 /* Cabezal de lectura: fijo en el centro; las palabras pasan por él. */
 .herr-marca {

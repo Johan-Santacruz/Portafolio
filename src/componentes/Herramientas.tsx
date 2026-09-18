@@ -99,7 +99,11 @@ export function Herramientas() {
           <span className="herr-marca" />
           <ul className="herr-palabras">
             {stack.map((grupo, i) => (
-              <li key={grupo.titulo} style={{ "--i": i } as CSSProperties}>
+              <li
+                key={grupo.titulo}
+                style={{ "--i": i } as CSSProperties}
+                data-texto={grupo.palabra ?? grupo.titulo}
+              >
                 {grupo.palabra ?? grupo.titulo}
               </li>
             ))}
