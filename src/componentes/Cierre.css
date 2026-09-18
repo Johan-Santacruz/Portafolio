@@ -1,0 +1,355 @@
+/* --- Cierre -------------------------------------------------------------------
+   La figura sale de la sombra mientras se baja. La sección mide 100svh más
+   el recorrido; --avance (0 a 1) lo escribe Cierre.tsx con el scroll. */
+.cierre {
+  --avance: 0;
+  --llegada: 0;
+  /* El texto entra cuando la figura ya está casi revelada. */
+  --texto: clamp(0, (var(--avance) - 0.45) / 0.3, 1);
+  position: relative;
+  height: 320svh;
+  background: #fdfdfe;
+  color: var(--ink);
+  font-family: "Chakra Petch", var(--display);
+}
+.cierre-fijo {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: clip;
+  /* Fondo propio: la mezcla del vídeo necesita algo con qué mezclarse. */
+  background: #fdfdfe;
+}
+
+/* El vídeo va a la derecha, con los bordes fundidos al blanco de la página:
+   así no se ve el recuadro aunque su fondo no sea blanco exacto. */
+.cierre-video {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 72%;
+  height: 100%;
+  display: block;
+  /* Multiplicar: el blanco del vídeo desaparece sobre el de la página. */
+  mix-blend-mode: multiply;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0%, #000 22%, #000 90%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 8%, #000 86%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0%, #000 22%, #000 90%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 8%, #000 86%, transparent 100%);
+  mask-composite: intersect;
+}
+
+/* --- Pistas --------------------------------------------------------------------
+   Se trazan mientras la sección llega (--llegada) y se apagan cuando la
+   niebla empieza a abrirse (--avance), justo antes de que aparezca la cara. */
+.cierre-trazos {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: calc(1 - clamp(0, (var(--avance) - 0.1) / 0.22, 1));
+}
+.cierre-trazo {
+  --trazo: clamp(0, (var(--llegada) - 0.15 - var(--retraso)) / 0.5, 1);
+}
+.cierre-trazo path {
+  fill: none;
+  stroke: rgba(29, 31, 34, 0.55);
+  stroke-width: 1;
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - var(--trazo));
+}
+.cierre-trazo-lima path {
+  stroke: #9fd12a;
+  stroke-width: 2;
+}
+
+/* --- Niebla ----------------------------------------------------------------------
+   Dos capas sobre el vídeo, las dos del blanco de la página (invisibles sobre
+   el fondo, solo se notan sobre la figura):
+   - un velo continuo que la tapa del todo al principio y se retira pronto;
+   - bancos de bruma que derivan despacio y se disipan más tarde, para que la
+     silueta se adivine a través de ellos antes de salir a la luz. */
+.cierre-niebla {
+  --velo: clamp(0, 1 - var(--avance) / 0.26, 1);
+  --bruma: clamp(0, 1 - (var(--avance) - 0.12) / 0.4, 1);
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 72%;
+  height: 100%;
+  pointer-events: none;
+  background: rgb(253 253 254 / var(--velo));
+}
+.cierre-niebla span {
+  position: absolute;
+  inset: -20%;
+  opacity: var(--bruma);
+  filter: blur(34px);
+  animation: cierre-deriva 22s ease-in-out infinite alternate;
+  will-change: transform;
+}
+.cierre-niebla span:nth-child(1) {
+  background:
+    radial-gradient(ellipse 30% 22% at 58% 32%, #fdfdfe 20%, transparent 70%),
+    radial-gradient(ellipse 34% 20% at 70% 66%, #fdfdfe 25%, transparent 72%),
+    radial-gradient(ellipse 26% 30% at 40% 58%, rgba(253, 253, 254, 0.9) 10%, transparent 70%);
+}
+.cierre-niebla span:nth-child(2) {
+  background:
+    radial-gradient(ellipse 36% 18% at 64% 48%, rgba(253, 253, 254, 0.95) 15%, transparent 70%),
+    radial-gradient(ellipse 24% 26% at 50% 20%, rgba(253, 253, 254, 0.85) 10%, transparent 70%),
+    radial-gradient(ellipse 30% 22% at 78% 36%, rgba(253, 253, 254, 0.9) 15%, transparent 70%);
+  animation-duration: 28s;
+  animation-direction: alternate-reverse;
+}
+/* La última se disipa más tarde: jirones que aún cruzan el pecho. */
+.cierre-niebla span:nth-child(3) {
+  opacity: clamp(0, 1 - (var(--avance) - 0.22) / 0.36, 1);
+  background:
+    radial-gradient(ellipse 40% 12% at 55% 74%, rgba(253, 253, 254, 0.9) 10%, transparent 70%),
+    radial-gradient(ellipse 28% 10% at 72% 56%, rgba(253, 253, 254, 0.75) 10%, transparent 70%);
+  animation-duration: 18s;
+}
+@keyframes cierre-deriva {
+  from {
+    transform: translate3d(-4%, 1%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(5%, -2%, 0) scale(1.08);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cierre-niebla span {
+    animation: none;
+  }
+}
+
+/* --- Texto --------------------------------------------------------------------- */
+.cierre-texto {
+  position: absolute;
+  z-index: 1;
+  left: max(var(--aire), (100% - var(--ancho)) / 2);
+  top: 50%;
+  width: min(38vw, 560px);
+  transform: translateY(-50%);
+}
+.cierre-rotulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(23, 24, 21, 0.6);
+  opacity: var(--texto);
+}
+.cierre-rotulo::before {
+  content: "";
+  width: calc(var(--texto) * 22px);
+  height: 3px;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px rgba(23, 24, 21, 0.25);
+}
+/* Cada línea sube desde detrás de una máscara, una tras otra. */
+.cierre-texto h2 {
+  margin-top: 16px;
+  font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
+  font-weight: 700;
+  font-size: clamp(52px, min(6.6vw, 12.5vh), 128px);
+  line-height: 0.9;
+  text-transform: uppercase;
+  color: #1d1f22;
+}
+.cierre-texto h2 span {
+  --entrada: clamp(0, (var(--avance) - 0.5 - var(--linea) * 0.06) / 0.18, 1);
+  display: block;
+  clip-path: inset(-0.1em 0 0 0);
+  overflow: hidden;
+  opacity: var(--entrada);
+  transform: translate3d(0, calc((1 - var(--entrada)) * 0.5em), 0);
+}
+.cierre-copy {
+  --entrada: clamp(0, (var(--avance) - 0.62) / 0.16, 1);
+  margin-top: 22px;
+  max-width: 40ch;
+  font-family: var(--display);
+  font-size: clamp(15px, 1.15vw, 18px);
+  line-height: 1.6;
+  color: rgba(23, 24, 21, 0.72);
+  opacity: var(--entrada);
+  transform: translate3d(0, calc((1 - var(--entrada)) * 14px), 0);
+}
+.cierre-acciones {
+  --entrada: clamp(0, (var(--avance) - 0.68) / 0.16, 1);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 24px;
+  margin-top: 30px;
+  opacity: var(--entrada);
+  transform: translate3d(0, calc((1 - var(--entrada)) * 14px), 0);
+}
+/* Mientras el texto no ha entrado, el ratón no lo encuentra (con teclado
+   sigue siendo alcanzable). */
+.cierre:not([data-texto]) .cierre-texto {
+  pointer-events: none;
+}
+.cierre-correo {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 52px;
+  padding: 14px 22px;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: #eef0f2;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.045) 0 1px,
+      transparent 1px 4px
+    ),
+    linear-gradient(135deg, #2a2e34, #16181c);
+  box-shadow: inset 4px 0 0 var(--accent);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  );
+}
+.cierre-correo .icono,
+.cierre-github .icono {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+}
+.cierre-correo .icono {
+  color: var(--accent);
+}
+.cierre-correo:hover .icono,
+.cierre-github:hover .icono {
+  transform: translate(3px, -3px);
+}
+.cierre-copiar {
+  min-height: 44px;
+  padding: 0;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  border-bottom: 1px solid rgba(23, 24, 21, 0.25);
+}
+.cierre-copiar:hover {
+  border-bottom-color: var(--accent);
+}
+.cierre-github {
+  --entrada: clamp(0, (var(--avance) - 0.72) / 0.16, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin-top: 18px;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(23, 24, 21, 0.6);
+  opacity: var(--entrada);
+}
+.cierre-github:hover {
+  color: var(--ink);
+}
+.cierre-correo:focus-visible,
+.cierre-copiar:focus-visible,
+.cierre-github:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 4px;
+}
+
+.cierre-pie {
+  --entrada: clamp(0, (var(--avance) - 0.8) / 0.15, 1);
+  position: absolute;
+  z-index: 1;
+  left: max(var(--aire), (100% - var(--ancho)) / 2);
+  right: max(var(--aire), (100% - var(--ancho)) / 2);
+  bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(23, 24, 21, 0.68);
+  opacity: var(--entrada);
+}
+
+/* --- Pantallas estrechas: la figura arriba, el texto abajo sobre un velo. -- */
+@media (max-width: 860px) {
+  .cierre-niebla {
+    width: 100%;
+    height: 62%;
+  }
+  .cierre-video {
+    width: 100%;
+    height: 62%;
+    -webkit-mask-image:
+      linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%),
+      linear-gradient(to bottom, transparent 0%, #000 10%, #000 70%, transparent 100%);
+    mask-image:
+      linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%),
+      linear-gradient(to bottom, transparent 0%, #000 10%, #000 70%, transparent 100%);
+  }
+  .cierre-texto {
+    left: 22px;
+    right: 22px;
+    top: auto;
+    bottom: 64px;
+    width: auto;
+    transform: none;
+  }
+  .cierre-fijo::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 58%;
+    pointer-events: none;
+    background: linear-gradient(
+      to top,
+      #fdfdfe 55%,
+      rgba(253, 253, 254, 0.85) 75%,
+      transparent
+    );
+    opacity: var(--texto);
+  }
+  .cierre-texto h2 {
+    font-size: clamp(44px, 13vw, 64px);
+  }
+  .cierre-copy {
+    margin-top: 14px;
+    font-size: 15px;
+  }
+  .cierre-acciones {
+    margin-top: 20px;
+  }
+  .cierre-github {
+    display: none;
+  }
+  .cierre-pie {
+    left: 22px;
+    right: 22px;
+    bottom: 18px;
+    font-size: 10px;
+  }
+}

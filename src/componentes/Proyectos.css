@@ -1,0 +1,376 @@
+/* --- Proyectos ----------------------------------------------------------------
+   Capítulo oscuro: nombres gigantes que se encienden al pasar por el centro
+   de la pantalla, con su captura detrás. --luz (0 a 1) lo escribe
+   Proyectos.tsx en cada fila. */
+.proyectos {
+  --texto: #eef0f2;
+  --apagado: #2e3237;
+  position: relative;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.018) 0 1px,
+      transparent 1px 4px
+    ),
+    #0f1113;
+  color: var(--texto);
+  padding: clamp(80px, 14svh, 160px) max(var(--aire), (100% - var(--ancho)) / 2)
+    32svh;
+  font-family: "Chakra Petch", var(--display);
+  overflow: clip;
+}
+.proy-cabecera {
+  text-align: center;
+}
+.proy-rotulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(238, 240, 242, 0.62);
+}
+.proy-rotulo::before {
+  content: "";
+  width: 22px;
+  height: 3px;
+  background: var(--accent);
+}
+.proy-cabecera h2 {
+  margin-top: 14px;
+  font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
+  font-weight: 700;
+  font-size: clamp(56px, min(9vw, 15vh), 168px);
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
+/* --- La lista ------------------------------------------------------------------- */
+.proy-lista {
+  list-style: none;
+  margin: clamp(80px, 16svh, 180px) 0 0;
+  padding: 0;
+  display: grid;
+  gap: clamp(16px, 5svh, 56px);
+}
+.proy-fila {
+  --luz: 0;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: clamp(16px, 3vw, 48px);
+  min-height: clamp(96px, 20svh, 200px);
+}
+/* Captura detrás del nombre: crece y aparece al encenderse. */
+.proy-imagen {
+  position: absolute;
+  z-index: 0;
+  left: 50%;
+  top: 50%;
+  width: clamp(240px, 30vw, 460px);
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  object-position: top;
+  pointer-events: none;
+  opacity: var(--luz);
+  transform: translate(-50%, -50%) scale(calc(0.86 + var(--luz) * 0.14));
+  filter: grayscale(calc(1 - var(--luz))) brightness(0.72);
+  box-shadow: inset 3px 0 0 var(--accent);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 16px) 0,
+    100% 16px,
+    100% 100%,
+    16px 100%,
+    0 calc(100% - 16px)
+  );
+}
+.proy-nombre {
+  position: relative;
+  z-index: 1;
+  grid-column: 2;
+  padding: 0;
+  font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
+  font-weight: 700;
+  font-size: clamp(56px, min(10vw, 17vh), 200px);
+  line-height: 0.9;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-align: center;
+  color: color-mix(
+    in srgb,
+    var(--texto) calc(var(--luz) * 100%),
+    var(--apagado)
+  );
+  transform: scale(calc(0.94 + var(--luz) * 0.06));
+}
+/* Subrayado lima que se dibuja bajo el nombre encendido. */
+.proy-nombre::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.06em;
+  height: 4px;
+  background: var(--accent);
+  transform-origin: 0 50%;
+  transform: scaleX(clamp(0, (var(--luz) - 0.6) / 0.4, 1));
+}
+.proy-nombre:hover,
+.proy-nombre:focus-visible {
+  color: var(--texto);
+}
+.proy-nombre:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 8px;
+}
+.proy-lado {
+  position: relative;
+  z-index: 1;
+  font-weight: 600;
+  font-size: clamp(13px, 1.05vw, 16px);
+  letter-spacing: 0.06em;
+  color: color-mix(
+    in srgb,
+    var(--texto) calc(var(--luz) * 100%),
+    #5d6168
+  );
+}
+.proy-contexto {
+  text-align: left;
+}
+.proy-periodo {
+  text-align: right;
+}
+.proy-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --- Ventana del proyecto --------------------------------------------------- */
+.proy-ventana {
+  width: min(1180px, calc(100vw - 32px));
+  max-width: none;
+  height: min(90svh, 100svh - 24px);
+  max-height: none;
+  padding: 0;
+  border: 0;
+  flex-direction: column;
+  background: #0f1113;
+  color: #eef0f2;
+  font-family: "Chakra Petch", var(--display);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 22px) 0,
+    100% 22px,
+    100% 100%,
+    22px 100%,
+    0 calc(100% - 22px)
+  );
+}
+.proy-ventana[open] {
+  display: flex;
+}
+.proy-ventana::backdrop {
+  background: rgba(10, 11, 13, 0.82);
+}
+.proy-ventana-barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(238, 240, 242, 0.12);
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+.proy-ventana-barra span {
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(238, 240, 242, 0.62);
+}
+.proy-ventana-barra h2 {
+  margin-top: 4px;
+  font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
+  font-size: clamp(32px, 3vw, 44px);
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.proy-cerrar {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  color: #eef0f2;
+}
+.proy-cerrar:hover {
+  color: var(--accent);
+}
+.proy-cerrar:focus-visible,
+.proy-codigo:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+/* Ficha a la izquierda; la landing a la derecha, con su propio scroll. */
+.proy-ventana-cuerpo {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr);
+}
+.proy-ficha {
+  padding: 28px 28px 32px;
+  overflow-y: auto;
+}
+.proy-resumen {
+  font-weight: 600;
+  font-size: clamp(18px, 1.5vw, 22px);
+  line-height: 1.35;
+}
+.proy-descripcion {
+  margin-top: 14px;
+  font-family: var(--display);
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(238, 240, 242, 0.7);
+}
+.proy-rol {
+  margin-top: 16px;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 14px;
+}
+.proy-rol span {
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(238, 240, 242, 0.62);
+}
+.proy-stack {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.proy-stack li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 11px 5px 10px;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  background: rgba(238, 240, 242, 0.07);
+  box-shadow: inset 2px 0 0 var(--accent);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 7px) 0,
+    100% 7px,
+    100% 100%,
+    7px 100%,
+    0 calc(100% - 7px)
+  );
+}
+.proy-logo {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  background: currentColor;
+  -webkit-mask: var(--logo) center / contain no-repeat;
+  mask: var(--logo) center / contain no-repeat;
+}
+.proy-codigo {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 46px;
+  margin-top: 26px;
+  padding: 12px 18px;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  background: var(--accent);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 10px) 0,
+    100% 10px,
+    100% 100%,
+    10px 100%,
+    0 calc(100% - 10px)
+  );
+}
+.proy-codigo .icono {
+  width: 16px;
+  height: 16px;
+}
+.proy-landing {
+  margin: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-left: 1px solid rgba(238, 240, 242, 0.12);
+}
+.proy-landing img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* --- Pantallas estrechas ---------------------------------------------------- */
+@media (max-width: 760px) {
+  .proy-fila {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    row-gap: 6px;
+    min-height: 150px;
+  }
+  .proy-nombre {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: clamp(44px, 14vw, 72px);
+    white-space: normal;
+  }
+  .proy-contexto,
+  .proy-periodo {
+    text-align: center;
+    font-size: 12px;
+  }
+  .proy-contexto {
+    grid-row: 1;
+  }
+  .proy-periodo {
+    grid-row: 3;
+  }
+  .proy-imagen {
+    width: 78vw;
+  }
+  .proy-ventana-cuerpo {
+    display: block;
+    overflow-y: auto;
+  }
+  .proy-ficha {
+    overflow: visible;
+    padding: 20px 18px 24px;
+  }
+  .proy-landing {
+    overflow: visible;
+    border-left: 0;
+    border-top: 1px solid rgba(238, 240, 242, 0.12);
+  }
+}

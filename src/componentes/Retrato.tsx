@@ -1,0 +1,418 @@
+import { useEffect, useRef, useState } from "react";
+import { MotorRetrato } from "../retrato/motor";
+import { trabajos } from "../datos/trabajos";
+import "./Retrato.css";
+
+const RETRATO = `${import.meta.env.BASE_URL}imagenes/retrato/`;
+/**
+ * Punto de la foto que se conserva al recortar (como `object-position`).
+ * La foto, el canvas y la secuencia lo comparten: si no, las capas no
+ * coincidirían. Súbelo o bájalo según dónde quede la cara en tu foto.
+ */
+const FOCO = { x: 0.5, y: 0.42 };
+const COLORES = { acento: "#c7ff4a", papel: "#f4f0e7" };
+/**
+ * Secuencia de fotogramas del vídeo, ya recortados al encuadre de la foto
+ * (ver README, "Retrato interactivo"). Se reproduce con el scroll.
+ */
+const FOTOGRAMAS = 121;
+const fotograma = (i: number) =>
+  `${RETRATO}secuencia/f${String(i).padStart(3, "0")}.jpg`;
+/**
+ * HUD de datos bajo la máscara: guardado para más adelante, apagado por ahora.
+ * Ponlo en `true` para volver a mostrarlo.
+ */
+const MOSTRAR_HUD = false;
+const hackathones = trabajos.filter((t) =>
+  /hackathon/i.test(t.contexto),
+).length;
+/**
+ * Datos escondidos en la capa del alter ego: solo se ven bajo la máscara del
+ * cursor. Cada uno lleva su posición (en % del retrato) y el lado hacia el
+ * que apunta su línea.
+ */
+const HUD: {
+  x: number;
+  y: number;
+  lado: "izq" | "der";
+  etiqueta: string;
+  valor: string;
+  grande?: boolean;
+}[] = [
+  { x: 8, y: 20, lado: "der", etiqueta: "Identidad", valor: "Johan Santacruz" },
+  {
+    x: 72,
+    y: 22,
+    lado: "izq",
+    etiqueta: "Hackathones",
+    valor: String(hackathones).padStart(2, "0"),
+    grande: true,
+  },
+  {
+    x: 8,
+    y: 40,
+    lado: "der",
+    etiqueta: "Formación",
+    valor: "Estudiante de Ingeniería de Sistemas",
+  },
+  {
+    x: 72,
+    y: 42,
+    lado: "izq",
+    etiqueta: "Proyectos",
+    valor: String(trabajos.length).padStart(2, "0"),
+    grande: true,
+  },
+  { x: 8, y: 60, lado: "der", etiqueta: "Base", valor: "Cali, Colombia" },
+  {
+    x: 72,
+    y: 62,
+    lado: "izq",
+    etiqueta: "Estado",
+    valor: "Disponible para prácticas y proyectos",
+  },
+];
+const FRASE =
+  "Aprendo construyendo: cada proyecto empieza con un problema real y termina en algo que funciona.";
+
+/** Parte del recorrido dedicada a revelar el alter ego; el resto, al vídeo. */
+const TRAMO_REVELADO = 0.3;
+/** Tramo (del recorrido) en que la secuencia se funde sobre el alter ego. */
+const TRAMO_FUNDIDO = 0.04;
+
+/**
+ * Retrato con dos identidades: la foto normal y, debajo, su alter ego
+ * tecnológico, que aparece bajo el puntero. La máscara vive en
+ * `retrato/motor.ts`; aquí van el DOM, los gestos, los estados y el
+ * recorrido con scroll.
+ *
+ * Gestos: ratón → hover; táctil → mantener pulsado o arrastrar en horizontal
+ * (el desplazamiento vertical sigue siendo scroll); teclado → con el foco la
+ * máscara orbita sola.
+ *
+ * Recorrido: el contenedor `[data-recorrido]` más cercano mide más que la
+ * pantalla y su contenido va fijo. Al bajar, primero se revela todo el alter
+ * ego (círculo que crece desde el puntero) y después avanza la secuencia de
+ * fotogramas; al final se queda en el último.
+ */
+export function Retrato() {
+  const marco = useRef<HTMLDivElement>(null);
+  const lienzo = useRef<HTMLCanvasElement>(null);
+  const lienzoSecuencia = useRef<HTMLCanvasElement>(null);
+  const [activo, setActivo] = useState(false);
+  const [listo, setListo] = useState(false);
+  const [fase, setFase] = useState<"mascara" | "revelado" | "secuencia">(
+    "mascara",
+  );
+
+  useEffect(() => {
+    const zona = marco.current;
+    const canvas = lienzo.current;
+    const canvasSecuencia = lienzoSecuencia.current;
+    if (!zona || !canvas || !canvasSecuencia) return;
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const imagen = new Image();
+    imagen.src = `${RETRATO}alter.jpg`;
+    let m: MotorRetrato | null = null;
+    let cancelado = false;
+    let temporizadorPulsacion = 0;
+    let temporizadorInsinuar = 0;
+    let tactil: { id: number; x: number; y: number; activo: boolean } | null =
+      null;
+    let enSecuencia = false;
+
+    const local = (ev: PointerEvent) => {
+      const caja = zona.getBoundingClientRect();
+      return { x: ev.clientX - caja.left, y: ev.clientY - caja.top };
+    };
+    const crearMotor = () => {
+      m?.destruir();
+      m = new MotorRetrato(canvas, imagen, {
+        reducido: media.matches,
+        foco: FOCO,
+        ...COLORES,
+      });
+      m.observar(setActivo);
+    };
+
+    const alEntrar = (ev: PointerEvent) => {
+      if (ev.pointerType === "touch" || !m || enSecuencia) return;
+      const { x, y } = local(ev);
+      m.entrar(x, y, true);
+    };
+    const alMover = (ev: PointerEvent) => {
+      if (!m || enSecuencia) return;
+      const { x, y } = local(ev);
+      if (ev.pointerType === "touch") {
+        if (!tactil || tactil.id !== ev.pointerId) return;
+        if (!tactil.activo) {
+          // Arrastre horizontal claro: revela ya. Vertical: es scroll.
+          const dx = Math.abs(x - tactil.x);
+          const dy = Math.abs(y - tactil.y);
+          if (dx > 10 && dx > dy * 1.4) activarTactil(ev, x, y);
+          return;
+        }
+      }
+      m.mover(x, y);
+    };
+    const alSalir = (ev: PointerEvent) => {
+      if (ev.pointerType === "touch" || !m) return;
+      m.salir();
+    };
+
+    const activarTactil = (ev: PointerEvent, x: number, y: number) => {
+      if (!m || !tactil || enSecuencia) return;
+      tactil.activo = true;
+      zona.setPointerCapture(ev.pointerId);
+      m.entrar(x, y, false);
+    };
+    const alPulsar = (ev: PointerEvent) => {
+      if (ev.pointerType !== "touch" || !m || enSecuencia) return;
+      const { x, y } = local(ev);
+      tactil = { id: ev.pointerId, x, y, activo: false };
+      clearTimeout(temporizadorPulsacion);
+      // Mantener pulsado ~180 ms sin moverse también revela.
+      temporizadorPulsacion = window.setTimeout(() => {
+        if (tactil && !tactil.activo) activarTactil(ev, x, y);
+      }, 180);
+    };
+    const alSoltar = (ev: PointerEvent) => {
+      if (ev.pointerType !== "touch" || !m) return;
+      clearTimeout(temporizadorPulsacion);
+      if (tactil?.activo) m.salir();
+      tactil = null;
+    };
+    // Mientras se revela con el dedo, la página no debe desplazarse.
+    const alTocarMover = (ev: TouchEvent) => {
+      if (tactil?.activo) ev.preventDefault();
+    };
+    const alFoco = () => {
+      if (!enSecuencia) m?.orbitar();
+    };
+    const alDesenfocar = () => m?.salir();
+
+    // --- Secuencia de fotogramas -------------------------------------------
+    const cuadros: (HTMLImageElement | null)[] = Array(FOTOGRAMAS).fill(null);
+    let cuadroPintado = -1;
+    let cuadroPedido = 0;
+    let avanceSecuencia = 0;
+    const ctxSecuencia = canvasSecuencia.getContext("2d");
+
+    const pintarCuadro = (i: number) => {
+      const img = cuadros[i];
+      if (!img || !img.complete || !img.naturalWidth || !ctxSecuencia)
+        return false;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const ancho = canvasSecuencia.clientWidth;
+      const alto = canvasSecuencia.clientHeight;
+      const w = Math.round(ancho * dpr);
+      const h = Math.round(alto * dpr);
+      if (canvasSecuencia.width !== w || canvasSecuencia.height !== h) {
+        canvasSecuencia.width = w;
+        canvasSecuencia.height = h;
+      }
+      ctxSecuencia.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // Mismo recorte que la foto: cover con el punto focal compartido. En
+      // pantallas verticales el recorte se desliza con la figura, que en el
+      // vídeo acaba en el lado derecho: si no, se saldría de cuadro.
+      const escala = Math.max(
+        ancho / img.naturalWidth,
+        alto / img.naturalHeight,
+      );
+      const dw = img.naturalWidth * escala;
+      const dh = img.naturalHeight * escala;
+      const vertical = ancho < alto;
+      const focoX = vertical ? FOCO.x + 0.13 * avanceSecuencia : FOCO.x;
+      ctxSecuencia.drawImage(
+        img,
+        (ancho - dw) * focoX,
+        (alto - dh) * FOCO.y,
+        dw,
+        dh,
+      );
+      cuadroPintado = i;
+      return true;
+    };
+    const limpiarSecuencia = () => {
+      if (cuadroPintado < 0 || !ctxSecuencia) return;
+      ctxSecuencia.clearRect(
+        0,
+        0,
+        canvasSecuencia.width,
+        canvasSecuencia.height,
+      );
+      cuadroPintado = -1;
+    };
+    // Carga en orden, de cuatro en cuatro, sin bloquear la primera pintura.
+    // Si el scroll pide un cuadro que aún no está, se pinta al llegar.
+    let cargando = 0;
+    const cargarSiguiente = () => {
+      while (cargando < 4) {
+        const i = cuadros.findIndex((c) => c === null);
+        if (i < 0 || cancelado) return;
+        const img = new Image();
+        cuadros[i] = img;
+        cargando++;
+        img.onload = img.onerror = () => {
+          cargando--;
+          if (i === cuadroPedido && cuadroPintado !== i && enSecuencia) {
+            pintarCuadro(i);
+          }
+          cargarSiguiente();
+        };
+        img.src = fotograma(i);
+      }
+    };
+
+    // --- Recorrido con scroll ------------------------------------------------
+    const recorrido = zona.closest<HTMLElement>("[data-recorrido]");
+    let pendiente = false;
+    const medir = () => {
+      pendiente = false;
+      if (!recorrido || !m) return;
+      const caja = recorrido.getBoundingClientRect();
+      const largo = caja.height - window.innerHeight;
+      const avance =
+        largo > 0 ? Math.min(1, Math.max(0, -caja.top / largo)) : 0;
+      const base = Math.min(1, avance / TRAMO_REVELADO);
+      // El CSS de la portada deriva de aquí lo que aparece con el scroll.
+      recorrido.style.setProperty("--avance", avance.toFixed(4));
+      m.avanzar(base);
+      const antes = enSecuencia;
+      enSecuencia = avance > TRAMO_REVELADO;
+      if (enSecuencia) {
+        if (!antes) m.salir();
+        const p = (avance - TRAMO_REVELADO) / (1 - TRAMO_REVELADO);
+        avanceSecuencia = p;
+        cuadroPedido = Math.round(p * (FOTOGRAMAS - 1));
+        // En vertical el recorte cambia con el avance: se repinta siempre.
+        if (
+          cuadroPedido !== cuadroPintado ||
+          canvasSecuencia.clientWidth < canvasSecuencia.clientHeight
+        )
+          pintarCuadro(cuadroPedido);
+        // El vídeo es más blando que la foto: entra con un fundido corto.
+        canvasSecuencia.style.opacity = Math.min(
+          1,
+          (avance - TRAMO_REVELADO) / TRAMO_FUNDIDO,
+        ).toFixed(3);
+        setFase("secuencia");
+      } else {
+        limpiarSecuencia();
+        setFase(base > 0 ? "revelado" : "mascara");
+      }
+    };
+    const alScroll = () => {
+      if (pendiente) return;
+      pendiente = true;
+      requestAnimationFrame(medir);
+    };
+
+    const arrancar = () => {
+      if (cancelado) return;
+      crearMotor();
+      setListo(true);
+      zona.addEventListener("pointerenter", alEntrar);
+      zona.addEventListener("pointermove", alMover, { passive: true });
+      zona.addEventListener("pointerleave", alSalir);
+      zona.addEventListener("pointerdown", alPulsar);
+      zona.addEventListener("pointerup", alSoltar);
+      zona.addEventListener("pointercancel", alSoltar);
+      zona.addEventListener("touchmove", alTocarMover, { passive: false });
+      zona.addEventListener("focus", alFoco);
+      zona.addEventListener("blur", alDesenfocar);
+      window.addEventListener("scroll", alScroll, { passive: true });
+      window.addEventListener("resize", alScroll);
+      medir();
+      // Tras la entrada, una pasada sola por la cara enseña el gesto.
+      temporizadorInsinuar = window.setTimeout(() => {
+        if (!zona.matches(":hover") && !enSecuencia) m?.insinuar();
+      }, 1400);
+      // Los fotogramas se cargan después, cuando la portada ya está pintada.
+      window.setTimeout(cargarSiguiente, 800);
+    };
+
+    if (imagen.complete && imagen.naturalWidth) arrancar();
+    else imagen.addEventListener("load", arrancar, { once: true });
+
+    const observador = new ResizeObserver(() => {
+      m?.redimensionar();
+      if (cuadroPintado >= 0) pintarCuadro(cuadroPintado);
+    });
+    observador.observe(canvas);
+    // Si cambia la preferencia de movimiento, el motor se reinicia con ella.
+    const alCambiarMovimiento = () => {
+      if (m) {
+        crearMotor();
+        medir();
+      }
+    };
+    media.addEventListener("change", alCambiarMovimiento);
+
+    return () => {
+      cancelado = true;
+      clearTimeout(temporizadorPulsacion);
+      clearTimeout(temporizadorInsinuar);
+      observador.disconnect();
+      media.removeEventListener("change", alCambiarMovimiento);
+      zona.removeEventListener("pointerenter", alEntrar);
+      zona.removeEventListener("pointermove", alMover);
+      zona.removeEventListener("pointerleave", alSalir);
+      zona.removeEventListener("pointerdown", alPulsar);
+      zona.removeEventListener("pointerup", alSoltar);
+      zona.removeEventListener("pointercancel", alSoltar);
+      zona.removeEventListener("touchmove", alTocarMover);
+      zona.removeEventListener("focus", alFoco);
+      zona.removeEventListener("blur", alDesenfocar);
+      window.removeEventListener("scroll", alScroll);
+      window.removeEventListener("resize", alScroll);
+      m?.destruir();
+      m = null;
+    };
+  }, []);
+
+  return (
+    <div
+      ref={marco}
+      className="retrato"
+      data-activo={activo || undefined}
+      data-listo={listo || undefined}
+      data-fase={fase}
+      tabIndex={0}
+      role="img"
+      aria-label="Retrato de Johan Santacruz. Al pasar el cursor, mantener pulsado o enfocar con el teclado se revela su versión tecnológica; al bajar, la versión tecnológica aparece entera y gira de perfil."
+    >
+      <img
+        className="retrato-normal"
+        src={`${RETRATO}normal.jpg`}
+        alt=""
+        draggable={false}
+        fetchPriority="high"
+        style={{ objectPosition: `${FOCO.x * 100}% ${FOCO.y * 100}%` }}
+      />
+      <canvas ref={lienzo} className="retrato-alter" aria-hidden="true" />
+      {/* HUD: datos que solo aparecen bajo la máscara del cursor. */}
+      {MOSTRAR_HUD && (
+        <div className="retrato-hud">
+          {HUD.map((d) => (
+            <p
+              key={d.etiqueta}
+              className={`hud-dato hud-${d.lado}${d.grande ? " hud-grande" : ""}`}
+              style={{ left: `${d.x}%`, top: `${d.y}%` }}
+            >
+              <span className="hud-etiqueta">{d.etiqueta}</span>
+              <span className="hud-valor">{d.valor}</span>
+            </p>
+          ))}
+          <p className="hud-frase">{FRASE}</p>
+        </div>
+      )}
+      <canvas
+        ref={lienzoSecuencia}
+        className="retrato-secuencia"
+        aria-hidden="true"
+      />
+      <span className="retrato-escaner" aria-hidden="true" />
+    </div>
+  );
+}

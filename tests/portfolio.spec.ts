@@ -1,99 +1,92 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-test("presentación y precios se abren con teclado y restauran el foco", async ({
-  page,
-}) => {
-  await page.goto("/");
-  for (const name of ["Presentación", "Precios"]) {
-    const opener = page
-      .getByRole("navigation")
-      .getByRole("button", { name, exact: true });
-    await opener.focus();
-    await page.keyboard.press("Enter");
-    await expect(page.getByRole("dialog")).toBeVisible();
-    await page.keyboard.press("Escape");
-    await expect(page.getByRole("dialog")).not.toBeVisible();
-    await expect(opener).toBeFocused();
-  }
-});
+const pintado = (page) =>
+  page.locator(".retrato-alter").evaluate((canvas: HTMLCanvasElement) => {
+    const ctx = canvas.getContext("2d")!;
+    const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let opacos = 0;
+    for (let i = 3; i < data.length; i += 4 * 97) if (data[i] > 40) opacos++;
+    return opacos;
+  });
 
-test("movimiento reducido muestra el poster y mantiene el video pausado", async ({
-  page,
-}) => {
-  await page.goto("/");
-  await expect(page.locator(".hero-poster")).toBeVisible();
-  await expect
-    .poll(() =>
-      page
-        .locator(".hero-video")
-        .evaluate((video: HTMLVideoElement) => video.paused),
-    )
-    .toBe(true);
-  await expect(page.locator(".hero-video")).toHaveAttribute("poster", /media/);
-});
-
-test("el video se pausa al salir del hero y vuelve al regresar", async ({
+test("el retrato revela el alter ego bajo el cursor y lo retira al salir", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
-  await expect
-    .poll(() =>
-      page
-        .locator(".hero-video")
-        .evaluate((video: HTMLVideoElement) => video.paused),
-    )
-    .toBe(false);
-  await page.locator("#contacto").scrollIntoViewIfNeeded();
-  await expect
-    .poll(() =>
-      page
-        .locator(".hero-video")
-        .evaluate((video: HTMLVideoElement) => video.paused),
-    )
-    .toBe(true);
-  await page.locator("#top").scrollIntoViewIfNeeded();
-  await expect
-    .poll(() =>
-      page
-        .locator(".hero-video")
-        .evaluate((video: HTMLVideoElement) => video.paused),
-    )
-    .toBe(false);
+  const retrato = page.locator(".retrato");
+  await expect(retrato).toHaveAttribute("data-listo", "true");
+  // Deja pasar la insinuación automática antes de medir.
+  await expect.poll(() => retrato.getAttribute("data-activo"), { timeout: 8000 }).toBe("true");
+  await expect.poll(() => retrato.getAttribute("data-activo"), { timeout: 8000 }).toBeNull();
+
+  const caja = (await retrato.boundingBox())!;
+  await page.mouse.move(caja.x + caja.width * 0.5, caja.y + caja.height * 0.45);
+  await expect(retrato).toHaveAttribute("data-activo", "true");
+  await expect.poll(() => pintado(page)).toBeGreaterThan(50);
+
+  // El retrato ocupa toda la ventana: salir de él es sacar el ratón de la
+  // página, que Playwright no puede hacer moviendo el puntero.
+  await retrato.dispatchEvent("pointerleave", { pointerType: "mouse" });
+  await expect(retrato).not.toHaveAttribute("data-activo", "true");
+  await expect.poll(() => pintado(page), { timeout: 3000 }).toBe(0);
 });
 
-test("contenido se revela al entrar en el viewport", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("/");
-  const title = page.locator("#titulo-trabajos");
-  await expect(title).toHaveCSS("opacity", "0");
-  await title.scrollIntoViewIfNeeded();
-  await expect(title).toHaveCSS("opacity", "1");
-});
-
-test("móvil permite abrir las ventanas sin navegación ni desbordamiento", async ({
+test("con movimiento reducido el revelado sigue funcionando", async ({
   page,
 }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  await expect(page.getByRole("navigation")).toBeHidden();
-  await page.getByRole("button", { name: "Conoce mi enfoque" }).click();
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await page.getByRole("button", { name: "Cerrar ventana" }).click();
-  await page.getByRole("button", { name: "Consultar precios" }).click();
-  await expect(page.getByRole("dialog")).toBeVisible();
-  for (const width of [320, 390, 760, 1024, 1440]) {
-    await page.setViewportSize({ width, height: 900 });
-    expect(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth,
-      ),
-    ).toBe(true);
-  }
+  const retrato = page.locator(".retrato");
+  await expect(retrato).toHaveAttribute("data-listo", "true");
+  await page.waitForTimeout(1600);
+  expect(await retrato.getAttribute("data-activo")).toBeNull();
+  const caja = (await retrato.boundingBox())!;
+  await page.mouse.move(caja.x + caja.width * 0.5, caja.y + caja.height * 0.45);
+  await expect.poll(() => pintado(page)).toBeGreaterThan(50);
 });
 
-test("landing y ventanas cumplen la auditoría automatizada de accesibilidad", async ({
+test("el retrato se revela con el teclado al recibir el foco", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.locator(".retrato").focus();
+  await expect(page.locator(".retrato")).toHaveAttribute("data-activo", "true");
+  await page.keyboard.press("Tab");
+  await expect(page.locator(".retrato")).not.toHaveAttribute("data-activo", "true");
+});
+
+test("en táctil, mantener pulsado revela sin desplazar la página", async ({
+  browser,
+}) => {
+  const contexto = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+    baseURL: "http://127.0.0.1:5199",
+  });
+  const page = await contexto.newPage();
+  await page.goto("/");
+  await expect(page.locator(".retrato")).toHaveAttribute("data-listo", "true");
+  const cdp = await contexto.newCDPSession(page);
+  await cdp.send("Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: [{ x: 195, y: 330 }],
+  });
+  await page.waitForTimeout(350);
+  for (let i = 1; i <= 6; i++)
+    await cdp.send("Input.dispatchTouchEvent", {
+      type: "touchMove",
+      touchPoints: [{ x: 195 + i * 10, y: 330 + i * 6 }],
+    });
+  await expect(page.locator(".retrato")).toHaveAttribute("data-activo", "true");
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await expect(page.locator(".retrato")).not.toHaveAttribute("data-activo", "true");
+  await contexto.close();
+});
+
+test("la página cumple la auditoría automatizada de accesibilidad", async ({
   page,
 }) => {
   await page.goto("/");
@@ -112,78 +105,59 @@ test("landing y ventanas cumplen la auditoría automatizada de accesibilidad", a
     ).toEqual([]);
   };
   await audit();
-  await page
-    .getByRole("navigation")
-    .getByRole("button", { name: "Precios", exact: true })
-    .click();
+  // Y con las herramientas a la vista.
+  await page.evaluate(() =>
+    window.scrollTo(0, document.getElementById("herramientas")!.offsetTop),
+  );
+  await expect(page.locator(".herr-grupo").first()).toHaveAttribute("data-estado", "activo");
+  await audit();
+  // Y con el cierre ya revelado.
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await expect(page.locator("#contacto")).toHaveAttribute("data-texto", "");
   await audit();
 });
 
-test("el video del panel solo corre cuando la sección está a la vista", async ({
+test("al bajar, la portada revela el alter ego, reproduce la secuencia y vuelve", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
-  const panel = page.locator(".plano-video");
+  const retrato = page.locator(".retrato");
+  await expect(retrato).toHaveAttribute("data-listo", "true");
+  const { recorrido, alto } = await page.evaluate(() => ({
+    recorrido:
+      document.querySelector(".campana-hero")!.getBoundingClientRect().height -
+      innerHeight,
+    alto: innerHeight,
+  }));
+  expect(recorrido).toBeGreaterThan(alto);
+
+  // Mitad del tramo de revelado: el alter ego asoma sin puntero.
+  await page.evaluate((y) => window.scrollTo(0, y), recorrido * 0.15);
+  await expect(retrato).toHaveAttribute("data-fase", "revelado");
+  await expect.poll(() => pintado(page)).toBeGreaterThan(50);
+
+  // Dentro del vídeo: la secuencia pinta y la portada sigue fija.
+  await page.evaluate((y) => window.scrollTo(0, y), recorrido * 0.6);
+  await expect(retrato).toHaveAttribute("data-fase", "secuencia");
   await expect
-    .poll(() => panel.evaluate((video: HTMLVideoElement) => video.paused))
-    .toBe(true);
-  await page.locator("#enfoque").scrollIntoViewIfNeeded();
-  await expect
-    .poll(() => panel.evaluate((video: HTMLVideoElement) => video.paused))
-    .toBe(false);
-  await page.locator("#contacto").scrollIntoViewIfNeeded();
-  await expect
-    .poll(() => panel.evaluate((video: HTMLVideoElement) => video.paused))
-    .toBe(true);
-});
+    .poll(() =>
+      page.locator(".retrato-secuencia").evaluate((c: HTMLCanvasElement) => {
+        const d = c.getContext("2d")!.getImageData(0, 0, c.width, c.height).data;
+        let opacos = 0;
+        for (let i = 3; i < d.length; i += 4 * 97) if (d[i] > 40) opacos++;
+        return opacos;
+      }),
+    )
+    .toBeGreaterThan(200);
+  expect(
+    await page.evaluate(() => document.querySelector(".hero-fijo")!.getBoundingClientRect().top),
+  ).toBe(0);
 
-test("la portada se despide al bajar y se queda quieta con movimiento reducido", async ({
-  page,
-}) => {
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("/");
-  const opacidad = () =>
-    page
-      .locator(".hero-contenido")
-      .evaluate((nodo) => Number(getComputedStyle(nodo).opacity));
-  expect(await opacidad()).toBeCloseTo(1, 1);
-  await page.evaluate(() => window.scrollTo(0, 450));
-  await expect.poll(opacidad).toBeLessThan(0.6);
-
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.reload();
-  await page.evaluate(() => window.scrollTo(0, 450));
-  await expect.poll(opacidad).toBe(1);
-});
-
-test("los bloques giran hacia atrás al salir y vuelven al subir", async ({
-  page,
-}) => {
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("/");
-  const titulo = page.locator("#titulo-editorial");
-  const atras = () =>
-    titulo.evaluate((nodo) =>
-      Number(getComputedStyle(nodo).getPropertyValue("--atras")),
-    );
-
-  await titulo.scrollIntoViewIfNeeded();
-  await page.evaluate(() => window.scrollBy(0, -200));
-  await expect.poll(atras).toBe(0);
-
-  // Al subir por la franja alta, el bloque gira y se aleja.
-  await page.evaluate(() => window.scrollTo(0, 1080));
-  await expect.poll(atras).toBeGreaterThan(0.5);
-  const girado = await titulo.evaluate(
-    (nodo) => getComputedStyle(nodo).transform,
-  );
-  expect(girado).toContain("matrix3d");
-
-  // Y volver arriba lo devuelve exactamente a su sitio: no hay estado.
+  // Y subir deja todo como al principio: no hay estado.
   await page.evaluate(() => window.scrollTo(0, 0));
-  await expect.poll(atras).toBe(0);
-  await expect(titulo).toHaveCSS("filter", "none");
+  await expect(retrato).toHaveAttribute("data-fase", "mascara");
+  await expect.poll(() => pintado(page), { timeout: 3000 }).toBe(0);
 });
 
 const anchos = [320, 390, 768, 1024, 1440, 2560];
@@ -211,25 +185,20 @@ test("ningún ancho produce desbordamiento horizontal", async ({ page }) => {
   }
 });
 
-test("en apaisado el titular cabe entero bajo la cabecera", async ({
-  page,
-}) => {
+test("en apaisado el retrato cubre la portada entera", async ({ page }) => {
   await page.setViewportSize({ width: 667, height: 375 });
   await page.goto("/");
   const medidas = await page.evaluate(() => {
-    const caja = (s) => document.querySelector(s)?.getBoundingClientRect();
-    const h1 = caja("h1");
-    const cabecera = caja(".campana-header");
+    const retrato = document.querySelector(".retrato")?.getBoundingClientRect();
     return {
-      titularArriba: Math.round(h1?.top ?? -1),
-      titularAbajo: Math.round(h1?.bottom ?? -1),
-      cabeceraAbajo: Math.round(cabecera?.bottom ?? 0),
+      retratoAlto: Math.round(retrato?.height ?? 0),
+      retratoAncho: Math.round(retrato?.width ?? 0),
       alto: window.innerHeight,
+      ancho: window.innerWidth,
     };
   });
-  // Ni cortado por arriba, ni por debajo del borde, ni encima de la cabecera.
-  expect(medidas.titularArriba).toBeGreaterThanOrEqual(medidas.cabeceraAbajo);
-  expect(medidas.titularAbajo).toBeLessThanOrEqual(medidas.alto);
+  expect(medidas.retratoAlto).toBe(medidas.alto);
+  expect(medidas.retratoAncho).toBe(medidas.ancho);
 });
 
 test("no queda texto por debajo de 10px", async ({ page }) => {
@@ -247,27 +216,113 @@ test("no queda texto por debajo de 10px", async ({ page }) => {
   expect(diminutos).toEqual([]);
 });
 
-test("la landing completa de un trabajo se abre, se recorre y devuelve el foco", async ({
+test("las herramientas pasan por el lector una categoría cada vez", async ({
   page,
 }) => {
   await page.goto("/");
-  const abridor = page
-    .getByRole("button", { name: /Ver la landing completa/i })
-    .first();
-  await abridor.scrollIntoViewIfNeeded();
+  const seccion = page.locator("#herramientas");
+  const grupos = page.locator(".herr-grupo");
+  await expect(grupos).toHaveCount(6);
+  // Todas las herramientas llevan logo.
+  const placas = await page.locator(".herr-placa").count();
+  expect(placas).toBeGreaterThan(20);
+  await expect(page.locator(".herr-placa .herr-logo")).toHaveCount(placas);
+
+  const { inicio, largo } = await seccion.evaluate((s) => ({
+    inicio: s.offsetTop,
+    largo: s.offsetHeight - innerHeight,
+  }));
+  const activos = () =>
+    page.locator('.herr-grupo[data-estado="activo"] .herr-titulo').allTextContents();
+
+  // Al entrar: la primera categoría, y solo esa.
+  await page.evaluate((y) => window.scrollTo(0, y), inicio);
+  await expect.poll(activos).toEqual(["Lenguajes"]);
+  // La sección queda fija mientras se recorre.
+  await page.evaluate((y) => window.scrollTo(0, y), inicio + largo * 0.5);
+  expect(
+    await page.evaluate(() => document.querySelector(".herr-fijo")!.getBoundingClientRect().top),
+  ).toBe(0);
+  // Al final: la última.
+  await page.evaluate((y) => window.scrollTo(0, y), inicio + largo);
+  await expect.poll(activos).toEqual(["Control de versiones"]);
+  // Y subir vuelve atrás: no hay estado.
+  await page.evaluate((y) => window.scrollTo(0, y), inicio);
+  await expect.poll(activos).toEqual(["Lenguajes"]);
+});
+
+test("el cierre sale de la niebla con el scroll y deja el contacto a mano", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const cierre = page.locator("#contacto");
+  const { inicio, largo } = await cierre.evaluate((s) => ({
+    inicio: s.offsetTop,
+    largo: s.offsetHeight - innerHeight,
+  }));
+  const velo = () =>
+    page
+      .locator(".cierre-niebla")
+      .evaluate((n) => Number(getComputedStyle(n).backgroundColor.match(/[\d.]+(?=\))/)?.[0] ?? 1));
+  const pintado = () =>
+    page.locator(".cierre-video").evaluate((c: HTMLCanvasElement) => c.width > 0);
+
+  // Al entrar: la niebla lo tapa todo.
+  await page.evaluate((y) => window.scrollTo(0, y), inicio);
+  await expect.poll(velo).toBeGreaterThan(0.95);
+  expect(await cierre.getAttribute("data-texto")).toBeNull();
+
+  // Al final: sin niebla, con el vídeo pintado y el correo a la vista.
+  await page.evaluate((y) => window.scrollTo(0, y), inicio + largo);
+  await expect(cierre).toHaveAttribute("data-texto", "");
+  await expect.poll(velo).toBe(0);
+  await expect.poll(pintado).toBe(true);
+  await expect(page.getByRole("link", { name: /Escríbeme/ })).toHaveAttribute(
+    "href",
+    /^mailto:/,
+  );
+});
+
+test("la cabecera marca el apartado visible y lleva a cada uno", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const nav = page.getByRole("navigation", { name: "Apartados" });
+  const actual = () =>
+    nav.locator('[aria-current="location"]').textContent();
+  await expect.poll(actual).toBe("Inicio");
+  await page.evaluate(() =>
+    window.scrollTo(0, document.getElementById("herramientas")!.offsetTop + 50),
+  );
+  await expect.poll(actual).toBe("Herramientas");
+  await nav.getByRole("link", { name: "Contacto" }).click();
+  await expect.poll(actual).toBe("Contacto");
+});
+
+test("los proyectos se encienden al pasar por el centro y abren su ficha", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const filas = page.locator(".proy-fila");
+  await expect(filas).toHaveCount(4);
+  const luz = (i: number) =>
+    filas.nth(i).evaluate((f) => Number(f.style.getPropertyValue("--luz")));
+
+  // Con la segunda fila en el centro de la pantalla, es la que brilla.
+  await filas.nth(1).evaluate((f) => {
+    const c = f.getBoundingClientRect();
+    window.scrollBy(0, c.top + c.height / 2 - innerHeight / 2);
+  });
+  await expect.poll(() => luz(1)).toBeGreaterThan(0.9);
+  expect(await luz(0)).toBeLessThan(0.2);
+
+  const abridor = filas.nth(1).getByRole("button");
   await abridor.focus();
   await page.keyboard.press("Enter");
-
-  const ventana = page.locator("dialog.ventana-landing");
+  const ventana = page.locator("dialog.proy-ventana");
   await expect(ventana).toBeVisible();
-  await expect(ventana.locator("img")).toBeVisible();
-
-  // El lienzo tiene que poder recorrerse: es una página entera.
-  const recorrible = await page
-    .locator(".landing-lienzo")
-    .evaluate((nodo) => nodo.scrollHeight > nodo.clientHeight + 10);
-  expect(recorrible).toBe(true);
-
+  await expect(ventana.getByRole("heading", { name: "Oculus Auditor" })).toBeVisible();
+  await expect(ventana.locator(".proy-landing img")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(ventana).not.toBeVisible();
   await expect(abridor).toBeFocused();

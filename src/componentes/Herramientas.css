@@ -1,0 +1,417 @@
+/* --- Herramientas -----------------------------------------------------------
+   Un lector de palabras: la sección mide 100svh + media pantalla larga por
+   categoría, y su contenido queda fijo mientras la lista pasa por el centro.
+   --p (0 a N−1) lo escribe Herramientas.tsx con el scroll. */
+.herramientas {
+  --p: 0;
+  --n: 6;
+  --tinta: #1d1f22;
+  --fila: 0.9em;
+  position: relative;
+  height: calc(100svh + var(--n) * 55svh);
+  background: #fdfdfe;
+  color: var(--ink);
+  font-family: "Chakra Petch", var(--display);
+}
+.herr-fijo {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: clip;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  align-items: center;
+  column-gap: clamp(32px, 4vw, 72px);
+  padding-inline: max(var(--aire), (100% - var(--ancho)) / 2);
+}
+/* Rejilla de plano, muy tenue, que se apaga hacia los bordes. */
+.herr-fijo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(23, 24, 21, 0.045) 1px, transparent 1px) 0 0 / 64px 64px,
+    linear-gradient(90deg, rgba(23, 24, 21, 0.045) 1px, transparent 1px) 0 0 / 64px 64px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 65% at 55% 50%, #000 20%, transparent 80%);
+  mask-image: radial-gradient(ellipse 70% 65% at 55% 50%, #000 20%, transparent 80%);
+}
+
+/* Rótulo y título, pequeños arriba: la lista es la protagonista. */
+.herr-cabecera {
+  position: absolute;
+  z-index: 2;
+  top: clamp(32px, 6vh, 64px);
+  left: max(var(--aire), (100% - var(--ancho)) / 2);
+}
+.herr-rotulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(23, 24, 21, 0.6);
+}
+.herr-rotulo::before {
+  content: "";
+  width: 22px;
+  height: 3px;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px rgba(23, 24, 21, 0.25);
+}
+.herr-cabecera h2 {
+  margin-top: 8px;
+  font-weight: 700;
+  font-size: clamp(18px, 1.6vw, 24px);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--tinta);
+}
+
+/* --- El lector ---------------------------------------------------------------
+   La columna se desplaza para que la palabra p quede en el centro, junto a la
+   marca. Cada palabra calcula su distancia al centro (d) y de ahí su relleno:
+   encendida en el centro, en contorno a una fila, apagándose más lejos. */
+.herr-lector {
+  position: relative;
+  height: 100%;
+  font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
+  font-weight: 700;
+  font-size: clamp(44px, min(6.4vw, 12.5vh), 120px);
+  line-height: 1;
+  text-transform: uppercase;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 14%,
+    #000 38%,
+    #000 66%,
+    transparent 94%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 14%,
+    #000 38%,
+    #000 66%,
+    transparent 94%
+  );
+}
+.herr-palabras {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 calc(0.3em + 18px);
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translate3d(
+    0,
+    calc(var(--fila) * -0.5 - var(--p) * var(--fila)),
+    0
+  );
+  will-change: transform;
+}
+.herr-palabras li {
+  --d: max(var(--i) - var(--p), var(--p) - var(--i));
+  --luz: clamp(0, 1 - var(--d) * 1.6, 1);
+  height: var(--fila);
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  letter-spacing: 0.005em;
+  /* Encendida: tinta llena. Apagada: solo el contorno. */
+  color: rgb(29 31 34 / var(--luz));
+  -webkit-text-stroke: 1.2px rgb(29 31 34 / calc(0.22 + var(--luz) * 0.78));
+  opacity: clamp(0.15, 1 - var(--d) * 0.22, 1);
+  transform: translate3d(calc(var(--luz) * 10px), 0, 0);
+}
+/* Cabezal de lectura: fijo en el centro; las palabras pasan por él. */
+.herr-marca {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 50%;
+  width: 0.3em;
+  height: calc(var(--fila) * 0.62);
+  translate: 0 -50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px rgba(23, 24, 21, 0.3);
+  clip-path: polygon(0 0, 100% 0, 100% 72%, 72% 100%, 0 100%);
+}
+
+/* --- La bandeja --------------------------------------------------------------
+   Todos los grupos en la misma celda; solo el activo se ve. Cada grupo ocupa
+   la altura entera: las placas en el centro (a la altura de la palabra) y la
+   consola abajo. */
+.herr-bandeja {
+  position: relative;
+  height: 100%;
+  display: grid;
+}
+.herr-grupo {
+  grid-area: 1 / 1;
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+}
+.herr-grupo > ul {
+  grid-row: 2;
+}
+.herr-titulo {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.herr-grupo ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Placa: acero oscuro achaflanado con filete lima, como la de la portada. */
+.herr-placa {
+  --chaflan: polygon(
+    0 0,
+    calc(100% - 10px) 0,
+    100% 10px,
+    100% 100%,
+    10px 100%,
+    0 calc(100% - 10px)
+  );
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 20px 12px 17px;
+  font-weight: 600;
+  font-size: clamp(15px, 1.2vw, 18px);
+  letter-spacing: 0.03em;
+  color: #eef0f2;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.045) 0 1px,
+      transparent 1px 4px
+    ),
+    linear-gradient(135deg, #2a2e34, #16181c);
+  box-shadow: inset 3px 0 0 var(--accent);
+  clip-path: var(--chaflan);
+}
+.herr-logo {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  background: currentColor;
+  -webkit-mask: var(--logo) center / contain no-repeat;
+  mask: var(--logo) center / contain no-repeat;
+  transition: background 0.2s ease;
+}
+.herr-placa:hover .herr-logo {
+  background: var(--accent);
+}
+
+/* Estados. Las que se van salen en la dirección del scroll, rápidas y a la
+   vez; las que llegan se imprimen de izquierda a derecha, en cascada. */
+.herr-grupo .herr-placa {
+  opacity: 0;
+  clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+  transition:
+    opacity 0.18s ease,
+    transform 0.28s ease,
+    clip-path 0.28s ease;
+}
+.herr-grupo[data-estado="antes"] .herr-placa {
+  transform: translate3d(0, -22px, 0);
+}
+.herr-grupo[data-estado="despues"] .herr-placa {
+  transform: translate3d(0, 22px, 0);
+}
+.herr-grupo[data-estado="activo"] .herr-placa {
+  opacity: 1;
+  transform: none;
+  clip-path: var(--chaflan);
+  transition:
+    opacity 0.2s ease calc(0.12s + var(--i) * 45ms),
+    transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) calc(0.12s + var(--i) * 45ms),
+    clip-path 0.45s cubic-bezier(0.7, 0, 0.2, 1) calc(0.12s + var(--i) * 45ms);
+}
+/* Mientras no está activo, un grupo no recibe el ratón. */
+.herr-grupo:not([data-estado="activo"]) {
+  pointer-events: none;
+}
+
+/* --- Consola -----------------------------------------------------------------
+   Una placa larga y baja, abajo a la derecha. La orden se teclea carácter a
+   carácter (steps con su longitud) y la respuesta aparece después. */
+.herr-consola {
+  grid-row: 3;
+  align-self: end;
+  margin-bottom: clamp(40px, 9vh, 96px);
+  padding: 16px 20px 15px 20px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 500;
+  font-size: clamp(12px, 0.95vw, 14px);
+  line-height: 1.7;
+  color: #1d1f22;
+  background: rgba(23, 24, 21, 0.035);
+  box-shadow:
+    inset 3px 0 0 var(--accent),
+    inset 0 0 0 1px rgba(23, 24, 21, 0.08);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  );
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.herr-consola p {
+  display: flex;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.herr-consola span {
+  display: inline-block;
+  clip-path: inset(0 100% 0 0);
+}
+.herr-salida {
+  color: rgba(23, 24, 21, 0.6);
+}
+/* Cursor lima al final de la orden. */
+.herr-orden::after {
+  content: "";
+  width: 0.55em;
+  height: 1.1em;
+  margin: auto 0 auto 2px;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px rgba(23, 24, 21, 0.25);
+  animation: herr-cursor 1s steps(2, jump-none) infinite;
+}
+@keyframes herr-cursor {
+  50% {
+    opacity: 0;
+  }
+}
+.herr-grupo[data-estado="activo"] .herr-consola {
+  opacity: 1;
+  transition-delay: 0.2s;
+}
+.herr-grupo[data-estado="activo"] .herr-orden span {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path calc(var(--largo) * 28ms) steps(var(--largo)) 0.35s;
+}
+.herr-grupo[data-estado="activo"] .herr-salida span {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 0.3s ease calc(0.5s + var(--largo) * 28ms);
+}
+
+/* --- Riel de progreso: una muesca por categoría, la actual en lima. -------- */
+.herr-riel {
+  position: absolute;
+  right: max(var(--aire), (100% - var(--ancho)) / 2);
+  top: 50%;
+  translate: 0 -50%;
+  display: grid;
+  gap: 10px;
+}
+.herr-riel span {
+  --d: max(var(--i) - var(--p), var(--p) - var(--i));
+  --luz: clamp(0, 1 - var(--d) * 1.6, 1);
+  display: block;
+  width: calc(8px + var(--luz) * 14px);
+  height: 3px;
+  margin-left: auto;
+  background: color-mix(
+    in srgb,
+    var(--accent) calc(var(--luz) * 100%),
+    rgba(23, 24, 21, 0.18)
+  );
+  box-shadow: 0 0 0 1px rgb(23 24 21 / calc(var(--luz) * 0.25));
+}
+
+/* --- Pantallas estrechas: lector arriba, bandeja abajo. -------------------- */
+@media (max-width: 860px) {
+  .herr-fijo {
+    grid-template-columns: 1fr;
+    grid-template-rows: 62svh auto;
+    align-content: start;
+    align-items: stretch;
+  }
+  .herr-lector {
+    /* La palabra más larga («Control de versiones») cabe entera a 320 px. */
+    font-size: clamp(30px, 9.6vw, 76px);
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 30%,
+      #000 52%,
+      #000 76%,
+      transparent 98%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 30%,
+      #000 52%,
+      #000 76%,
+      transparent 98%
+    );
+  }
+  .herr-palabras,
+  .herr-marca {
+    top: 72%;
+  }
+  .herr-bandeja {
+    height: auto;
+    padding-top: 14px;
+  }
+  .herr-grupo {
+    grid-template-rows: auto;
+    align-content: start;
+  }
+  .herr-grupo > ul {
+    grid-row: auto;
+  }
+  .herr-consola {
+    grid-row: auto;
+    margin: 18px 0 0;
+    font-size: 11px;
+    padding: 12px 14px 11px;
+  }
+  .herr-grupo ul {
+    gap: 8px;
+  }
+  .herr-placa {
+    font-size: 14px;
+    gap: 8px;
+    padding: 9px 14px 8px 12px;
+  }
+  .herr-logo {
+    width: 16px;
+    height: 16px;
+  }
+  .herr-riel {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .herr-grupo[data-estado="activo"] .herr-orden span,
+  .herr-grupo[data-estado="activo"] .herr-salida span {
+    transition: none;
+  }
+  .herr-grupo .herr-placa,
+  .herr-grupo[data-estado="activo"] .herr-placa {
+    transition: none;
+  }
+  .herr-grupo[data-estado] .herr-placa {
+    transform: none;
+  }
+}

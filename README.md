@@ -1,7 +1,8 @@
 # Johan Balanta — Ideas que toman forma
 
-Portafolio en React, TypeScript y Vite. Landing con portada en video, sección
-editorial, cuatro trabajos con capturas reales y cierre de contacto.
+Portafolio en React, TypeScript y Vite. Landing con un retrato interactivo a
+pantalla completa en la portada, sección editorial, cuatro trabajos con
+capturas reales y cierre de contacto.
 Presentación, precios y la página completa de cada trabajo se consultan en
 ventanas nativas, sin páginas adicionales.
 
@@ -27,8 +28,9 @@ npm test
 ```
 
 Las pruebas cubren apertura y cierre de ventanas con teclado, restauración de
-foco, movimiento reducido, pausa y reproducción del video según visibilidad,
-revelados al desplazarse, ausencia de desbordamiento y auditoría axe.
+foco, el revelado del retrato (ratón, táctil, teclado y movimiento reducido),
+pausa y reproducción del video según visibilidad, revelados al desplazarse,
+ausencia de desbordamiento y auditoría axe.
 
 ## Editar la campaña
 
@@ -42,6 +44,71 @@ revelados al desplazarse, ausencia de desbordamiento y auditoría axe.
 Los componentes de la versión anterior y sus datos se conservan en `src/`,
 pero la landing actual solo monta `Campana`. No hay selector de tema: la
 composición utiliza una paleta fija clara y un cierre oscuro.
+
+## Retrato interactivo
+
+La portada es un retrato con dos identidades: la foto normal y, debajo, un
+alter ego tecnológico que aparece solo bajo el puntero (en táctil, manteniendo
+pulsado o arrastrando en horizontal; con teclado, al enfocar el retrato).
+
+- `src/componentes/Retrato.tsx`: DOM, gestos y estados.
+- `src/retrato/motor.ts`: la máscara en canvas. Muelles para posición y radio;
+  la velocidad del puntero gobierna deformación, estiramiento, partículas,
+  estela y cortes. Con `prefers-reduced-motion` queda un círculo suave que
+  sigue al puntero sin efectos.
+- `public/imagenes/retrato/normal.jpg` y `alter.jpg`: las dos capas, con la
+  proporción de la foto original. Deben tener el mismo encuadre exacto; la
+  portada las recorta con `object-fit: cover` y el punto focal (`FOCO` en
+  `Retrato.tsx`) es el mismo para las dos.
+
+El alter ego actual es una imagen generada con IA (image-to-image a partir
+de la foto) y alineada con `scripts/alinear-alter.mjs`, que escala y desplaza
+la imagen hasta que sus pupilas caen sobre las de `normal.jpg`:
+
+```bash
+node scripts/alinear-alter.mjs ruta/al/alter.png \
+  --ojos-normal 743,379 897,380 \
+  --ojos-alter 2562,1075 3002,1075
+```
+
+Además escribe `alter-mezcla.jpg` (las dos capas al 50 %) para comprobar la
+alineación a ojo; se borra después.
+
+Si no tienes un alter ego hecho fuera, `scripts/retrato.mjs` genera uno a
+partir de la propia foto, en cinco estilos (`--estilo circuitos|duotono|
+wireframe|ascii|holograma`, o `--opciones` para verlos todos en una hoja de
+contacto):
+
+```bash
+node scripts/retrato.mjs ruta/a/tu-foto.jpg --estilo duotono
+```
+
+**Recorrido con scroll.** La portada mide 350svh y su contenido va fijo
+(`.hero-fijo`, sticky). El retrato lee cuánto se ha bajado: en el primer 30 %
+el alter ego se revela entero (un círculo que crece desde el puntero) y en el
+resto avanza una secuencia de fotogramas, `public/imagenes/retrato/secuencia/
+f000.jpg … f120.jpg`, que es el vídeo del alter ego girando de perfil. Al
+final se queda en el último fotograma y la página sigue. Los fotogramas se
+cargan después de la primera pintura, de cuatro en cuatro.
+
+La secuencia sale de `video1.mp4` recortada al encuadre exacto de `normal.jpg`
+(mismo método que el alter ego: pupilas medidas en el primer fotograma, escala
+2,11 y desplazamiento −101, 0; el vídeo va 11 px más arriba que la foto, que
+no se nota y evita rellenar el borde superior). Para regenerarla con otro vídeo del mismo
+encuadre:
+
+```bash
+ffmpeg -i video1.mp4 \
+  -vf "format=rgb24,scale=1823:1047:flags=lanczos,crop=1672:941:101:0,scale=1280:720:flags=lanczos,unsharp=5:5:0.5:5:5:0,format=yuvj420p" \
+  -start_number 0 -q:v 4 public/imagenes/retrato/secuencia/f%03d.jpg
+```
+
+Si cambia el número de fotogramas, ajusta `FOTOGRAMAS` en `Retrato.tsx`.
+
+Ese mismo script es el que produce `normal.jpg` (la foto con su proporción,
+lado largo limitado a 2000 px). La foto actual es apaisada con fondo blanco, y
+el hero toma ese blanco como fondo para que los bordes que no cubra se fundan
+con ella.
 
 ## Trabajos
 
@@ -58,9 +125,9 @@ versiones a resolución completa quedan fuera del repositorio, en `capturas/`.
 En `public/media/` hay dos bucles, ambos recortados, acelerados y recomprimidos
 para web, con su póster:
 
-- `flujo-loop.mp4` — portada. [Elegant Abstract White Flowing Background Loop](https://www.pexels.com/video/elegant-abstract-white-flowing-background-loop-37014005/),
-  de Chandresh Uike (Pexels). Lleva una curva de tonos aplicada en la
-  codificación para que la estructura se lea sobre el fondo oscuro.
+- `flujo-loop.mp4` — antigua portada, hoy sin uso (la portada es el retrato).
+  [Elegant Abstract White Flowing Background Loop](https://www.pexels.com/video/elegant-abstract-white-flowing-background-loop-37014005/),
+  de Chandresh Uike (Pexels).
 - `tinta-loop.mp4` — panel de la sección Enfoque. [Abstract Image of a Black and White Ink](https://www.pexels.com/video/abstract-image-of-a-black-and-white-ink-3051492/),
   de Dan Cristian Pădureț (Pexels). El bucle cierra con un fundido del final
   contra el inicio, sin corte visible.
@@ -74,8 +141,8 @@ rechaza el autoplay (Safari en ahorro de energía), se reintenta al primer gesto
 Tres sistemas, todos función pura de la posición del scroll y todos anulados con
 `prefers-reduced-motion`:
 
-- La portada se despide: el video se queda atrás, el texto sube y se desvanece,
-  y el fondo se funde a negro antes de que entre la sección clara.
+- La portada es un recorrido: revela el alter ego y avanza el vídeo con el
+  scroll, y todo vuelve al subir.
 - Los bloques giran hacia atrás en 3D al salir por arriba, como los tablones de
   una rueda, y vuelven intactos al subir.
 - Los contenidos aparecen al entrar en pantalla, una sola vez.
@@ -94,3 +161,28 @@ nombre) y una semana para video e imágenes. Netlify entiende el mismo archivo.
 
 Para publicar en una subruta (GitHub Pages bajo `/portafolio/`), cambia `base`
 en `vite.config.ts` antes de compilar: las rutas de video e imágenes la usan.
+
+## Cierre
+
+La última sección (`src/componentes/Cierre.tsx`) es otro recorrido con
+scroll: la figura con armadura sale de la niebla a la luz y, al final, entra
+el contacto (correo, copiar correo y GitHub).
+
+- Los fotogramas están en `public/imagenes/cierre/f000.jpg … f119.jpg`: salen
+  de `video3.mp4` (la versión en 4K) a 12 por segundo y 1600×900, con los
+  niveles subidos para llevar su fondo gris claro a blanco puro y un enfoque
+  suave. El vídeo se pinta con `mix-blend-mode: multiply`
+  y bordes fundidos, así que no se ve su recuadro sobre el blanco de la página.
+- La niebla es CSS (`.cierre-niebla`): un velo blanco que se retira pronto y
+  bancos de bruma que derivan y se disipan más tarde.
+- Los fotogramas solo se cargan cuando la sección se acerca.
+
+Para regenerarlos con otro vídeo:
+
+```bash
+ffmpeg -i video3.mp4 \
+  -vf "fps=12,scale=1600:900:flags=lanczos,format=rgb24,colorlevels=rimax=0.78:gimax=0.8:bimax=0.8,unsharp=5:5:0.3:5:5:0,format=yuvj420p" \
+  -start_number 0 -q:v 4 public/imagenes/cierre/f%03d.jpg
+```
+
+Si cambia el número de fotogramas, ajusta `FOTOGRAMAS` en `Cierre.tsx`.
