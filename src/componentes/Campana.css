@@ -6,8 +6,6 @@
   --hero-fondo: #fdfdfe;
   /* Cuánto se ha recorrido la portada (0 a 1); lo escribe el retrato. */
   --avance: 0;
-  /* Apertura de la terminal (también la usa el velo de móvil). */
-  --abrir: clamp(0, (var(--avance) - 0.5) / 0.06, 1);
   position: relative;
   /* 100svh a la vista + el recorrido con el contenido fijo (más corto en
      pantallas táctiles, ver abajo). */
@@ -27,128 +25,71 @@
   position: absolute;
   inset: 0;
 }
-/* --- Terminal --------------------------------------------------------------------
-   Entra por la izquierda cuando la figura ya se ha ido a la derecha. Es una
-   placa de acero como las de herramientas; dentro, cada línea aparece en su
-   tramo del recorrido: las órdenes se teclean letra a letra (ancho en ch
-   redondeado hacia abajo) y las salidas aparecen de golpe, como en una
-   terminal de verdad. Todo sale de --avance: al subir, se "desteclea". */
-.hero-terminal {
+/* --- Línea de comandos ------------------------------------------------------
+   Sin caja: entra cuando la figura se ha ido a la derecha. La orden y el
+   nombre se teclean letra a letra con el scroll (ancho en ch, redondeado a
+   caracteres enteros) y el rol aparece al final, como un comentario. */
+.hero-cli {
   position: absolute;
   z-index: 2;
   left: max(var(--aire), (100% - var(--ancho)) / 2);
   top: 50%;
-  width: min(38vw, 580px);
+  translate: 0 -50%;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  color: #eef0f2;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.03) 0 1px,
-      transparent 1px 4px
-    ),
-    linear-gradient(135deg, #22262c, #121417);
-  box-shadow:
-    inset 3px 0 0 var(--accent),
-    0 30px 60px -30px rgba(11, 12, 14, 0.55);
-  clip-path: polygon(
-    0 0,
-    calc(100% - 18px) 0,
-    100% 18px,
-    100% 100%,
-    18px 100%,
-    0 calc(100% - 18px)
-  );
-  opacity: var(--abrir);
-  transform: translate3d(calc((1 - var(--abrir)) * -40px), -50%, 0)
-    scale(calc(0.96 + var(--abrir) * 0.04));
-  transform-origin: 0 50%;
+  color: #1d1f22;
   pointer-events: none;
 }
-.term-barra {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 18px;
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  color: rgba(238, 240, 242, 0.5);
-  border-bottom: 1px solid rgba(238, 240, 242, 0.08);
-}
-/* Tres pilotos cuadrados; el último, lima. */
-.term-luces {
-  display: flex;
-  gap: 6px;
-}
-.term-luces i {
-  width: 8px;
-  height: 8px;
-  background: rgba(238, 240, 242, 0.22);
-}
-.term-luces i:last-child {
-  background: var(--accent);
-}
-.term-cuerpo {
-  padding: clamp(16px, 2vw, 26px) clamp(18px, 2.2vw, 30px) clamp(20px, 2.4vw, 30px);
-  font-size: clamp(13px, 1.05vw, 16px);
-  line-height: 1.6;
-}
 .term-orden {
-  --t: clamp(0, (var(--avance) - var(--ini)) / (var(--fin, 1) - var(--ini)), 1);
+  --t: clamp(0, (var(--avance) - var(--ini)) / (var(--fin) - var(--ini)), 1);
   display: flex;
   gap: 0.8ch;
   white-space: nowrap;
+  font-size: clamp(14px, 1.15vw, 17px);
+  color: rgba(23, 24, 21, 0.62);
   opacity: clamp(0, (var(--avance) - var(--ini)) * 400, 1);
 }
-.term-orden + .term-salida,
-.term-salida + .term-orden {
-  margin-top: 0.4em;
-}
 .term-prompt {
-  color: var(--accent);
+  color: #6a8f00;
+  font-weight: 700;
 }
-/* Tecleo: el ancho crece de carácter en carácter (1ch en monoespaciada). */
-.term-tecleo {
+.term-tecleo,
+.cli-tecleo {
+  --t: clamp(0, (var(--avance) - var(--ini)) / (var(--fin) - var(--ini)), 1);
   display: inline-block;
   overflow: hidden;
+  white-space: nowrap;
+  vertical-align: bottom;
   width: calc(var(--t) * var(--letras) * 1ch);
   width: round(down, calc(var(--t) * var(--letras) * 1ch), 1ch);
 }
-.term-salida {
-  opacity: clamp(0, (var(--avance) - var(--ini)) * 400, 1);
-}
-.term-nombre {
-  margin: 0.1em 0 0.15em;
+.cli-nombre {
+  display: flex;
+  align-items: flex-end;
+  margin-top: 6px;
   font-family: "JetBrains Mono", ui-monospace, monospace;
   font-weight: 700;
-  font-size: clamp(28px, 3.2vw, 52px);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  color: #fff;
+  font-size: clamp(30px, 4.2vw, 68px);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
 }
-.term-rol {
-  color: var(--accent);
-  font-weight: 700;
-}
-.term-lista {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 3ch;
-  color: rgba(238, 240, 242, 0.78);
-}
-/* Directorios en azul, como los pinta ls. */
-.term-lista span {
-  color: #8fd3ff;
-}
-.term-espera {
-  margin-top: 0.4em;
-}
-.term-cursor {
-  width: 0.62em;
-  height: 1.15em;
-  margin-top: 0.2em;
+.cli-cursor {
+  width: 0.55ch;
+  height: 0.95em;
+  margin: 0 0 0.1em 0.12ch;
   background: var(--accent);
+  box-shadow: 0 0 0 1px rgba(23, 24, 21, 0.25);
+  opacity: clamp(0, (var(--avance) - 0.6) * 400, 1);
   animation: hero-latido 1s steps(2, jump-none) infinite;
+}
+.cli-rol {
+  margin-top: 10px;
+  font-size: clamp(13px, 1.05vw, 16px);
+  color: rgba(23, 24, 21, 0.62);
+  opacity: clamp(0, (var(--avance) - 0.76) / 0.06, 1);
+  translate: 0 calc((1 - clamp(0, (var(--avance) - 0.76) / 0.06, 1)) * 8px);
+}
+.cli-rol span {
+  color: #6a8f00;
 }
 @keyframes hero-latido {
   50% {
@@ -156,30 +97,30 @@
   }
 }
 @media (max-width: 760px) {
-  .hero-terminal {
-    left: 16px;
-    right: 16px;
+  .hero-cli {
+    left: 20px;
+    right: 20px;
     top: auto;
-    bottom: 40px;
-    width: auto;
-    transform: translate3d(0, calc((1 - var(--abrir)) * 24px), 0);
+    bottom: 48px;
+    translate: none;
   }
-  .term-nombre {
-    font-size: clamp(26px, 8.4vw, 36px);
+  .cli-nombre {
+    font-size: clamp(26px, 8vw, 34px);
   }
-  .term-cuerpo {
-    font-size: 13px;
+  .cli-rol {
+    font-size: 12px;
+    line-height: 1.5;
   }
-  /* Abajo, sobre la figura: un velo claro que asienta la terminal. */
+  /* Velo claro abajo para que se lea sobre la figura. */
   .hero-fijo::after {
     content: "";
     position: absolute;
     inset: auto 0 0;
-    height: 46%;
+    height: 34%;
     z-index: 1;
     pointer-events: none;
-    background: linear-gradient(to top, rgba(253, 253, 254, 0.9) 30%, transparent);
-    opacity: var(--abrir);
+    background: linear-gradient(to top, rgba(253, 253, 254, 0.92) 40%, transparent);
+    opacity: clamp(0, (var(--avance) - 0.5) / 0.06, 1);
   }
 }
 @media (pointer: coarse) {

@@ -328,18 +328,18 @@ test("los proyectos se encienden al pasar por el centro y abren su ficha", async
   await expect(abridor).toBeFocused();
 });
 
-test("la terminal de la portada teclea el nombre y el rol al bajar", async ({
+test("la línea de comandos de la portada teclea el nombre al bajar", async ({
   page,
 }) => {
   await page.goto("/");
-  const nombre = page.getByRole("heading", { level: 1, name: "Johan Santacruz" });
-  await expect(nombre).toHaveCSS("opacity", "0");
+  const nombre = page.locator(".cli-tecleo");
+  expect(await nombre.evaluate((e) => e.getBoundingClientRect().width)).toBe(0);
   await page.evaluate(() => {
     const h = document.querySelector(".campana-hero")!;
     window.scrollTo(0, h.getBoundingClientRect().height - innerHeight);
   });
-  await expect(nombre).toHaveCSS("opacity", "1");
-  await expect(page.locator(".term-rol")).toContainText("Desarrollador Full-Stack");
+  await expect.poll(() => nombre.evaluate((e) => e.getBoundingClientRect().width)).toBeGreaterThan(200);
+  await expect(page.locator(".cli-rol")).toContainText("Desarrollador Full-Stack");
   const tecleo = page.locator(".term-tecleo").first();
   await expect.poll(() => tecleo.evaluate((e) => e.getBoundingClientRect().width)).toBeGreaterThan(20);
 });

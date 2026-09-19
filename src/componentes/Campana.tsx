@@ -37,54 +37,20 @@ export function Campana() {
             </div>
             {/* Entra por el lado libre cuando la figura ya se ha ido al otro
                 (ver --avance en el CSS). */}
-            {/* Terminal: al bajar se abre y teclea tres órdenes; sus salidas
-                son el nombre, el rol y las áreas. Cada línea tiene su tramo
-                del recorrido (--ini, --fin) y todo sale de --avance. */}
-            <div className="hero-terminal">
-              <div className="term-barra" aria-hidden="true">
-                <span className="term-luces">
-                  <i />
-                  <i />
-                  <i />
-                </span>
-                <span>johan@portafolio: ~</span>
-              </div>
-              <div className="term-cuerpo">
-                <Orden texto="whoami" ini={0.56} fin={0.61} />
-                <h1
-                  id="titulo-hero"
-                  className="term-salida term-nombre"
-                  style={{ "--ini": 0.62 } as CSSProperties}
-                >
+            {/* Línea de comandos mínima, sin caja: la orden, el nombre que se
+                teclea con el scroll y el rol como comentario. */}
+            <div className="hero-cli">
+              <Orden texto="whoami" ini={0.55} fin={0.6} />
+              <h1 id="titulo-hero" className="cli-nombre">
+                <span className="cli-tecleo" style={{ "--ini": 0.61, "--fin": 0.76, "--letras": 15 } as CSSProperties}>
                   Johan Santacruz
-                </h1>
-                <Orden texto="cat rol.txt" ini={0.65} fin={0.71} />
-                <p
-                  className="term-salida term-rol"
-                  style={{ "--ini": 0.72 } as CSSProperties}
-                >
-                  Desarrollador Full-Stack
-                  <br />
-                  IA Engineer &amp; Automatización
-                </p>
-                <Orden texto="ls enfoque/" ini={0.75} fin={0.81} />
-                <p
-                  className="term-salida term-lista"
-                  style={{ "--ini": 0.82 } as CSSProperties}
-                >
-                  <span>web/</span>
-                  <span>ia/</span>
-                  <span>automatizacion/</span>
-                </p>
-                <p
-                  className="term-orden term-espera"
-                  style={{ "--ini": 0.85 } as CSSProperties}
-                  aria-hidden="true"
-                >
-                  <span className="term-prompt">~ $</span>
-                  <span className="term-cursor" />
-                </p>
-              </div>
+                </span>
+                <span className="cli-cursor" aria-hidden="true" />
+              </h1>
+              <p className="cli-rol">
+                <span aria-hidden="true">// </span>
+                Desarrollador Full-Stack · IA Engineer · Automatización
+              </p>
             </div>
           </div>
         </section>
