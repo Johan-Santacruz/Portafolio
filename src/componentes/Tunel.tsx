@@ -31,10 +31,18 @@ function azarConSemilla(semilla: number) {
 }
 
 const herramientas = stack.flatMap((g) => g.items);
+/** Las de la primera categoría son las que aterrizan en la sección. */
+const aterrizan = stack[0].items;
 
 /**
  * Capa del túnel: va dentro de la pantalla fija de Herramientas. No mide
  * nada: lee `--pt` (0 a 1) del contenedor, que escribe Herramientas.tsx.
+ *
+ * Además de las placas que pasan de largo, las de la primera categoría
+ * (`.tunel-aterriza`) vienen las últimas y, en el tramo final, se desvían
+ * hacia la casilla que les toca en la rejilla de la sección (`--tx`, `--ty`,
+ * medidas por Herramientas.tsx) y se quedan ahí: las placas reales las
+ * relevan en el mismo sitio.
  */
 export function Tunel() {
   // Dos vueltas de todas las herramientas, repartidas en espiral por el túnel.
@@ -53,6 +61,24 @@ export function Tunel() {
       };
     });
   }, []);
+  // Las que aterrizan: al fondo del todo, así siguen llegando cuando las
+  // demás ya pasaron; cada una por su lado del túnel.
+  const finales = useMemo(() => {
+    const azar = azarConSemilla(19);
+    return aterrizan.map((nombre, i) => {
+      const angulo = i * 2.39996 + 1.1 + azar() * 0.5;
+      const radio = 0.55 + azar() * 0.45;
+      return {
+        nombre,
+        logo: iconos[nombre],
+        cx: Math.cos(angulo) * radio,
+        cy: Math.sin(angulo) * radio * 0.8,
+        z0: -4900 - i * 90,
+        // Cuándo empieza a desviarse hacia su casilla (en --pt).
+        desde: 0.76 + i * 0.01,
+      };
+    });
+  }, []);
 
   return (
     <div className="tunel" aria-hidden="true">
@@ -67,6 +93,25 @@ export function Tunel() {
                 "--cx": p.cx.toFixed(3),
                 "--cy": p.cy.toFixed(3),
                 "--z0": p.z0.toFixed(0),
+                "--logo": p.logo ? `url("${ICONOS}${p.logo}.svg")` : "none",
+              } as CSSProperties
+            }
+          >
+            {p.logo && <i />}
+            {p.nombre}
+          </span>
+        ))}
+        {finales.map((p, i) => (
+          <span
+            key={`fin-${i}`}
+            className="tunel-placa tunel-aterriza"
+            data-i={i}
+            style={
+              {
+                "--cx": p.cx.toFixed(3),
+                "--cy": p.cy.toFixed(3),
+                "--z0": p.z0.toFixed(0),
+                "--desde": p.desde.toFixed(3),
                 "--logo": p.logo ? `url("${ICONOS}${p.logo}.svg")` : "none",
               } as CSSProperties
             }

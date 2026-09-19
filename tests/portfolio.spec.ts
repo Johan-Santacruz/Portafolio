@@ -362,9 +362,35 @@ test("el túnel lleva a las herramientas sin salir de la pantalla", async ({
   await page.evaluate((y) => window.scrollTo(0, y), inicio - alto * 0.5);
   await expect.poll(() => v("--pt")).toBeGreaterThan(0.05);
   expect(await v("--llegada")).toBe(0);
-  // Al acabar el túnel, las herramientas están en la misma pantalla fija.
+  // Justo antes de acabar, las placas de lenguajes del túnel ya están
+  // encima de las casillas donde van las reales (que siguen ocultas).
+  await page.evaluate((y) => window.scrollTo(0, y), inicio + tunel - 4);
+  await expect(seccion).toHaveAttribute("data-fase", "tunel");
+  const desvios = await page.evaluate(() => {
+    const centro = (e: Element) => {
+      const r = e.getBoundingClientRect();
+      return [r.left + r.width / 2, r.top + r.height / 2];
+    };
+    const reales = [...document.querySelectorAll(".herr-grupo:first-child .herr-placa")];
+    return [...document.querySelectorAll(".tunel-aterriza")].map((t, i) => {
+      const [ax, ay] = centro(t);
+      const [bx, by] = centro(reales[i]);
+      return { d: Math.hypot(ax - bx, ay - by), tunel: getComputedStyle(t).opacity, real: getComputedStyle(reales[i]).opacity };
+    });
+  });
+  expect(desvios).toHaveLength(8);
+  for (const { d, tunel: ot, real } of desvios) {
+    expect(d).toBeLessThan(2);
+    expect(ot).toBe("1");
+    expect(real).toBe("0");
+  }
+  // Al acabar el túnel, las herramientas están en la misma pantalla fija y
+  // las placas reales relevan a las del túnel en el acto.
   await page.evaluate((y) => window.scrollTo(0, y), inicio + tunel);
   await expect.poll(() => v("--llegada")).toBe(1);
+  await expect(seccion).toHaveAttribute("data-fase", "aterrizado");
+  await expect(page.locator(".herr-grupo:first-child .herr-placa").first()).toHaveCSS("opacity", "1");
+  await expect(page.locator(".tunel-aterriza").first()).toHaveCSS("opacity", "0");
   expect(
     await page.evaluate(() => document.querySelector(".herr-fijo")!.getBoundingClientRect().top),
   ).toBe(0);

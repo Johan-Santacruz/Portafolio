@@ -51,7 +51,8 @@ export function Herramientas() {
 
     // El destino («LENGUAJES» al fondo del túnel) acaba exactamente donde está
     // la primera palabra del lector: se mide esa posición y desde dónde sale
-    // (el centro de la pantalla).
+    // (el centro de la pantalla). Se mide con las placas sin transformar
+    // (en ninguna fase llevan transform).
     const colocarDestino = () => {
       if (!fijo || !palabras || !marca || !destino) return;
       const f = fijo.getBoundingClientRect();
@@ -66,18 +67,31 @@ export function Herramientas() {
       const w = destino.offsetWidth;
       destino.style.setProperty("--sx", `${f.width / 2 - (x + w / 2)}px`);
       destino.style.setProperty("--sy", `${f.height / 2 - y}px`);
-      // Las placas llegan desde el punto de fuga del túnel: se escalan desde
-      // el centro de la pantalla, así que ese punto es el origen.
-      const bandeja = raiz.querySelector<HTMLElement>(".herr-bandeja");
-      if (bandeja) {
-        const bj = bandeja.getBoundingClientRect();
-        bandeja.style.setProperty("--ox", `${f.left + f.width / 2 - bj.left}px`);
-        bandeja.style.setProperty("--oy", `${f.top + f.height / 2 - bj.top}px`);
-      }
+      // Casilla de cada placa del primer grupo, respecto al centro de la
+      // pantalla: ahí aterrizan las placas del túnel (ver Tunel.css).
+      const reales = grupos[0]?.querySelectorAll<HTMLElement>(".herr-placa") ?? [];
+      raiz.querySelectorAll<HTMLElement>(".tunel-aterriza").forEach((placa, i) => {
+        const real = reales[i];
+        if (!real) return;
+        const r = real.getBoundingClientRect();
+        placa.style.setProperty("--tx", `${r.left + r.width / 2 - (f.left + f.width / 2)}px`);
+        placa.style.setProperty("--ty", `${r.top + r.height / 2 - (f.top + f.height / 2)}px`);
+      });
     };
     const total = grupos.length;
     let activo = -1;
     let pendiente = false;
+    const reducido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // Fase de las placas del primer grupo: «tunel» mientras vuelan, «aterrizado»
+    // recién llegadas (relevo sin transición) y «lector» en cuanto se mueve
+    // la lista; al volver a subir al túnel se reinicia.
+    let fase = "";
+    let movido = false;
+    const ponerFase = (nueva: string) => {
+      if (nueva === fase) return;
+      fase = nueva;
+      raiz.setAttribute("data-fase", nueva);
+    };
 
     const limitar = (v: number) => Math.min(1, Math.max(0, v));
     // Curva suave (arranca y frena despacio).
@@ -132,6 +146,9 @@ export function Herramientas() {
       const p = conReposo(tramo * (total - 1));
       raiz.style.setProperty("--p", p.toFixed(4));
       const nuevo = Math.round(p);
+      if (nuevo > 0) movido = true;
+      if (pt < 1) movido = false;
+      ponerFase(reducido ? "lector" : pt < 1 ? "tunel" : movido ? "lector" : "aterrizado");
       if (nuevo === activo) return;
       activo = nuevo;
       grupos.forEach((g, i) =>

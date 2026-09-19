@@ -41,12 +41,6 @@
 .herr-fijo::before {
   opacity: var(--llegada);
 }
-/* La bandeja llega desde el punto de fuga del túnel: se escala desde el
-   centro de la pantalla (--ox, --oy, medidos en Herramientas.tsx). */
-.herr-bandeja {
-  transform: scale(calc(0.24 + var(--llegada) * 0.76));
-  transform-origin: var(--ox, 20%) var(--oy, 50%);
-}
 .herr-sonda {
   position: absolute;
   top: var(--tunel);
@@ -286,16 +280,17 @@
   background: var(--accent);
 }
 
-/* Al llegar la sección, las placas del primer grupo salen del túnel
-   desordenadas —cada una con su desvío y su giro, según su posición— y se
-   encajan en la rejilla. */
-.herr-grupo[data-estado="activo"] .herr-placa {
-  --entra: clamp(0, (var(--llegada) - var(--i) * 0.05) * 3.2, 1);
-  --resto: calc(1 - var(--entra));
-  /* Desvíos deterministas: alternan lado y altura con el índice. */
-  --dx: calc((mod(var(--i), 3) - 1) * 90px);
-  --dy: calc((mod(var(--i) + 1, 3) - 1) * 62px);
-  --giro: calc((mod(var(--i), 2) * 2 - 1) * 9deg);
+/* Las placas del primer grupo llegan volando desde el túnel (ver Tunel.css):
+   mientras dura (fase «tunel») las reales están ocultas, sin transición, y
+   en cuanto aterrizan (fase «aterrizado») aparecen en el acto en el mismo
+   sitio. Solo al moverse el lector (fase «lector») vuelven las transiciones. */
+.herramientas[data-fase="tunel"] .herr-grupo:first-child .herr-placa,
+.herramientas[data-fase="aterrizado"] .herr-grupo:first-child[data-estado="activo"] .herr-placa {
+  transform: none;
+  transition: none;
+}
+.herramientas[data-fase="tunel"] .herr-grupo:first-child .herr-placa {
+  opacity: 0;
 }
 
 /* Estados. Las que se van salen en la dirección del scroll, rápidas y a la
@@ -315,13 +310,8 @@
   transform: translate3d(0, 22px, 0);
 }
 .herr-grupo[data-estado="activo"] .herr-placa {
-  opacity: var(--entra, 1);
-  transform: translate3d(
-      calc(var(--resto, 0) * var(--dx, 0px)),
-      calc(var(--resto, 0) * var(--dy, 0px)),
-      0
-    )
-    rotate(calc(var(--resto, 0) * var(--giro, 0deg)));
+  opacity: 1;
+  transform: none;
   clip-path: var(--chaflan);
   transition:
     opacity 0.2s ease calc(0.12s + var(--i) * 45ms),
@@ -438,6 +428,9 @@
   }
   .herr-destino {
     display: none;
+  }
+  .herramientas[data-fase="tunel"] .herr-grupo:first-child .herr-placa {
+    opacity: 1;
   }
 }
 
