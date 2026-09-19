@@ -8,7 +8,8 @@
   --tinta: #1d1f22;
   --fila: 0.9em;
   position: relative;
-  height: calc(100svh + var(--n) * 55svh);
+  --por-categoria: 55svh;
+  height: calc(100svh + var(--n) * var(--por-categoria));
   background: #fdfdfe;
   color: var(--ink);
   font-family: "Chakra Petch", var(--display);
@@ -353,8 +354,18 @@
   box-shadow: 0 0 0 1px rgb(23 24 21 / calc(var(--luz) * 0.25));
 }
 
+@media (pointer: coarse) {
+  .herramientas {
+    --por-categoria: 42svh;
+  }
+}
+
 /* --- Pantallas estrechas: lector arriba, bandeja abajo. -------------------- */
 @media (max-width: 860px) {
+  /* Por debajo de la cabecera flotante. */
+  .herr-cabecera {
+    top: 72px;
+  }
   .herr-fijo {
     grid-template-columns: 1fr;
     grid-template-rows: 62svh auto;

@@ -119,7 +119,12 @@ export class MotorRetrato {
     // pantalla entera y se repinta en cada scroll del revelado; píxeles de
     // más solo encarecen subirlo a la GPU.
     const caja0 = this.lienzo.getBoundingClientRect();
-    const tope = Math.max(1, (this.imagen.naturalWidth || 1) / (caja0.width || 1));
+    // Escala real de «cover» (en vertical manda la altura).
+    const cubre = Math.max(
+      (caja0.width || 1) / (this.imagen.naturalWidth || 1),
+      (caja0.height || 1) / (this.imagen.naturalHeight || 1),
+    );
+    const tope = Math.max(1, 1 / cubre);
     this.dpr = Math.min(window.devicePixelRatio || 1, 1.5, tope);
     this.lienzo.width = Math.round(this.ancho * this.dpr);
     this.lienzo.height = Math.round(this.alto * this.dpr);

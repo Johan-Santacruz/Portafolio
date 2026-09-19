@@ -22,6 +22,14 @@ export function Campana() {
           aria-labelledby="titulo-hero"
           data-recorrido
         >
+          {[0, 0.3, 1].map((f) => (
+            <span
+              key={f}
+              className="parada"
+              style={{ top: `calc(var(--recorrido) * ${f})` }}
+              aria-hidden="true"
+            />
+          ))}
           <div className="hero-fijo">
             <div className="hero-retrato">
               <Retrato />

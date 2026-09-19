@@ -19,6 +19,27 @@
   font-family: "Chakra Petch", var(--display);
   overflow: clip;
 }
+/* Fondo: un carril del alto de la sección con el vídeo pegado arriba. */
+.proy-fondo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.proy-fondo video {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100svh;
+  display: block;
+  object-fit: cover;
+  /* Sin modo de mezcla: el vídeo ya es negro con luz, y sobre el fondo casi
+     negro basta la opacidad (mezclar la pantalla entera cuesta mucho). */
+  opacity: 0.55;
+}
+.proy-cabecera,
+.proy-lista {
+  position: relative;
+}
 .proy-cabecera {
   text-align: center;
 }

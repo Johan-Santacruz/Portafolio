@@ -7,8 +7,10 @@
   /* Cuánto se ha recorrido la portada (0 a 1); lo escribe el retrato. */
   --avance: 0;
   position: relative;
-  /* 100svh a la vista + 250svh de recorrido con el contenido fijo. */
-  height: 350svh;
+  /* 100svh a la vista + el recorrido con el contenido fijo (más corto en
+     pantallas táctiles, ver abajo). */
+  --recorrido: 250svh;
+  height: calc(100svh + var(--recorrido));
   background: var(--hero-fondo);
   color: var(--ink);
 }
@@ -128,5 +130,10 @@
     pointer-events: none;
     background: linear-gradient(to top, rgba(253, 253, 254, 0.9) 30%, transparent);
     opacity: var(--entrada);
+  }
+}
+@media (pointer: coarse) {
+  .campana-hero {
+    --recorrido: 190svh;
   }
 }

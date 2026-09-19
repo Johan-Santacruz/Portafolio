@@ -7,6 +7,7 @@ import { Icono } from "./Icono";
 import "./Proyectos.css";
 
 const ICONOS = `${import.meta.env.BASE_URL}iconos/`;
+const MEDIA = `${import.meta.env.BASE_URL}media/`;
 
 /** Tecnologías de los trabajos que no están tal cual en `iconos`. */
 const ICONOS_EXTRA: Record<string, string> = {
@@ -33,6 +34,7 @@ const logo = (tecnologia: string) =>
  */
 export function Proyectos() {
   const seccion = useRef<HTMLElement>(null);
+  const fondo = useRef<HTMLVideoElement>(null);
   const dialogo = useRef<HTMLDialogElement>(null);
   const activador = useRef<HTMLElement | null>(null);
   const [abierto, setAbierto] = useState<Trabajo | null>(null);
@@ -68,6 +70,22 @@ export function Proyectos() {
     };
   }, []);
 
+  // El fondo solo se reproduce con la sección a la vista y si no se ha pedido
+  // movimiento reducido.
+  useEffect(() => {
+    const raiz = seccion.current;
+    const video = fondo.current;
+    if (!raiz || !video) return;
+    const reducido = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const observador = new IntersectionObserver(([entrada]) => {
+      if (entrada.isIntersecting && !reducido.matches)
+        void video.play().catch(() => {});
+      else video.pause();
+    });
+    observador.observe(raiz);
+    return () => observador.disconnect();
+  }, []);
+
   useEffect(() => {
     if (!abierto) return;
     const ventana = dialogo.current;
@@ -92,6 +110,20 @@ export function Proyectos() {
       id="proyectos"
       aria-labelledby="titulo-proyectos"
     >
+      {/* Estelas de luz lentas detrás de todo (de video5, aisladas sobre
+          negro); se queda fija mientras se recorre la sección. */}
+      <div className="proy-fondo" aria-hidden="true">
+        <video
+          ref={fondo}
+          src={`${MEDIA}estelas.mp4`}
+          poster={`${MEDIA}estelas-poster.jpg`}
+          muted
+          loop
+          playsInline
+          preload="metadata"
+        />
+      </div>
+
       <header className="proy-cabecera">
         <p className="proy-rotulo">Proyectos</p>
         <h2 id="titulo-proyectos">Lo que he construido</h2>
@@ -101,7 +133,7 @@ export function Proyectos() {
         {trabajos.map((t) => (
           <li
             key={t.id}
-            className="proy-fila"
+            className="proy-fila parada-centro"
             style={{ "--luz": 0 } as CSSProperties}
           >
             {t.capturas?.[0] && (

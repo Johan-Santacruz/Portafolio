@@ -7,7 +7,8 @@
   /* El texto entra cuando la figura ya está casi revelada. */
   --texto: clamp(0, (var(--avance) - 0.45) / 0.3, 1);
   position: relative;
-  height: 320svh;
+  --recorrido: 220svh;
+  height: calc(100svh + var(--recorrido));
   background: #fdfdfe;
   color: var(--ink);
   font-family: "Chakra Petch", var(--display);
@@ -30,8 +31,6 @@
   width: 72%;
   height: 100%;
   display: block;
-  /* Multiplicar: el blanco del vídeo desaparece sobre el de la página. */
-  mix-blend-mode: multiply;
   -webkit-mask-image:
     linear-gradient(to right, transparent 0%, #000 22%, #000 90%, transparent 100%),
     linear-gradient(to bottom, transparent 0%, #000 8%, #000 86%, transparent 100%);
@@ -89,7 +88,8 @@
   position: absolute;
   inset: -20%;
   opacity: var(--bruma);
-  filter: blur(34px);
+  /* Los degradados ya son difusos: sin filtro de desenfoque, que en móvil
+     es de lo más caro de pintar. */
   animation: cierre-deriva 22s ease-in-out infinite alternate;
   will-change: transform;
 }
@@ -293,6 +293,12 @@
   text-transform: uppercase;
   color: rgba(23, 24, 21, 0.68);
   opacity: var(--entrada);
+}
+
+@media (pointer: coarse) {
+  .cierre {
+    --recorrido: 170svh;
+  }
 }
 
 /* --- Pantallas estrechas: la figura arriba, el texto abajo sobre un velo. -- */

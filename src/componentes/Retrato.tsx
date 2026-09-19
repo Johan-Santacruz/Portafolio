@@ -205,10 +205,13 @@ export function Retrato() {
       if (!img || !ctxSecuencia) return false;
       // Sin más resolución que la del fotograma: más píxeles no añaden
       // detalle y cada uno hay que subirlo a la GPU en cada scroll.
-      const dpr = Math.min(
-        window.devicePixelRatio || 1,
-        Math.max(1, img.naturalWidth / canvasSecuencia.clientWidth),
+      // Se mide con la escala real de «cover»: en vertical la imagen se
+      // amplía por su altura y un píxel de origen ocupa más de uno de CSS.
+      const cubre = Math.max(
+        canvasSecuencia.clientWidth / img.naturalWidth,
+        canvasSecuencia.clientHeight / img.naturalHeight,
       );
+      const dpr = Math.min(window.devicePixelRatio || 1, Math.max(1, 1 / cubre));
       const ancho = canvasSecuencia.clientWidth;
       const alto = canvasSecuencia.clientHeight;
       const w = Math.round(ancho * dpr);
