@@ -6,6 +6,8 @@
   --hero-fondo: #fdfdfe;
   /* Cuánto se ha recorrido la portada (0 a 1); lo escribe el retrato. */
   --avance: 0;
+  /* Apertura de la terminal (también la usa el velo de móvil). */
+  --abrir: clamp(0, (var(--avance) - 0.5) / 0.06, 1);
   position: relative;
   /* 100svh a la vista + el recorrido con el contenido fijo (más corto en
      pantallas táctiles, ver abajo). */
@@ -25,78 +27,126 @@
   position: absolute;
   inset: 0;
 }
-/* Nombre y rol: entran por la izquierda en la segunda mitad del recorrido,
-   cuando la figura ya se ha ido a la derecha. */
-.hero-texto {
-  /* Orden de entrada: nombre, placa y, dentro de la placa, el texto que se
-     escribe con un barrido. Todo sale de --avance. */
-  --entrada: clamp(0, (var(--avance) - 0.55) / 0.2, 1);
-  --entrada-rol: clamp(0, (var(--avance) - 0.64) / 0.14, 1);
-  --escritura: clamp(0, (var(--avance) - 0.7) / 0.16, 1);
+/* --- Terminal --------------------------------------------------------------------
+   Entra por la izquierda cuando la figura ya se ha ido a la derecha. Es una
+   placa de acero como las de herramientas; dentro, cada línea aparece en su
+   tramo del recorrido: las órdenes se teclean letra a letra (ancho en ch
+   redondeado hacia abajo) y las salidas aparecen de golpe, como en una
+   terminal de verdad. Todo sale de --avance: al subir, se "desteclea". */
+.hero-terminal {
   position: absolute;
   z-index: 2;
   left: max(var(--aire), (100% - var(--ancho)) / 2);
   top: 50%;
-  width: min(46vw, 660px);
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-.hero-texto h1 {
-  font-family: "Outfit", var(--display);
-  font-weight: 700;
-  font-size: clamp(56px, 8vw, 132px);
-  line-height: 0.98;
-  letter-spacing: 0.01em;
-  color: #1d1f22;
-  opacity: var(--entrada);
-  transform: translate3d(calc((1 - var(--entrada)) * -48px), 0, 0);
-}
-/* Placa de la armadura: acero oscuro, esquinas achaflanadas, filete lima a
-   la izquierda y scanlines. Pisa el pie del nombre, inclinada. */
-.hero-rol {
-  display: inline-flex;
-  align-items: flex-end;
-  gap: 0.35em;
-  position: relative;
-  margin-top: -0.15em;
-  margin-left: 0.1em;
-  padding: 0.65em 1em 0.6em 1.15em;
-  font-family: "Space Mono", ui-monospace, monospace;
-  font-weight: 700;
-  font-size: clamp(16px, 1.9vw, 30px);
-  line-height: 1.25;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  width: min(38vw, 580px);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
   color: #eef0f2;
   background:
     repeating-linear-gradient(
       0deg,
-      rgba(255, 255, 255, 0.045) 0 1px,
+      rgba(255, 255, 255, 0.03) 0 1px,
       transparent 1px 4px
     ),
-    linear-gradient(135deg, #2a2e34, #16181c);
-  box-shadow: inset 4px 0 0 var(--accent);
+    linear-gradient(135deg, #22262c, #121417);
+  box-shadow:
+    inset 3px 0 0 var(--accent),
+    0 30px 60px -30px rgba(11, 12, 14, 0.55);
   clip-path: polygon(
     0 0,
-    calc(100% - 14px) 0,
-    100% 14px,
+    calc(100% - 18px) 0,
+    100% 18px,
     100% 100%,
-    14px 100%,
-    0 calc(100% - 14px)
+    18px 100%,
+    0 calc(100% - 18px)
   );
-  opacity: var(--entrada-rol);
-  transform-origin: 0 100%;
-  transform: rotate(calc(-4deg - (1 - var(--entrada-rol)) * 6deg))
-    translate3d(calc((1 - var(--entrada-rol)) * -24px), 0, 0);
+  opacity: var(--abrir);
+  transform: translate3d(calc((1 - var(--abrir)) * -40px), -50%, 0)
+    scale(calc(0.96 + var(--abrir) * 0.04));
+  transform-origin: 0 50%;
+  pointer-events: none;
 }
-/* El texto se "imprime" de izquierda a derecha con el scroll. */
-.hero-rol-texto {
-  clip-path: inset(0 calc((1 - var(--escritura)) * 100%) 0 0);
+.term-barra {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: rgba(238, 240, 242, 0.5);
+  border-bottom: 1px solid rgba(238, 240, 242, 0.08);
 }
-.hero-rol-cursor {
-  width: 0.55em;
-  height: 1.05em;
-  margin-bottom: 0.08em;
+/* Tres pilotos cuadrados; el último, lima. */
+.term-luces {
+  display: flex;
+  gap: 6px;
+}
+.term-luces i {
+  width: 8px;
+  height: 8px;
+  background: rgba(238, 240, 242, 0.22);
+}
+.term-luces i:last-child {
+  background: var(--accent);
+}
+.term-cuerpo {
+  padding: clamp(16px, 2vw, 26px) clamp(18px, 2.2vw, 30px) clamp(20px, 2.4vw, 30px);
+  font-size: clamp(13px, 1.05vw, 16px);
+  line-height: 1.6;
+}
+.term-orden {
+  --t: clamp(0, (var(--avance) - var(--ini)) / (var(--fin, 1) - var(--ini)), 1);
+  display: flex;
+  gap: 0.8ch;
+  white-space: nowrap;
+  opacity: clamp(0, (var(--avance) - var(--ini)) * 400, 1);
+}
+.term-orden + .term-salida,
+.term-salida + .term-orden {
+  margin-top: 0.4em;
+}
+.term-prompt {
+  color: var(--accent);
+}
+/* Tecleo: el ancho crece de carácter en carácter (1ch en monoespaciada). */
+.term-tecleo {
+  display: inline-block;
+  overflow: hidden;
+  width: calc(var(--t) * var(--letras) * 1ch);
+  width: round(down, calc(var(--t) * var(--letras) * 1ch), 1ch);
+}
+.term-salida {
+  opacity: clamp(0, (var(--avance) - var(--ini)) * 400, 1);
+}
+.term-nombre {
+  margin: 0.1em 0 0.15em;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 700;
+  font-size: clamp(28px, 3.2vw, 52px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+.term-rol {
+  color: var(--accent);
+  font-weight: 700;
+}
+.term-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 3ch;
+  color: rgba(238, 240, 242, 0.78);
+}
+/* Directorios en azul, como los pinta ls. */
+.term-lista span {
+  color: #8fd3ff;
+}
+.term-espera {
+  margin-top: 0.4em;
+}
+.term-cursor {
+  width: 0.62em;
+  height: 1.15em;
+  margin-top: 0.2em;
   background: var(--accent);
   animation: hero-latido 1s steps(2, jump-none) infinite;
 }
@@ -106,21 +156,21 @@
   }
 }
 @media (max-width: 760px) {
-  .hero-texto {
-    left: 22px;
-    right: 22px;
+  .hero-terminal {
+    left: 16px;
+    right: 16px;
     top: auto;
-    bottom: 60px;
+    bottom: 40px;
     width: auto;
-    transform: none;
+    transform: translate3d(0, calc((1 - var(--abrir)) * 24px), 0);
   }
-  .hero-texto h1 {
-    font-size: clamp(46px, 14vw, 60px);
+  .term-nombre {
+    font-size: clamp(26px, 8.4vw, 36px);
   }
-  .hero-rol {
-    font-size: 14px;
+  .term-cuerpo {
+    font-size: 13px;
   }
-  /* Abajo, sobre la figura: un velo claro para que se lea. */
+  /* Abajo, sobre la figura: un velo claro que asienta la terminal. */
   .hero-fijo::after {
     content: "";
     position: absolute;
@@ -129,7 +179,7 @@
     z-index: 1;
     pointer-events: none;
     background: linear-gradient(to top, rgba(253, 253, 254, 0.9) 30%, transparent);
-    opacity: var(--entrada);
+    opacity: var(--abrir);
   }
 }
 @media (pointer: coarse) {
