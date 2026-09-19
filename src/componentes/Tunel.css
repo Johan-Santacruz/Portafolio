@@ -4,7 +4,7 @@
    y de ahí su posición y su opacidad; ningún cálculo en JavaScript por placa. */
 .tunel {
   --p: 0;
-  --recorrido: 200svh;
+  --recorrido: 150svh;
   --viaje: 4600; /* px que avanza la cámara en todo el recorrido */
   position: relative;
   height: calc(100svh + var(--recorrido));
@@ -20,7 +20,7 @@
   perspective-origin: 50% 50%;
 }
 
-/* Rayos de velocidad: finos, desde el centro; se encienden a mitad del viaje. */
+/* Rayos de velocidad: finos, desde el centro, durante el tramo fijo. */
 .tunel-rayos {
   position: absolute;
   inset: -20%;
@@ -32,7 +32,7 @@
   );
   -webkit-mask-image: radial-gradient(circle, transparent 12%, #000 42%, transparent 72%);
   mask-image: radial-gradient(circle, transparent 12%, #000 42%, transparent 72%);
-  opacity: calc(clamp(0, (var(--p) - 0.12) / 0.2, 1) * clamp(0, (0.9 - var(--p)) / 0.2, 1));
+  opacity: calc(clamp(0, (var(--p) - 0.2) / 0.15, 1) * clamp(0, (0.85 - var(--p)) / 0.15, 1));
   transform: scale(calc(0.8 + var(--p) * 0.8)) rotate(calc(var(--p) * 25deg));
 }
 
@@ -80,7 +80,7 @@
   mask: var(--logo) center / contain no-repeat;
 }
 
-/* Centro: la orden se teclea al principio; el recuento llega al final. */
+/* Centro: la orden se teclea mientras la sección entra. */
 .tunel-centro {
   position: absolute;
   z-index: 2;
@@ -99,52 +99,19 @@
   font-family: "JetBrains Mono", ui-monospace, monospace;
   font-size: clamp(15px, 1.4vw, 20px);
   color: rgba(23, 24, 21, 0.7);
-  opacity: calc(1 - clamp(0, (var(--p) - 0.3) / 0.1, 1));
+  opacity: calc(1 - clamp(0, (var(--p) - 0.36) / 0.1, 1));
 }
 .tunel-prompt {
   color: #6a8f00;
   font-weight: 700;
 }
 .tunel-tecleo {
-  --t: clamp(0, var(--p) / 0.12, 1);
+  --t: clamp(0, (var(--p) - 0.1) / 0.14, 1);
   display: inline-block;
   overflow: hidden;
   white-space: nowrap;
   width: calc(var(--t) * 17ch);
   width: round(down, calc(var(--t) * 17ch), 1ch);
-}
-.tunel-cuenta {
-  --e: clamp(0, (var(--p) - 0.78) / 0.14, 1);
-  display: grid;
-  justify-items: center;
-  gap: 6px;
-  margin-top: -1.2em;
-  opacity: var(--e);
-  transform: scale(calc(1.6 - var(--e) * 0.6));
-}
-.tunel-cuenta strong {
-  font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
-  font-weight: 700;
-  font-size: clamp(120px, 22vw, 300px);
-  line-height: 0.82;
-  color: #1d1f22;
-}
-.tunel-cuenta span {
-  font-weight: 600;
-  font-size: clamp(13px, 1.1vw, 16px);
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(23, 24, 21, 0.62);
-}
-.tunel-cuenta strong::after {
-  content: "";
-  display: block;
-  height: 6px;
-  margin-top: 8px;
-  background: var(--accent);
-  box-shadow: 0 0 0 1px rgba(23, 24, 21, 0.2);
-  transform-origin: 0 50%;
-  transform: scaleX(clamp(0, (var(--p) - 0.86) / 0.1, 1));
 }
 
 @media (max-width: 760px) {
@@ -164,21 +131,11 @@
 }
 @media (pointer: coarse) {
   .tunel {
-    --recorrido: 160svh;
+    --recorrido: 120svh;
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .tunel {
-    --recorrido: 0svh;
-    --p: 1 !important;
-  }
-  .tunel-escena,
-  .tunel-rayos,
-  .tunel-orden {
     display: none;
-  }
-  .tunel-cuenta {
-    opacity: 1;
-    transform: none;
   }
 }

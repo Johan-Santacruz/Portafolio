@@ -344,22 +344,23 @@ test("la línea de comandos de la portada teclea el nombre al bajar", async ({
   await expect.poll(() => tecleo.evaluate((e) => e.getBoundingClientRect().width)).toBeGreaterThan(20);
 });
 
-test("el túnel lleva de la portada a las herramientas con el scroll", async ({
+test("el túnel se mueve desde que asoma hasta que se va", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
   const tunel = page.locator(".tunel");
-  const n = await page.locator(".tunel-placa").count();
-  expect(n).toBeGreaterThan(40);
-  const { inicio, largo } = await tunel.evaluate((s) => ({
+  expect(await page.locator(".tunel-placa").count()).toBeGreaterThan(40);
+  const { inicio, alto } = await tunel.evaluate((s) => ({
     inicio: s.offsetTop,
-    largo: s.offsetHeight - innerHeight,
+    alto: innerHeight,
   }));
   const p = () => tunel.evaluate((s) => Number(s.style.getPropertyValue("--p")));
-  await page.evaluate((y) => window.scrollTo(0, y), inicio + largo * 0.5);
-  await expect.poll(p).toBeGreaterThan(0.4);
-  await page.evaluate((y) => window.scrollTo(0, y), inicio + largo);
-  await expect.poll(p).toBe(1);
-  await expect(page.locator(".tunel-cuenta")).toHaveCSS("opacity", "1");
+  // Con la sección a media entrada, la cámara ya avanza.
+  await page.evaluate((y) => window.scrollTo(0, y), inicio - alto * 0.5);
+  await expect.poll(p).toBeGreaterThan(0.05);
+  // Y sigue mientras sale por arriba.
+  await page.evaluate((y) => window.scrollTo(0, y), inicio + (await tunel.evaluate((s) => s.offsetHeight)) - alto * 0.5);
+  await expect.poll(p).toBeGreaterThan(0.85);
+  await expect.poll(p).toBeLessThan(1);
 });

@@ -8,14 +8,15 @@ const ICONOS = `${import.meta.env.BASE_URL}iconos/`;
 /**
  * Transición entre la portada y las herramientas: un túnel en 3D.
  *
- * La sección mide varias pantallas y su escena queda fija. Al bajar, la
- * «cámara» avanza: las placas de las herramientas vienen desde el fondo y
- * pasan a los lados, con rayos de velocidad. Al final aparece el recuento y
- * la escena se abre a la sección de herramientas.
+ * La sección mide varias pantallas y su escena queda fija. La «cámara»
+ * avanza durante todo el tiempo que la sección está a la vista —desde que
+ * asoma por abajo hasta que se va por arriba—, así nunca hay un tramo quieto:
+ * las placas de las herramientas vienen desde el fondo y pasan a los lados,
+ * con rayos de velocidad, y las últimas se cruzan con la sección siguiente.
  *
  * Todo sale de `--p` (0 a 1), que escribe este componente con el scroll; cada
  * placa calcula en CSS su profundidad y su opacidad. Con movimiento reducido
- * no hay túnel: solo el recuento.
+ * la sección no se muestra.
  */
 
 // Aleatorio con semilla: el mismo túnel en cada visita.
@@ -57,9 +58,10 @@ export function Tunel() {
     let pendiente = false;
     const medir = () => {
       pendiente = false;
+      // De 0 cuando asoma por abajo a 1 cuando se ha ido por arriba.
       const caja = raiz.getBoundingClientRect();
-      const largo = caja.height - window.innerHeight;
-      const p = largo > 0 ? Math.min(1, Math.max(0, -caja.top / largo)) : 0;
+      const alto = window.innerHeight;
+      const p = Math.min(1, Math.max(0, (alto - caja.top) / (caja.height + alto)));
       raiz.style.setProperty("--p", p.toFixed(4));
     };
     const alScroll = () => {
@@ -76,14 +78,11 @@ export function Tunel() {
     };
   }, []);
 
-  const total = herramientas.length;
-
   return (
-    <section ref={seccion} className="tunel" aria-label={`${total} herramientas`}>
-      <span className="parada" style={{ top: "calc(var(--recorrido) * 0.98)" }} aria-hidden="true" />
+    <section ref={seccion} className="tunel" aria-hidden="true">
       <div className="tunel-fijo">
-        <div className="tunel-rayos" aria-hidden="true" />
-        <div className="tunel-escena" aria-hidden="true">
+        <div className="tunel-rayos" />
+        <div className="tunel-escena">
           {placas.map((p, i) => (
             <span
               key={i}
@@ -104,13 +103,9 @@ export function Tunel() {
         </div>
 
         <div className="tunel-centro">
-          <p className="tunel-orden" aria-hidden="true">
+          <p className="tunel-orden">
             <span className="tunel-prompt">~ $</span>
             <span className="tunel-tecleo">ls ./herramientas</span>
-          </p>
-          <p className="tunel-cuenta">
-            <strong>{total}</strong>
-            <span>herramientas · {stack.length} capas</span>
           </p>
         </div>
       </div>
