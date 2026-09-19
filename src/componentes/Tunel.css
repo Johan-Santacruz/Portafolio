@@ -1,0 +1,184 @@
+/* --- Túnel ---------------------------------------------------------------------
+   La cámara avanza con el scroll (--p, 0 a 1) y las placas vienen desde el
+   fondo. Cada placa calcula su profundidad actual (--zn, en px sin unidad)
+   y de ahí su posición y su opacidad; ningún cálculo en JavaScript por placa. */
+.tunel {
+  --p: 0;
+  --recorrido: 200svh;
+  --viaje: 4600; /* px que avanza la cámara en todo el recorrido */
+  position: relative;
+  height: calc(100svh + var(--recorrido));
+  background: #fdfdfe;
+  font-family: "Chakra Petch", var(--display);
+}
+.tunel-fijo {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: clip;
+  perspective: 700px;
+  perspective-origin: 50% 50%;
+}
+
+/* Rayos de velocidad: finos, desde el centro; se encienden a mitad del viaje. */
+.tunel-rayos {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(29, 31, 34, 0.12) 0deg 0.35deg,
+    transparent 0.35deg 7deg
+  );
+  -webkit-mask-image: radial-gradient(circle, transparent 12%, #000 42%, transparent 72%);
+  mask-image: radial-gradient(circle, transparent 12%, #000 42%, transparent 72%);
+  opacity: calc(clamp(0, (var(--p) - 0.12) / 0.2, 1) * clamp(0, (0.9 - var(--p)) / 0.2, 1));
+  transform: scale(calc(0.8 + var(--p) * 0.8)) rotate(calc(var(--p) * 25deg));
+}
+
+.tunel-escena {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.tunel-placa {
+  --zn: calc(var(--z0) + var(--p) * var(--viaje));
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px 11px 16px;
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  color: #eef0f2;
+  background: linear-gradient(135deg, #2a2e34, #16181c);
+  box-shadow: inset 3px 0 0 var(--accent);
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  translate: -50% -50%;
+  transform: translate3d(
+    calc(var(--cx) * 50vw),
+    calc(var(--cy) * 50vh),
+    calc(var(--zn) * 1px)
+  );
+  /* Aparece desde la niebla del fondo y se va al pasar junto a la cámara. */
+  opacity: min(
+    clamp(0, (var(--zn) + 3000) / 1500, 1),
+    clamp(0, (560 - var(--zn)) / 220, 1)
+  );
+  will-change: transform, opacity;
+}
+.tunel-placa i {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  background: var(--accent);
+  -webkit-mask: var(--logo) center / contain no-repeat;
+  mask: var(--logo) center / contain no-repeat;
+}
+
+/* Centro: la orden se teclea al principio; el recuento llega al final. */
+.tunel-centro {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  text-align: center;
+  pointer-events: none;
+}
+.tunel-orden {
+  display: flex;
+  padding: 10px 18px;
+  background: radial-gradient(closest-side, #fdfdfe 55%, rgba(253, 253, 254, 0));
+  gap: 0.8ch;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: clamp(15px, 1.4vw, 20px);
+  color: rgba(23, 24, 21, 0.7);
+  opacity: calc(1 - clamp(0, (var(--p) - 0.3) / 0.1, 1));
+}
+.tunel-prompt {
+  color: #6a8f00;
+  font-weight: 700;
+}
+.tunel-tecleo {
+  --t: clamp(0, var(--p) / 0.12, 1);
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  width: calc(var(--t) * 17ch);
+  width: round(down, calc(var(--t) * 17ch), 1ch);
+}
+.tunel-cuenta {
+  --e: clamp(0, (var(--p) - 0.78) / 0.14, 1);
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  margin-top: -1.2em;
+  opacity: var(--e);
+  transform: scale(calc(1.6 - var(--e) * 0.6));
+}
+.tunel-cuenta strong {
+  font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
+  font-weight: 700;
+  font-size: clamp(120px, 22vw, 300px);
+  line-height: 0.82;
+  color: #1d1f22;
+}
+.tunel-cuenta span {
+  font-weight: 600;
+  font-size: clamp(13px, 1.1vw, 16px);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(23, 24, 21, 0.62);
+}
+.tunel-cuenta strong::after {
+  content: "";
+  display: block;
+  height: 6px;
+  margin-top: 8px;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px rgba(23, 24, 21, 0.2);
+  transform-origin: 0 50%;
+  transform: scaleX(clamp(0, (var(--p) - 0.86) / 0.1, 1));
+}
+
+@media (max-width: 760px) {
+  .tunel-placa {
+    font-size: 14px;
+    padding: 9px 14px 8px 12px;
+    transform: translate3d(
+      calc(var(--cx) * 62vw),
+      calc(var(--cy) * 42vh),
+      calc(var(--zn) * 1px)
+    );
+  }
+  /* En pantallas pequeñas basta con una vuelta de placas. */
+  .tunel-placa:nth-child(n + 39) {
+    display: none;
+  }
+}
+@media (pointer: coarse) {
+  .tunel {
+    --recorrido: 160svh;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tunel {
+    --recorrido: 0svh;
+    --p: 1 !important;
+  }
+  .tunel-escena,
+  .tunel-rayos,
+  .tunel-orden {
+    display: none;
+  }
+  .tunel-cuenta {
+    opacity: 1;
+    transform: none;
+  }
+}

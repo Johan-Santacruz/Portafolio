@@ -343,3 +343,22 @@ test("la línea de comandos de la portada teclea el nombre al bajar", async ({
   const tecleo = page.locator(".term-tecleo").first();
   await expect.poll(() => tecleo.evaluate((e) => e.getBoundingClientRect().width)).toBeGreaterThan(20);
 });
+
+test("el túnel lleva de la portada a las herramientas con el scroll", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const tunel = page.locator(".tunel");
+  const n = await page.locator(".tunel-placa").count();
+  expect(n).toBeGreaterThan(40);
+  const { inicio, largo } = await tunel.evaluate((s) => ({
+    inicio: s.offsetTop,
+    largo: s.offsetHeight - innerHeight,
+  }));
+  const p = () => tunel.evaluate((s) => Number(s.style.getPropertyValue("--p")));
+  await page.evaluate((y) => window.scrollTo(0, y), inicio + largo * 0.5);
+  await expect.poll(p).toBeGreaterThan(0.4);
+  await page.evaluate((y) => window.scrollTo(0, y), inicio + largo);
+  await expect.poll(p).toBe(1);
+  await expect(page.locator(".tunel-cuenta")).toHaveCSS("opacity", "1");
+});
