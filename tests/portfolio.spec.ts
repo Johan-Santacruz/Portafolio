@@ -339,7 +339,7 @@ test("la línea de comandos de la portada teclea el nombre al bajar", async ({
     window.scrollTo(0, h.getBoundingClientRect().height - innerHeight);
   });
   await expect.poll(() => nombre.evaluate((e) => e.getBoundingClientRect().width)).toBeGreaterThan(200);
-  await expect(page.locator(".cli-rol")).toContainText("Desarrollador Full-Stack");
+  await expect(page.locator(".cli-rol")).toContainText("Ingeniero de Sistemas");
   const tecleo = page.locator(".term-tecleo").first();
   await expect.poll(() => tecleo.evaluate((e) => e.getBoundingClientRect().width)).toBeGreaterThan(20);
 });
