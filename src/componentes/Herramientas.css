@@ -41,9 +41,11 @@
 .herr-fijo::before {
   opacity: var(--llegada);
 }
+/* La bandeja llega desde el punto de fuga del túnel: se escala desde el
+   centro de la pantalla (--ox, --oy, medidos en Herramientas.tsx). */
 .herr-bandeja {
-  transform: scale(calc(0.9 + var(--llegada) * 0.1));
-  transform-origin: 20% 50%;
+  transform: scale(calc(0.24 + var(--llegada) * 0.76));
+  transform-origin: var(--ox, 20%) var(--oy, 50%);
 }
 .herr-sonda {
   position: absolute;
@@ -284,6 +286,12 @@
   background: var(--accent);
 }
 
+/* Al llegar la sección, las placas del primer grupo aparecen escalonadas,
+   como si acabaran de salir del túnel. */
+.herr-grupo[data-estado="activo"] .herr-placa {
+  --entra: clamp(0, (var(--llegada) - var(--i) * 0.06) * 4, 1);
+}
+
 /* Estados. Las que se van salen en la dirección del scroll, rápidas y a la
    vez; las que llegan se imprimen de izquierda a derecha, en cascada. */
 .herr-grupo .herr-placa {
@@ -301,8 +309,8 @@
   transform: translate3d(0, 22px, 0);
 }
 .herr-grupo[data-estado="activo"] .herr-placa {
-  opacity: 1;
-  transform: none;
+  opacity: var(--entra, 1);
+  transform: translate3d(0, calc((1 - var(--entra, 1)) * 18px), 0);
   clip-path: var(--chaflan);
   transition:
     opacity 0.2s ease calc(0.12s + var(--i) * 45ms),

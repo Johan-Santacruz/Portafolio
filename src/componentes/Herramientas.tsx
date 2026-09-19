@@ -66,6 +66,14 @@ export function Herramientas() {
       const w = destino.offsetWidth;
       destino.style.setProperty("--sx", `${f.width / 2 - (x + w / 2)}px`);
       destino.style.setProperty("--sy", `${f.height / 2 - y}px`);
+      // Las placas llegan desde el punto de fuga del túnel: se escalan desde
+      // el centro de la pantalla, así que ese punto es el origen.
+      const bandeja = raiz.querySelector<HTMLElement>(".herr-bandeja");
+      if (bandeja) {
+        const bj = bandeja.getBoundingClientRect();
+        bandeja.style.setProperty("--ox", `${f.left + f.width / 2 - bj.left}px`);
+        bandeja.style.setProperty("--oy", `${f.top + f.height / 2 - bj.top}px`);
+      }
     };
     const total = grupos.length;
     let activo = -1;
