@@ -1,7 +1,6 @@
 import type { CSSProperties } from "react";
 import { Retrato } from "./Retrato";
 import { Cabecera } from "./Cabecera";
-import { Tunel } from "./Tunel";
 import { Herramientas } from "./Herramientas";
 import { Proyectos } from "./Proyectos";
 import { Cierre } from "./Cierre";
@@ -59,7 +58,6 @@ export function Campana() {
           </div>
         </section>
 
-        <Tunel />
         <Herramientas />
         <Proyectos />
         <Cierre />

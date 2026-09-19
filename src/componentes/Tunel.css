@@ -1,25 +1,17 @@
 /* --- Túnel ---------------------------------------------------------------------
-   La cámara avanza con el scroll (--p, 0 a 1) y las placas vienen desde el
+   Capa dentro de la pantalla fija de Herramientas. La cámara avanza con el
+   scroll (--pt, 0 a 1) y las placas vienen desde el
    fondo. Cada placa calcula su profundidad actual (--zn, en px sin unidad)
    y de ahí su posición y su opacidad; ningún cálculo en JavaScript por placa. */
 .tunel {
-  --p: 0;
-  --recorrido: 150svh;
-  --viaje: 4600; /* px que avanza la cámara en todo el recorrido */
-  position: relative;
-  height: calc(100svh + var(--recorrido));
-  background: #fdfdfe;
-  font-family: "Chakra Petch", var(--display);
-}
-.tunel-fijo {
-  position: sticky;
-  top: 0;
-  height: 100svh;
+  --viaje: 4600; /* px que avanza la cámara en todo el túnel */
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   overflow: clip;
   perspective: 700px;
-  perspective-origin: 50% 50%;
+  pointer-events: none;
 }
-
 /* Rayos de velocidad: finos, desde el centro, durante el tramo fijo. */
 .tunel-rayos {
   position: absolute;
@@ -32,8 +24,8 @@
   );
   -webkit-mask-image: radial-gradient(circle, transparent 12%, #000 42%, transparent 72%);
   mask-image: radial-gradient(circle, transparent 12%, #000 42%, transparent 72%);
-  opacity: calc(clamp(0, (var(--p) - 0.2) / 0.15, 1) * clamp(0, (0.85 - var(--p)) / 0.15, 1));
-  transform: scale(calc(0.8 + var(--p) * 0.8)) rotate(calc(var(--p) * 25deg));
+  opacity: calc(clamp(0, (var(--pt) - 0.2) / 0.15, 1) * clamp(0, (0.85 - var(--pt)) / 0.15, 1));
+  transform: scale(calc(0.8 + var(--pt) * 0.8)) rotate(calc(var(--pt) * 25deg));
 }
 
 .tunel-escena {
@@ -42,7 +34,7 @@
   transform-style: preserve-3d;
 }
 .tunel-placa {
-  --zn: calc(var(--z0) + var(--p) * var(--viaje));
+  --zn: calc(var(--z0) + var(--pt) * var(--viaje));
   position: absolute;
   left: 50%;
   top: 50%;
@@ -99,14 +91,14 @@
   font-family: "JetBrains Mono", ui-monospace, monospace;
   font-size: clamp(15px, 1.4vw, 20px);
   color: rgba(23, 24, 21, 0.7);
-  opacity: calc(1 - clamp(0, (var(--p) - 0.36) / 0.1, 1));
+  opacity: calc(1 - clamp(0, (var(--pt) - 0.36) / 0.1, 1));
 }
 .tunel-prompt {
   color: #6a8f00;
   font-weight: 700;
 }
 .tunel-tecleo {
-  --t: clamp(0, (var(--p) - 0.1) / 0.14, 1);
+  --t: clamp(0, (var(--pt) - 0.1) / 0.14, 1);
   display: inline-block;
   overflow: hidden;
   white-space: nowrap;
@@ -127,11 +119,6 @@
   /* En pantallas pequeñas basta con una vuelta de placas. */
   .tunel-placa:nth-child(n + 39) {
     display: none;
-  }
-}
-@media (pointer: coarse) {
-  .tunel {
-    --recorrido: 120svh;
   }
 }
 @media (prefers-reduced-motion: reduce) {

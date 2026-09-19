@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import type { CSSProperties } from "react";
 import { iconos, stack } from "../datos/stack";
 import "./Tunel.css";
@@ -32,9 +32,11 @@ function azarConSemilla(semilla: number) {
 
 const herramientas = stack.flatMap((g) => g.items);
 
+/**
+ * Capa del túnel: va dentro de la pantalla fija de Herramientas. No mide
+ * nada: lee `--pt` (0 a 1) del contenedor, que escribe Herramientas.tsx.
+ */
 export function Tunel() {
-  const seccion = useRef<HTMLElement>(null);
-
   // Dos vueltas de todas las herramientas, repartidas en espiral por el túnel.
   const placas = useMemo(() => {
     const azar = azarConSemilla(7);
@@ -52,63 +54,34 @@ export function Tunel() {
     });
   }, []);
 
-  useEffect(() => {
-    const raiz = seccion.current;
-    if (!raiz) return;
-    let pendiente = false;
-    const medir = () => {
-      pendiente = false;
-      // De 0 cuando asoma por abajo a 1 cuando se ha ido por arriba.
-      const caja = raiz.getBoundingClientRect();
-      const alto = window.innerHeight;
-      const p = Math.min(1, Math.max(0, (alto - caja.top) / (caja.height + alto)));
-      raiz.style.setProperty("--p", p.toFixed(4));
-    };
-    const alScroll = () => {
-      if (pendiente) return;
-      pendiente = true;
-      requestAnimationFrame(medir);
-    };
-    medir();
-    window.addEventListener("scroll", alScroll, { passive: true });
-    window.addEventListener("resize", alScroll);
-    return () => {
-      window.removeEventListener("scroll", alScroll);
-      window.removeEventListener("resize", alScroll);
-    };
-  }, []);
-
   return (
-    <section ref={seccion} className="tunel" aria-hidden="true">
-      <div className="tunel-fijo">
-        <div className="tunel-rayos" />
-        <div className="tunel-escena">
-          {placas.map((p, i) => (
-            <span
-              key={i}
-              className="tunel-placa"
-              style={
-                {
-                  "--cx": p.cx.toFixed(3),
-                  "--cy": p.cy.toFixed(3),
-                  "--z0": p.z0.toFixed(0),
-                  "--logo": p.logo ? `url("${ICONOS}${p.logo}.svg")` : "none",
-                } as CSSProperties
-              }
-            >
-              {p.logo && <i />}
-              {p.nombre}
-            </span>
-          ))}
-        </div>
-
-        <div className="tunel-centro">
-          <p className="tunel-orden">
-            <span className="tunel-prompt">~ $</span>
-            <span className="tunel-tecleo">ls ./herramientas</span>
-          </p>
-        </div>
+    <div className="tunel" aria-hidden="true">
+      <div className="tunel-rayos" />
+      <div className="tunel-escena">
+        {placas.map((p, i) => (
+          <span
+            key={i}
+            className="tunel-placa"
+            style={
+              {
+                "--cx": p.cx.toFixed(3),
+                "--cy": p.cy.toFixed(3),
+                "--z0": p.z0.toFixed(0),
+                "--logo": p.logo ? `url("${ICONOS}${p.logo}.svg")` : "none",
+              } as CSSProperties
+            }
+          >
+            {p.logo && <i />}
+            {p.nombre}
+          </span>
+        ))}
       </div>
-    </section>
+      <div className="tunel-centro">
+        <p className="tunel-orden">
+          <span className="tunel-prompt">~ $</span>
+          <span className="tunel-tecleo">ls ./herramientas</span>
+        </p>
+      </div>
+    </div>
   );
 }

@@ -344,23 +344,29 @@ test("la línea de comandos de la portada teclea el nombre al bajar", async ({
   await expect.poll(() => tecleo.evaluate((e) => e.getBoundingClientRect().width)).toBeGreaterThan(20);
 });
 
-test("el túnel se mueve desde que asoma hasta que se va", async ({
+test("el túnel lleva a las herramientas sin salir de la pantalla", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
-  const tunel = page.locator(".tunel");
+  const seccion = page.locator("#herramientas");
   expect(await page.locator(".tunel-placa").count()).toBeGreaterThan(40);
-  const { inicio, alto } = await tunel.evaluate((s) => ({
+  const { inicio, alto, tunel } = await seccion.evaluate((s) => ({
     inicio: s.offsetTop,
     alto: innerHeight,
+    tunel: (s.querySelector(".herr-sonda") as HTMLElement).offsetTop,
   }));
-  const p = () => tunel.evaluate((s) => Number(s.style.getPropertyValue("--p")));
-  // Con la sección a media entrada, la cámara ya avanza.
+  const v = (n: string) =>
+    seccion.evaluate((s, n) => Number(s.style.getPropertyValue(n)), n);
+  // Asomando: el túnel ya avanza y las herramientas aún no están.
   await page.evaluate((y) => window.scrollTo(0, y), inicio - alto * 0.5);
-  await expect.poll(p).toBeGreaterThan(0.05);
-  // Y sigue mientras sale por arriba.
-  await page.evaluate((y) => window.scrollTo(0, y), inicio + (await tunel.evaluate((s) => s.offsetHeight)) - alto * 0.5);
-  await expect.poll(p).toBeGreaterThan(0.85);
-  await expect.poll(p).toBeLessThan(1);
+  await expect.poll(() => v("--pt")).toBeGreaterThan(0.05);
+  expect(await v("--llegada")).toBe(0);
+  // Al acabar el túnel, las herramientas están en la misma pantalla fija.
+  await page.evaluate((y) => window.scrollTo(0, y), inicio + tunel);
+  await expect.poll(() => v("--llegada")).toBe(1);
+  expect(
+    await page.evaluate(() => document.querySelector(".herr-fijo")!.getBoundingClientRect().top),
+  ).toBe(0);
+  await expect(page.locator(".herr-grupo").first()).toHaveAttribute("data-estado", "activo");
 });

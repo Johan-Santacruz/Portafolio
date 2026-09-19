@@ -4,12 +4,18 @@
    --p (0 a N−1) lo escribe Herramientas.tsx con el scroll. */
 .herramientas {
   --p: 0;
+  --pt: 0;
+  --acerca: 0;
+  --asienta: 0;
+  --llegada: 0;
+  /* Tramo fijo del túnel antes del lector (la sonda lo mide en px). */
+  --tunel: 150svh;
   --n: 6;
   --tinta: #1d1f22;
   --fila: 0.9em;
   position: relative;
   --por-categoria: 55svh;
-  height: calc(100svh + var(--n) * var(--por-categoria));
+  height: calc(100svh + var(--tunel) + var(--n) * var(--por-categoria));
   background: #fdfdfe;
   color: var(--ink);
   font-family: "Chakra Petch", var(--display);
@@ -24,6 +30,51 @@
   align-items: center;
   column-gap: clamp(32px, 4vw, 72px);
   padding-inline: max(var(--aire), (100% - var(--ancho)) / 2);
+}
+/* Lo propio de la sección emerge desde el fondo al final del túnel, en la
+   misma pantalla: parece que llega, no que se baja hasta ella. */
+.herr-cabecera,
+.herr-lector,
+.herr-bandeja,
+.herr-riel,
+.herr-fijo::before {
+  opacity: var(--llegada);
+}
+.herr-bandeja {
+  transform: scale(calc(0.9 + var(--llegada) * 0.1));
+  transform-origin: 20% 50%;
+}
+.herr-sonda {
+  position: absolute;
+  top: var(--tunel);
+  width: 1px;
+  height: 1px;
+  visibility: hidden;
+  pointer-events: none;
+}
+/* «LENGUAJES» al fondo del túnel: nace diminuto en el punto de fuga, crece
+   con el acercamiento (--acerca, curva cuadrática, como una perspectiva) y
+   se desliza hasta la primera palabra del lector (--asienta). Posición final
+   y desplazamiento de salida (--sx, --sy) los mide Herramientas.tsx; cuando
+   la sección llega, cede el sitio a la palabra de verdad. */
+.herr-destino {
+  position: absolute;
+  z-index: 3;
+  font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #1d1f22;
+  -webkit-text-stroke: 1.2px #1d1f22;
+  pointer-events: none;
+  transform: translate(
+      calc((1 - var(--asienta)) * var(--sx, 0px)),
+      calc(-50% + (1 - var(--asienta)) * var(--sy, 0px))
+    )
+    scale(calc(0.03 + 0.97 * var(--acerca) * var(--acerca)));
+  opacity: min(clamp(0, (var(--pt) - 0.42) / 0.06, 1), 1 - var(--llegada));
 }
 /* Rejilla de plano, muy tenue, que se apaga hacia los bordes. */
 .herr-fijo::before {
@@ -357,6 +408,16 @@
 @media (pointer: coarse) {
   .herramientas {
     --por-categoria: 42svh;
+    --tunel: 120svh;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .herramientas {
+    --tunel: 0svh;
+    --llegada: 1 !important;
+  }
+  .herr-destino {
+    display: none;
   }
 }
 

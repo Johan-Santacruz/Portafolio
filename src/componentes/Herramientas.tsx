@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import { iconos, stack } from "../datos/stack";
+import { Tunel } from "./Tunel";
 import "./Herramientas.css";
 
 const ICONOS = `${import.meta.env.BASE_URL}iconos/`;
@@ -41,15 +42,53 @@ export function Herramientas() {
     const raiz = seccion.current;
     if (!raiz) return;
     const grupos = Array.from(raiz.querySelectorAll<HTMLElement>(".herr-grupo"));
+    // Mide --tunel en px (svh no se puede leer desde CSS).
+    const sonda = raiz.querySelector<HTMLElement>(".herr-sonda");
+    const fijo = raiz.querySelector<HTMLElement>(".herr-fijo");
+    const palabras = raiz.querySelector<HTMLElement>(".herr-palabras");
+    const marca = raiz.querySelector<HTMLElement>(".herr-marca");
+    const destino = raiz.querySelector<HTMLElement>(".herr-destino");
+
+    // El destino («LENGUAJES» al fondo del túnel) acaba exactamente donde está
+    // la primera palabra del lector: se mide esa posición y desde dónde sale
+    // (el centro de la pantalla).
+    const colocarDestino = () => {
+      if (!fijo || !palabras || !marca || !destino) return;
+      const f = fijo.getBoundingClientRect();
+      const ul = palabras.getBoundingClientRect();
+      const m = marca.getBoundingClientRect();
+      const estilo = getComputedStyle(palabras);
+      destino.style.fontSize = getComputedStyle(palabras.parentElement!).fontSize;
+      const x = ul.left - f.left + parseFloat(estilo.paddingLeft) + 10;
+      const y = m.top + m.height / 2 - f.top;
+      destino.style.left = `${x}px`;
+      destino.style.top = `${y}px`;
+      const w = destino.offsetWidth;
+      destino.style.setProperty("--sx", `${f.width / 2 - (x + w / 2)}px`);
+      destino.style.setProperty("--sy", `${f.height / 2 - y}px`);
+    };
     const total = grupos.length;
     let activo = -1;
     let pendiente = false;
 
+    const limitar = (v: number) => Math.min(1, Math.max(0, v));
     const pintar = () => {
       pendiente = false;
       const caja = raiz.getBoundingClientRect();
-      const largo = caja.height - window.innerHeight;
-      const avance = largo > 0 ? Math.min(1, Math.max(0, -caja.top / largo)) : 0;
+      const alto = window.innerHeight;
+      // Primero el túnel: arranca en cuanto la sección asoma por abajo y
+      // termina tras recorrer su tramo fijo (--tunel).
+      const tunel = sonda?.offsetTop ?? 0;
+      const pt = limitar((alto - caja.top) / (alto + tunel));
+      raiz.style.setProperty("--pt", pt.toFixed(4));
+      // Al fondo del túnel, «LENGUAJES» crece desde el punto de fuga y se
+      // desliza a su sitio; entonces aparece el resto de la sección.
+      raiz.style.setProperty("--acerca", limitar((pt - 0.42) / 0.4).toFixed(4));
+      raiz.style.setProperty("--asienta", limitar((pt - 0.8) / 0.12).toFixed(4));
+      raiz.style.setProperty("--llegada", limitar((pt - 0.9) / 0.08).toFixed(4));
+      // Después, el lector recorre las categorías con el resto del scroll.
+      const largo = caja.height - alto - tunel;
+      const avance = largo > 0 ? limitar((-caja.top - tunel) / largo) : 0;
       const tramo = Math.min(
         1,
         Math.max(0, (avance - PAUSA_INICIO) / (1 - PAUSA_INICIO - PAUSA_FINAL)),
@@ -71,12 +110,18 @@ export function Herramientas() {
       pendiente = true;
       requestAnimationFrame(pintar);
     };
+    const alRedimensionar = () => {
+      colocarDestino();
+      alScroll();
+    };
+    colocarDestino();
+    document.fonts?.ready.then(colocarDestino);
     pintar();
     window.addEventListener("scroll", alScroll, { passive: true });
-    window.addEventListener("resize", alScroll);
+    window.addEventListener("resize", alRedimensionar);
     return () => {
       window.removeEventListener("scroll", alScroll);
-      window.removeEventListener("resize", alScroll);
+      window.removeEventListener("resize", alRedimensionar);
     };
   }, []);
 
@@ -93,7 +138,7 @@ export function Herramientas() {
           key={grupo.titulo}
           className="parada"
           style={{
-            top: `calc(var(--n) * var(--por-categoria) * ${(
+            top: `calc(var(--tunel) + var(--n) * var(--por-categoria) * ${(
               PAUSA_INICIO +
               ((1 - PAUSA_INICIO - PAUSA_FINAL) * i) / (stack.length - 1)
             ).toFixed(4)})`,
@@ -101,7 +146,12 @@ export function Herramientas() {
           aria-hidden="true"
         />
       ))}
+      <span className="herr-sonda" aria-hidden="true" />
       <div className="herr-fijo">
+        <Tunel />
+        <span className="herr-destino" aria-hidden="true">
+          {stack[0].palabra ?? stack[0].titulo}
+        </span>
         <header className="herr-cabecera">
           <p className="herr-rotulo">Herramientas</p>
           <h2 id="titulo-herramientas">Con qué construyo</h2>
