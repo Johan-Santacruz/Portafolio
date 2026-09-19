@@ -347,6 +347,7 @@ test("la línea de comandos de la portada teclea el nombre al bajar", async ({
 test("el túnel lleva de la portada a las herramientas con el scroll", async ({
   page,
 }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
   const tunel = page.locator(".tunel");
   const n = await page.locator(".tunel-placa").count();
