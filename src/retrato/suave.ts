@@ -7,8 +7,8 @@ import "lenis/dist/lenis.css";
  * terminal avanzan a tirones. Lenis interpola la posición con una pequeña
  * inercia.
  *
- * Solo con puntero fino: en táctil el scroll del dedo ya es suave y además
- * usa las paradas (scroll-snap). Con movimiento reducido no se activa.
+ * Solo con puntero fino: en táctil el scroll del dedo ya es suave. Con
+ * movimiento reducido no se activa.
  */
 export function activarScrollSuave() {
   const fino = window.matchMedia("(hover: hover) and (pointer: fine)");

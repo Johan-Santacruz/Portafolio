@@ -203,14 +203,6 @@ export function Cierre() {
       id="contacto"
       aria-labelledby="titulo-cierre"
     >
-      {[0, 1].map((f) => (
-        <span
-          key={f}
-          className="parada"
-          style={{ top: `calc(var(--recorrido) * ${f})` }}
-          aria-hidden="true"
-        />
-      ))}
       <div className="cierre-fijo" ref={fijo}>
         <canvas ref={lienzo} className="cierre-video" aria-hidden="true" />
         {/* Niebla: un velo que se retira y bancos de bruma que se disipan. */}

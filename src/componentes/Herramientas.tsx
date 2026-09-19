@@ -162,19 +162,6 @@ export function Herramientas() {
       aria-labelledby="titulo-herramientas"
       style={{ "--n": stack.length } as CSSProperties}
     >
-      {stack.map((grupo, i) => (
-        <span
-          key={grupo.titulo}
-          className="parada"
-          style={{
-            top: `calc(var(--tunel) + var(--n) * var(--por-categoria) * ${(
-              PAUSA_INICIO +
-              ((1 - PAUSA_INICIO - PAUSA_FINAL) * i) / (stack.length - 1)
-            ).toFixed(4)})`,
-          }}
-          aria-hidden="true"
-        />
-      ))}
       <span className="herr-sonda" aria-hidden="true" />
       <div className="herr-fijo">
         <Tunel />

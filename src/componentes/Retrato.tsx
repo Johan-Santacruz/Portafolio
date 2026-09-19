@@ -185,9 +185,23 @@ export function Retrato() {
       if (tactil?.activo) m.salir();
       tactil = null;
     };
-    // Mientras se revela con el dedo, la página no debe desplazarse.
+    // El revelado nunca bloquea el scroll: en horizontal ya no hay nada que
+    // desplazar (touch-action: pan-y), y si el dedo va en vertical es que la
+    // persona quiere bajar, así que el revelado se suelta. (Bloquearlo dejaba
+    // la página trabada al apoyar el dedo un momento antes de deslizar.)
     const alTocarMover = (ev: TouchEvent) => {
-      if (tactil?.activo) ev.preventDefault();
+      if (!tactil) return;
+      const t = ev.touches[0];
+      if (t) {
+        const caja = zona.getBoundingClientRect();
+        const dx = Math.abs(t.clientX - caja.left - tactil.x);
+        const dy = Math.abs(t.clientY - caja.top - tactil.y);
+        if (dy > 12 && dy > dx) {
+          clearTimeout(temporizadorPulsacion);
+          if (tactil.activo) m?.salir();
+          tactil = null;
+        }
+      }
     };
     const alFoco = () => {
       if (!enSecuencia) m?.orbitar();
@@ -324,7 +338,7 @@ export function Retrato() {
       zona.addEventListener("pointerdown", alPulsar);
       zona.addEventListener("pointerup", alSoltar);
       zona.addEventListener("pointercancel", alSoltar);
-      zona.addEventListener("touchmove", alTocarMover, { passive: false });
+      zona.addEventListener("touchmove", alTocarMover, { passive: true });
       zona.addEventListener("focus", alFoco);
       zona.addEventListener("blur", alDesenfocar);
       window.addEventListener("scroll", alScroll, { passive: true });

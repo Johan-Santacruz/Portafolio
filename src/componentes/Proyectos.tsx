@@ -133,7 +133,7 @@ export function Proyectos() {
         {trabajos.map((t) => (
           <li
             key={t.id}
-            className="proy-fila parada-centro"
+            className="proy-fila"
             style={{ "--luz": 0 } as CSSProperties}
           >
             {t.capturas?.[0] && (

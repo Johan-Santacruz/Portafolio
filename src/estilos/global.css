@@ -94,27 +94,3 @@ main:focus {
     scroll-behavior: auto !important;
   }
 }
-
-/* --- Asistencia al scroll en pantallas táctiles --------------------------------
-   Cada sección con recorrido deja marcadores invisibles (.parada) en los
-   estados que merece la pena ver; al soltar el dedo cerca de uno, la página
-   se asienta en él. "proximity" nunca bloquea el scroll libre. */
-.parada {
-  position: absolute;
-  left: 0;
-  width: 1px;
-  height: 1px;
-  pointer-events: none;
-  visibility: hidden;
-}
-@media (pointer: coarse) {
-  html {
-    scroll-snap-type: y proximity;
-  }
-  .parada {
-    scroll-snap-align: start;
-  }
-  .parada-centro {
-    scroll-snap-align: center;
-  }
-}
