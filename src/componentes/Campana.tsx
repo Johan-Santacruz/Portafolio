@@ -49,7 +49,10 @@ export function Campana() {
               </h1>
               <p className="cli-rol">
                 <span aria-hidden="true">// </span>
-                Desarrollador Full-Stack · IA Engineer · Automatización
+                Ingeniero de Sistemas
+                <br />
+                <span aria-hidden="true">// </span>
+                Full-Stack · IA Engineer · Automatización
               </p>
             </div>
           </div>

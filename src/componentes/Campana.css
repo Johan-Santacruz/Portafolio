@@ -83,6 +83,7 @@
 }
 .cli-rol {
   margin-top: 10px;
+  line-height: 1.6;
   font-size: clamp(13px, 1.05vw, 16px);
   color: rgba(23, 24, 21, 0.62);
   opacity: clamp(0, (var(--avance) - 0.76) / 0.06, 1);
@@ -109,7 +110,23 @@
   }
   .cli-rol {
     font-size: 12px;
-    line-height: 1.5;
+  }
+  /* El retrato sube mientras entra el texto, para que la cara quede por
+     encima y el texto sobre la armadura, nunca sobre el rostro. */
+  .hero-retrato {
+    --subida: clamp(0, (var(--avance) - 0.5) / 0.1, 1);
+    translate: 0 calc(var(--subida) * -16svh);
+    /* Borde inferior fundido solo mientras sube: no deja un corte recto. */
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 calc(100% - var(--subida) * 28%),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      #000 calc(100% - var(--subida) * 28%),
+      transparent 100%
+    );
   }
   /* Velo claro abajo para que se lea sobre la figura. */
   .hero-fijo::after {
