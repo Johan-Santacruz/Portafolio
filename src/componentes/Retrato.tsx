@@ -434,6 +434,16 @@ export function Retrato() {
         className="retrato-secuencia"
         aria-hidden="true"
       />
+      {/* Intro: por detrás de la línea de escaneo asoma el cyborg, en una
+          franja que baja con ella y se va al terminar. */}
+      <img
+        className="retrato-intro"
+        src={`${RETRATO}alter.jpg`}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        style={{ objectPosition: `${FOCO.x * 100}% ${FOCO.y * 100}%` }}
+      />
       <span className="retrato-escaner" aria-hidden="true" />
     </div>
   );

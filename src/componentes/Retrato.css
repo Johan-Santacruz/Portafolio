@@ -68,7 +68,40 @@
       )
       top / 100% 46px no-repeat;
   opacity: 0;
-  animation: retrato-escanear 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.35s forwards;
+  animation: retrato-escanear 1.5s cubic-bezier(0.4, 0, 0.2, 1) 0.35s forwards;
+}
+/* Franja del cyborg detrás de la línea: mismo ritmo que el escaneo (una sola
+   curva de 0 % a 100 %), así el borde inferior de la franja va pegado a la
+   línea. Recorte: de [y − 24 %, y] con y bajando de 0 a 100 %. */
+.retrato-intro {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  clip-path: inset(-24% 0 100% 0);
+  animation:
+    retrato-intro-barrido 1.5s cubic-bezier(0.4, 0, 0.2, 1) 0.35s forwards,
+    retrato-intro-fundido 1.5s linear 0.35s forwards;
+}
+@keyframes retrato-intro-barrido {
+  from {
+    clip-path: inset(-24% 0 100% 0);
+  }
+  to {
+    clip-path: inset(76% 0 0% 0);
+  }
+}
+@keyframes retrato-intro-fundido {
+  0%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
 }
 @keyframes retrato-entrar {
   from {
@@ -101,7 +134,8 @@
     opacity: 1;
     animation: none;
   }
-  .retrato-escaner {
+  .retrato-escaner,
+  .retrato-intro {
     display: none;
   }
 }
