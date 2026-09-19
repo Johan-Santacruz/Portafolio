@@ -17,6 +17,8 @@ const COLORES = { acento: "#c7ff4a", papel: "#f4f0e7" };
  * (ver README, "Retrato interactivo"). Se reproduce con el scroll.
  */
 const FOTOGRAMAS = 121;
+const ANCHO_FOTOGRAMA = 1280;
+const ALTO_FOTOGRAMA = 720;
 const fotograma = (i: number) =>
   `${RETRATO}secuencia/f${String(i).padStart(3, "0")}.jpg`;
 /**
@@ -199,17 +201,19 @@ export function Retrato() {
     const ctxSecuencia = canvasSecuencia.getContext("2d");
 
     const pintarCuadro = (pedido: number) => {
-      // Si el exacto no ha llegado, el más cercano que ya esté.
-      const i = secuencia.cercano(pedido);
-      const img = i >= 0 ? secuencia.cuadros[i] : null;
+      // La mejor imagen disponible (exacta, vecina o mini mientras llega).
+      const img = secuencia.mejor(pedido);
+      const i = pedido;
       if (!img || !ctxSecuencia) return false;
       // Sin más resolución que la del fotograma: más píxeles no añaden
       // detalle y cada uno hay que subirlo a la GPU en cada scroll.
       // Se mide con la escala real de «cover»: en vertical la imagen se
       // amplía por su altura y un píxel de origen ocupa más de uno de CSS.
+      // (Con el tamaño del fotograma bueno, no el de la imagen que toque:
+      // así el lienzo no cambia de tamaño al pasar de mini a bueno.)
       const cubre = Math.max(
-        canvasSecuencia.clientWidth / img.naturalWidth,
-        canvasSecuencia.clientHeight / img.naturalHeight,
+        canvasSecuencia.clientWidth / ANCHO_FOTOGRAMA,
+        canvasSecuencia.clientHeight / ALTO_FOTOGRAMA,
       );
       const dpr = Math.min(window.devicePixelRatio || 1, Math.max(1, 1 / cubre));
       const ancho = canvasSecuencia.clientWidth;
@@ -253,11 +257,17 @@ export function Retrato() {
       cuadroPintado = -1;
     };
     // Al llegar un fotograma más próximo al pedido que el pintado, se cambia.
-    const secuencia = new SecuenciaFotogramas(FOTOGRAMAS, fotograma, (i) => {
-      if (!enSecuencia) return;
-      if (Math.abs(i - cuadroPedido) < Math.abs(cuadroPintado - cuadroPedido))
-        pintarCuadro(cuadroPedido);
-    });
+    const secuencia = new SecuenciaFotogramas(
+      FOTOGRAMAS,
+      fotograma,
+      (i) => {
+        // Si llega algo para el fotograma pedido (o casi), se repinta.
+        if (enSecuencia && Math.abs(i - cuadroPedido) <= 2)
+          pintarCuadro(cuadroPedido);
+      },
+      8,
+      (i) => `${RETRATO}secuencia-mini/f${String(i).padStart(3, "0")}.jpg`,
+    );
 
     // --- Recorrido con scroll ------------------------------------------------
     const recorrido = zona.closest<HTMLElement>("[data-recorrido]");

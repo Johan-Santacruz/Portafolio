@@ -114,7 +114,9 @@
   /* El retrato sube mientras entra el texto, para que la cara quede por
      encima y el texto sobre la armadura, nunca sobre el rostro. */
   .hero-retrato {
-    --subida: clamp(0, (var(--avance) - 0.5) / 0.1, 1);
+    --subida-l: clamp(0, (var(--avance) - 0.5) / 0.1, 1);
+    /* Curva suave: arranca y frena despacio. */
+    --subida: calc(var(--subida-l) * var(--subida-l) * (3 - 2 * var(--subida-l)));
     translate: 0 calc(var(--subida) * -16svh);
     /* Borde inferior fundido solo mientras sube: no deja un corte recto. */
     -webkit-mask-image: linear-gradient(

@@ -24,8 +24,13 @@
   );
   -webkit-mask-image: radial-gradient(circle, transparent 12%, #000 42%, transparent 72%);
   mask-image: radial-gradient(circle, transparent 12%, #000 42%, transparent 72%);
-  opacity: calc(clamp(0, (var(--pt) - 0.2) / 0.15, 1) * clamp(0, (0.85 - var(--pt)) / 0.15, 1));
-  transform: scale(calc(0.8 + var(--pt) * 0.8)) rotate(calc(var(--pt) * 25deg));
+  /* Más intensos y abiertos cuanto más rápido se baja (--vel). */
+  opacity: calc(
+    clamp(0, (var(--pt) - 0.2) / 0.15, 1) * clamp(0, (0.85 - var(--pt)) / 0.15, 1) *
+      (0.55 + var(--vel) * 0.9)
+  );
+  transform: scale(calc(0.8 + var(--pt) * 0.8 + var(--vel) * 0.25))
+    rotate(calc(var(--pt) * 25deg));
 }
 
 .tunel-escena {
@@ -51,11 +56,14 @@
   box-shadow: inset 3px 0 0 var(--accent);
   clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
   translate: -50% -50%;
+  /* A más velocidad, las placas se estiran un poco en horizontal: sensación
+     de avance sin desenfoques caros. */
   transform: translate3d(
-    calc(var(--cx) * 50vw),
-    calc(var(--cy) * 50vh),
-    calc(var(--zn) * 1px)
-  );
+      calc(var(--cx) * 50vw),
+      calc(var(--cy) * 50vh),
+      calc(var(--zn) * 1px)
+    )
+    scale(calc(1 + var(--vel) * 0.35), calc(1 - var(--vel) * 0.12));
   /* Aparece desde la niebla del fondo y se va al pasar junto a la cámara. */
   opacity: min(
     clamp(0, (var(--zn) + 3000) / 1500, 1),
@@ -111,10 +119,11 @@
     font-size: 14px;
     padding: 9px 14px 8px 12px;
     transform: translate3d(
-      calc(var(--cx) * 62vw),
-      calc(var(--cy) * 42vh),
-      calc(var(--zn) * 1px)
-    );
+        calc(var(--cx) * 62vw),
+        calc(var(--cy) * 42vh),
+        calc(var(--zn) * 1px)
+      )
+      scale(calc(1 + var(--vel) * 0.35), calc(1 - var(--vel) * 0.12));
   }
   /* En pantallas pequeñas basta con una vuelta de placas. */
   .tunel-placa:nth-child(n + 39) {

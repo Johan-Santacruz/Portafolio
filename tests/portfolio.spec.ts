@@ -370,3 +370,51 @@ test("el túnel lleva a las herramientas sin salir de la pantalla", async ({
   ).toBe(0);
   await expect(page.locator(".herr-grupo").first()).toHaveAttribute("data-estado", "activo");
 });
+
+test("en escritorio el scroll con la rueda se desliza y el túnel reacciona a la velocidad", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveClass(/lenis/);
+  await expect(page.locator(".retrato")).toHaveAttribute("data-listo", "true");
+  await page.waitForTimeout(1500);
+  await page.mouse.move(600, 400);
+  await page.mouse.wheel(0, 300);
+  // Primero un poco, luego el resto: se desliza, no salta.
+  await page.waitForTimeout(40);
+  const pronto = await page.evaluate(() => scrollY);
+  await page.waitForTimeout(900);
+  const final = await page.evaluate(() => scrollY);
+  expect(pronto).toBeLessThan(final);
+  expect(final).toBeGreaterThan(200);
+  // Deja terminar la inercia: durante ella, un salto programático se ignora.
+  await page.waitForTimeout(1500);
+
+  const { inicio, alto } = await page.evaluate(() => ({
+    inicio: document.getElementById("herramientas")!.offsetTop,
+    alto: innerHeight,
+  }));
+  await page.evaluate((y) => window.scrollTo(0, y), inicio - alto * 0.6);
+  await page.waitForTimeout(600);
+  // Registra en la propia página la velocidad máxima mientras se baja.
+  await page.evaluate(() => {
+    const s = document.getElementById("herramientas")!;
+    (window as unknown as { maxVel: number }).maxVel = 0;
+    const mirar = () => {
+      const v = Number(s.style.getPropertyValue("--vel")) || 0;
+      const w = window as unknown as { maxVel: number };
+      w.maxVel = Math.max(w.maxVel, v);
+      requestAnimationFrame(mirar);
+    };
+    mirar();
+  });
+  for (let k = 0; k < 4; k++) await page.mouse.wheel(0, 400);
+  await page.waitForTimeout(800);
+  expect(
+    await page.evaluate(() => (window as unknown as { maxVel: number }).maxVel),
+  ).toBeGreaterThan(0.1);
+  const vel = () =>
+    page.locator("#herramientas").evaluate((s) => Number(s.style.getPropertyValue("--vel")));
+  await expect.poll(vel, { timeout: 4000 }).toBe(0);
+});

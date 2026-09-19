@@ -6,6 +6,7 @@ import { SecuenciaFotogramas } from "../retrato/secuencia";
 import "./Cierre.css";
 
 const CIERRE = `${import.meta.env.BASE_URL}imagenes/cierre/`;
+const CIERRE_MINI = `${import.meta.env.BASE_URL}imagenes/cierre-mini/`;
 /** Fotogramas de `video3.mp4` (12 por segundo, 1600×900), con el fondo
  *  llevado a blanco. Ver README, "Cierre". */
 const FOTOGRAMAS = 120;
@@ -105,15 +106,12 @@ export function Cierre() {
     let pendiente = false;
 
     const pintar = (quiero: number) => {
-      // Si el exacto no ha llegado, el más cercano que ya esté.
-      const i = secuencia.cercano(quiero);
-      const img = i >= 0 ? secuencia.cuadros[i] : null;
+      // La mejor imagen disponible (exacta, vecina o mini mientras llega).
+      const img = secuencia.mejor(quiero);
+      const i = quiero;
       if (!img) return;
-      // Sin más resolución que la del fotograma (ver Retrato.tsx).
-      const cubre = Math.max(
-        canvas.clientWidth / img.naturalWidth,
-        canvas.clientHeight / img.naturalHeight,
-      );
+      // Sin más resolución que la del fotograma bueno (ver Retrato.tsx).
+      const cubre = Math.max(canvas.clientWidth / 1600, canvas.clientHeight / 900);
       const dpr = Math.min(window.devicePixelRatio || 1, Math.max(1, 1 / cubre));
       const ancho = canvas.clientWidth;
       const alto = canvas.clientHeight;
@@ -132,10 +130,15 @@ export function Cierre() {
       pintado = i;
     };
 
-    const secuencia = new SecuenciaFotogramas(FOTOGRAMAS, fotograma, (i) => {
-      if (pintado < 0 || Math.abs(i - pedido) < Math.abs(pintado - pedido))
-        pintar(pedido);
-    });
+    const secuencia = new SecuenciaFotogramas(
+      FOTOGRAMAS,
+      fotograma,
+      (i) => {
+        if (pintado < 0 || Math.abs(i - pedido) <= 2) pintar(pedido);
+      },
+      8,
+      (i) => `${CIERRE_MINI}f${String(i).padStart(3, "0")}.jpg`,
+    );
     const vigia = new IntersectionObserver(
       ([entrada]) => {
         if (!entrada.isIntersecting) return;

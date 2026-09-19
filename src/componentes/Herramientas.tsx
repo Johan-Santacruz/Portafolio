@@ -72,6 +72,23 @@ export function Herramientas() {
     let pendiente = false;
 
     const limitar = (v: number) => Math.min(1, Math.max(0, v));
+    // Curva suave (arranca y frena despacio).
+    const suave = (v: number) => v * v * (3 - 2 * v);
+
+    // Velocidad del túnel (0 a 1): sube de golpe al bajar rápido y se
+    // apaga sola en unos cientos de ms cuando el scroll se detiene.
+    let vel = 0;
+    let ultimoPt = 0;
+    let ultimoT = performance.now();
+    let rafVel = 0;
+    const apagarVel = () => {
+      vel *= 0.88;
+      if (vel < 0.01) {
+        vel = 0;
+        rafVel = 0;
+      } else rafVel = requestAnimationFrame(apagarVel);
+      raiz.style.setProperty("--vel", vel.toFixed(3));
+    };
     const pintar = () => {
       pendiente = false;
       const caja = raiz.getBoundingClientRect();
@@ -81,11 +98,22 @@ export function Herramientas() {
       const tunel = sonda?.offsetTop ?? 0;
       const pt = limitar((alto - caja.top) / (alto + tunel));
       raiz.style.setProperty("--pt", pt.toFixed(4));
+      const ahora = performance.now();
+      const dt = Math.max(16, ahora - ultimoT);
+      // Solo cuenta mientras el túnel está en juego.
+      if (pt > 0 && pt < 1) {
+        const inst = (Math.abs(pt - ultimoPt) / dt) * 1000; // túneles por segundo
+        vel = Math.max(vel, limitar(inst / 0.9));
+        raiz.style.setProperty("--vel", vel.toFixed(3));
+        if (!rafVel) rafVel = requestAnimationFrame(apagarVel);
+      }
+      ultimoPt = pt;
+      ultimoT = ahora;
       // Al fondo del túnel, «LENGUAJES» crece desde el punto de fuga y se
       // desliza a su sitio; entonces aparece el resto de la sección.
       raiz.style.setProperty("--acerca", limitar((pt - 0.42) / 0.4).toFixed(4));
-      raiz.style.setProperty("--asienta", limitar((pt - 0.8) / 0.12).toFixed(4));
-      raiz.style.setProperty("--llegada", limitar((pt - 0.9) / 0.08).toFixed(4));
+      raiz.style.setProperty("--asienta", suave(limitar((pt - 0.8) / 0.12)).toFixed(4));
+      raiz.style.setProperty("--llegada", suave(limitar((pt - 0.9) / 0.08)).toFixed(4));
       // Después, el lector recorre las categorías con el resto del scroll.
       const largo = caja.height - alto - tunel;
       const avance = largo > 0 ? limitar((-caja.top - tunel) / largo) : 0;
@@ -120,6 +148,7 @@ export function Herramientas() {
     window.addEventListener("scroll", alScroll, { passive: true });
     window.addEventListener("resize", alRedimensionar);
     return () => {
+      cancelAnimationFrame(rafVel);
       window.removeEventListener("scroll", alScroll);
       window.removeEventListener("resize", alRedimensionar);
     };
