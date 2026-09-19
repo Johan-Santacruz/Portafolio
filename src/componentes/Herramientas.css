@@ -286,10 +286,16 @@
   background: var(--accent);
 }
 
-/* Al llegar la sección, las placas del primer grupo aparecen escalonadas,
-   como si acabaran de salir del túnel. */
+/* Al llegar la sección, las placas del primer grupo salen del túnel
+   desordenadas —cada una con su desvío y su giro, según su posición— y se
+   encajan en la rejilla. */
 .herr-grupo[data-estado="activo"] .herr-placa {
-  --entra: clamp(0, (var(--llegada) - var(--i) * 0.06) * 4, 1);
+  --entra: clamp(0, (var(--llegada) - var(--i) * 0.05) * 3.2, 1);
+  --resto: calc(1 - var(--entra));
+  /* Desvíos deterministas: alternan lado y altura con el índice. */
+  --dx: calc((mod(var(--i), 3) - 1) * 90px);
+  --dy: calc((mod(var(--i) + 1, 3) - 1) * 62px);
+  --giro: calc((mod(var(--i), 2) * 2 - 1) * 9deg);
 }
 
 /* Estados. Las que se van salen en la dirección del scroll, rápidas y a la
@@ -310,7 +316,12 @@
 }
 .herr-grupo[data-estado="activo"] .herr-placa {
   opacity: var(--entra, 1);
-  transform: translate3d(0, calc((1 - var(--entra, 1)) * 18px), 0);
+  transform: translate3d(
+      calc(var(--resto, 0) * var(--dx, 0px)),
+      calc(var(--resto, 0) * var(--dy, 0px)),
+      0
+    )
+    rotate(calc(var(--resto, 0) * var(--giro, 0deg)));
   clip-path: var(--chaflan);
   transition:
     opacity 0.2s ease calc(0.12s + var(--i) * 45ms),
