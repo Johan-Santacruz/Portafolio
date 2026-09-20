@@ -253,6 +253,13 @@ test("las herramientas pasan por el lector una categoría cada vez", async ({
   await page.evaluate((y) => window.scrollTo(0, y), inicio + largo);
   await expect.poll(activos).toEqual(["Cómo trabajo"]);
   await expect(seccion).toHaveAttribute("data-criterio", "");
+  // Y es otro capítulo: la cabecera cambia de nombre.
+  await expect(page.locator(".herr-cabecera")).toContainText("Habilidades blandas");
+  await expect(page.locator(".herr-cabecera h2 .herr-r2")).toBeVisible();
+  await expect(page.locator(".herr-cabecera h2 .herr-r1")).toBeHidden();
+  // El corte entre lo técnico y el criterio ya ha terminado.
+  await expect.poll(() => seccion.evaluate((s) => Number(s.style.getPropertyValue("--corte")))).toBe(1);
+  await expect(page.locator(".herr-corte")).toHaveCSS("opacity", "0");
   const anchos = await page.evaluate(() => ({
     bandeja: document.querySelector(".herr-bandeja")!.getBoundingClientRect().width,
     fijo: document.querySelector(".herr-fijo")!.clientWidth,

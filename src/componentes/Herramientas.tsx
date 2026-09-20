@@ -12,6 +12,10 @@ const ICONOS = `${import.meta.env.BASE_URL}iconos/`;
 const AGUJERO = `${import.meta.env.BASE_URL}imagenes/agujero/`;
 const AGUJERO_MINI = `${import.meta.env.BASE_URL}imagenes/agujero-mini/`;
 const FOTOGRAMAS = 52;
+/** Fotogramas del corte entre lo técnico y el criterio (de `video8.mp4`). */
+const CORTE = `${import.meta.env.BASE_URL}imagenes/corte/`;
+const CORTE_MINI = `${import.meta.env.BASE_URL}imagenes/corte-mini/`;
+const CORTES = 32;
 
 /**
  * Herramientas como una lista de palabras que pasa por un lector.
@@ -53,6 +57,7 @@ export function Herramientas() {
     const sonda = raiz.querySelector<HTMLElement>(".herr-sonda");
     const sondaAgujero = raiz.querySelector<HTMLElement>(".herr-sonda-agujero");
     const lienzo = raiz.querySelector<HTMLCanvasElement>(".herr-agujero");
+    const lienzoCorte = raiz.querySelector<HTMLCanvasElement>(".herr-corte");
     const fijo = raiz.querySelector<HTMLElement>(".herr-fijo");
     const palabras = raiz.querySelector<HTMLElement>(".herr-palabras");
     const marca = raiz.querySelector<HTMLElement>(".herr-marca");
@@ -179,6 +184,55 @@ export function Herramientas() {
       8,
       (i) => `${AGUJERO_MINI}f${String(i).padStart(3, "0")}.jpg`,
     );
+    // --- El corte entre lo técnico y el criterio -------------------------
+    // Un barrido que deja la pantalla en negro y la devuelve a blanco: marca
+    // que lo que sigue es de otra naturaleza. Ocurre en el tramo en que el
+    // lector pasa de la penúltima categoría a la última.
+    const ctxCorte = lienzoCorte?.getContext("2d") ?? null;
+    let pintadoCorte = -1;
+    let pedidoCorte = 0;
+    const pintarCorte = (quiero: number) => {
+      const img = secuenciaCorte.mejor(quiero);
+      if (!img || !lienzoCorte || !ctxCorte) return;
+      const cubreCaja = Math.max(
+        lienzoCorte.clientWidth / 1280,
+        lienzoCorte.clientHeight / 720,
+      );
+      const dpr = Math.min(window.devicePixelRatio || 1, Math.max(1, 1 / cubreCaja));
+      const ancho = lienzoCorte.clientWidth;
+      const alto = lienzoCorte.clientHeight;
+      const w = Math.round(ancho * dpr);
+      const h = Math.round(alto * dpr);
+      if (lienzoCorte.width !== w || lienzoCorte.height !== h) {
+        lienzoCorte.width = w;
+        lienzoCorte.height = h;
+      }
+      ctxCorte.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const escala = Math.max(ancho / img.naturalWidth, alto / img.naturalHeight);
+      const dw = img.naturalWidth * escala;
+      const dh = img.naturalHeight * escala;
+      ctxCorte.drawImage(img, (ancho - dw) / 2, (alto - dh) / 2, dw, dh);
+      pintadoCorte = quiero;
+    };
+    const secuenciaCorte = new SecuenciaFotogramas(
+      CORTES,
+      (i) => `${CORTE}f${String(i).padStart(3, "0")}.jpg`,
+      (i) => {
+        if (pintadoCorte < 0 || Math.abs(i - pedidoCorte) <= 2) pintarCorte(pedidoCorte);
+      },
+      6,
+      (i) => `${CORTE_MINI}f${String(i).padStart(3, "0")}.jpg`,
+    );
+    const vigiaCorte = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return;
+        vigiaCorte.disconnect();
+        secuenciaCorte.empezar();
+      },
+      { rootMargin: "0px" },
+    );
+    vigiaCorte.observe(raiz);
+
     // Se empieza a cargar cuando el lector va por la mitad: no compite con el
     // túnel ni con la portada.
     const vigiaAgujero = new IntersectionObserver(
@@ -250,6 +304,15 @@ export function Herramientas() {
       );
       const p = conReposo(tramo * (total - 1));
       raiz.style.setProperty("--p", p.toFixed(4));
+      // El corte ocurre al pasar de la penúltima categoría a la última.
+      const corte = limitar(p - (total - 2));
+      raiz.style.setProperty("--corte", corte.toFixed(4));
+      const cuadroCorte = Math.round(corte * (CORTES - 1));
+      if (cuadroCorte !== pedidoCorte) {
+        pedidoCorte = cuadroCorte;
+        secuenciaCorte.pedir(pedidoCorte);
+      }
+      if ((corte > 0 && corte < 1) || pintadoCorte >= 0) pintarCorte(pedidoCorte);
       // Tras el lector, una pantalla más (--agujero) en la que un agujero
       // negro se traga la sección: el contenido cae hacia el centro y la
       // secuencia avanza hasta el negro, que ya es el fondo de Proyectos.
@@ -306,7 +369,9 @@ export function Herramientas() {
     return () => {
       dejarDeVigilar();
       vigiaAgujero.disconnect();
+      vigiaCorte.disconnect();
       secuencia.detener();
+      secuenciaCorte.detener();
       cancelAnimationFrame(rafVel);
       window.removeEventListener("scroll", alScroll);
       window.removeEventListener("resize", alRedimensionar);
@@ -327,12 +392,27 @@ export function Herramientas() {
         <Tunel />
         {/* El agujero negro crece detrás del contenido, que cae dentro. */}
         <canvas className="herr-agujero" aria-hidden="true" />
+        {/* El corte entre lo técnico y el criterio, por delante de todo. */}
+        <canvas className="herr-corte" aria-hidden="true" />
         <span className="herr-destino" aria-hidden="true">
           {stack[0].palabra ?? stack[0].titulo}
         </span>
+        {/* El criterio es otro capítulo: al pasar el corte, la cabecera
+            cambia de nombre. El cambio ocurre con la pantalla en negro, así
+            que no se ve el relevo. */}
         <header className="herr-cabecera">
-          <p className="herr-rotulo">Herramientas</p>
-          <h2 id="titulo-herramientas">Con qué construyo</h2>
+          <p className="herr-rotulo">
+            <span className="herr-r1">Herramientas</span>
+            <span className="herr-r2" aria-hidden="true">
+              Habilidades blandas
+            </span>
+          </p>
+          <h2 id="titulo-herramientas">
+            <span className="herr-r1">Con qué construyo</span>
+            <span className="herr-r2" aria-hidden="true">
+              Cómo trabajo
+            </span>
+          </h2>
         </header>
 
         {/* Decorativa: los nombres reales están en los h3 de cada grupo. */}

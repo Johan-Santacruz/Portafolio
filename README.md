@@ -120,10 +120,26 @@ con ella.
 `src/datos/trayectoria.ts` tiene los pases: cada sitio donde he estado dio
 uno. Sale de la hoja de vida, así que si cambia una, cambia la otra. Las habilidades blandas no están aquí: van con las técnicas,
 como una categoría más de `datos/stack.ts` (campo `criterio`), porque es su
-sitio. Al llegar esa categoría la pantalla cambia de composición: el lector de
-palabras se aparta a la izquierda y se apaga, y las habilidades toman el ancho
-entero, una palabra por línea con una frase corta debajo. Si una necesita un
-párrafo para explicarse, está mal escrita.
+sitio, aunque se presenta como otro capítulo. Entre la última categoría
+técnica y ella hay un corte: un barrido de luz lima deja la pantalla en negro
+y otro la devuelve a blanco (fotogramas de `video8.mp4`, ver abajo). Con la
+pantalla negra, la cabecera cambia de «Herramientas · Con qué construyo» a
+«Habilidades blandas · Cómo trabajo», así que el relevo no se ve. Después el
+lector de palabras se aparta a la izquierda y se apaga, y las habilidades
+toman el ancho entero, una palabra por línea con una frase corta a la
+derecha. Si una necesita un párrafo para explicarse, está mal escrita.
+
+El corte se genera igual que las demás secuencias:
+
+```bash
+F="format=rgb24,fps=32/7.3"
+ffmpeg -ss 1.0 -to 8.3 -i video8.mp4 -vf "$F,scale=1280:720:flags=lanczos,format=yuvj420p" \
+  -start_number 0 -q:v 5 public/imagenes/corte/f%03d.jpg
+ffmpeg -ss 1.0 -to 8.3 -i video8.mp4 -vf "$F,scale=320:180:flags=lanczos,format=yuvj420p" \
+  -start_number 0 -q:v 12 public/imagenes/corte-mini/f%03d.jpg
+```
+
+Si cambia el número de fotogramas, ajusta `CORTES` en `Herramientas.tsx`.
 
 La sección es una pila de credenciales. Al bajar, el pase de delante se va
 por arriba girando y entra el siguiente, mientras a la izquierda cambia su
