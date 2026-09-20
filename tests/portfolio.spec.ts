@@ -486,7 +486,7 @@ test("las secciones se solapan y se funden sin borde", async ({ page }) => {
   });
   // Cada sección empieza una pantalla antes de que acabe la anterior.
   expect(Math.abs(herrFin - proyInicio - alto)).toBeLessThan(3);
-  expect(Math.abs(proyFin - cierreInicio - alto)).toBeLessThan(3);
+  expect(Math.abs(proyFin - cierreInicio - alto * 0.65)).toBeLessThan(3);
   const v = (sel: string, n: string) =>
     page.locator(sel).evaluate((s, n) => Number(s.style.getPropertyValue(n)), n);
   // Cuando Proyectos asoma, Herramientas ya está apagada a su mismo negro.

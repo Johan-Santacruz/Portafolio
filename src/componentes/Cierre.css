@@ -10,8 +10,8 @@
   /* Se desliza por encima de la última pantalla de Proyectos, ya fundida a
      este mismo blanco: no hay borde que ver. */
   z-index: 3;
-  margin-top: -100svh;
-  --recorrido: 220svh;
+  margin-top: -65svh;
+  --recorrido: 150svh;
   height: calc(100svh + var(--recorrido));
   background: #fdfdfe;
   color: var(--ink);

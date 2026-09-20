@@ -54,10 +54,14 @@ export function Proyectos() {
       // Cubierta: la sección se desliza sobre la anterior; de 0 al asomar por
       // abajo a 1 al llenar la pantalla (las estelas se encienden con ella).
       raiz.style.setProperty("--cubre", limitar(1 - caja.top / alto).toFixed(4));
-      // Fin: antes de que Cierre llegue por encima, la sección se funde al
-      // blanco de Cierre (el velo mide una pantalla y la cola, otra).
-      const cola = raiz.querySelector<HTMLElement>(".proy-velo")?.offsetHeight ?? alto;
-      raiz.style.setProperty("--fin", limitar((2 * alto + cola - caja.bottom) / alto).toFixed(4));
+      // Fin: la luz crece mientras el velo sube por la pantalla y llena todo
+      // justo cuando Cierre asoma por abajo (tras la cola de la sección).
+      const veloAlto = raiz.querySelector<HTMLElement>(".proy-velo")?.offsetHeight ?? alto;
+      const cola = parseFloat(getComputedStyle(raiz).paddingBottom) || 0;
+      raiz.style.setProperty(
+        "--fin",
+        limitar((alto + cola + veloAlto - caja.bottom) / Math.max(1, veloAlto)).toFixed(4),
+      );
       // Alcance: a qué distancia del centro una fila ya está apagada del todo.
       const alcance = alto * 0.22;
       for (const fila of filas) {

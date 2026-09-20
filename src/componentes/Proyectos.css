@@ -9,8 +9,10 @@
   --fin: 0;
   /* Solape: la sección se desliza por encima de la última pantalla de
      Herramientas (que le deja esa cola, ya apagada a este mismo negro) y
-     deja al final una pantalla más para que Cierre haga lo mismo con ella. */
+     deja al final una cola más corta para que Cierre haga lo mismo con ella
+     (margen negativo igual en Cierre.css). */
   --solape: 100svh;
+  --cola: 65svh;
   position: relative;
   z-index: 2;
   margin-top: calc(-1 * var(--solape));
@@ -23,7 +25,7 @@
     #0f1113;
   color: var(--texto);
   padding: clamp(80px, 14svh, 160px) max(var(--aire), (100% - var(--ancho)) / 2)
-    var(--solape);
+    var(--cola);
   font-family: "Chakra Petch", var(--display);
   overflow: clip;
 }
@@ -48,8 +50,9 @@
   opacity: calc(0.55 * var(--cubre) + 0.45 * clamp(0, var(--fin) / 0.5, 1));
 }
 /* --- Salida hacia Cierre --------------------------------------------------------
-   Una pantalla en el flujo tras la última fila (--fin: de 0 al asomar por
-   abajo a 1 al quedar pegada arriba). Dentro, una luz redonda que crece desde
+   Poco más de media pantalla en el flujo tras la última fila (--fin: de 0
+   al asomar por abajo a 1 cuando Cierre asoma; el tramo es corto para no
+   alargar la llegada al contacto). Dentro, una luz redonda que crece desde
    abajo hasta llenar la pantalla de blanco: Cierre llega por encima con ese
    mismo blanco. Es un círculo grande escalado por el compositor (sin
    repintar degradados en cada scroll) que se extiende por encima, sobre las
@@ -58,7 +61,7 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  height: 100svh;
+  height: 55svh;
   margin-top: 32svh;
   /* Sin recorte propio: la luz se extiende más allá de los márgenes de la
      sección, que es la que recorta (overflow: clip) para no ensanchar la
@@ -71,11 +74,11 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 260vmax;
-  height: 260vmax;
+  width: 280vmax;
+  height: 280vmax;
   border-radius: 50%;
   translate: -50% -50%;
-  background: radial-gradient(circle, #fdfdfe 0 52%, rgba(253, 253, 254, 0) 68%);
+  background: radial-gradient(circle, #fdfdfe 0 58%, rgba(253, 253, 254, 0) 70%);
   transform: scale(var(--crece));
   will-change: transform;
 }
