@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import {
-  competencias,
   experiencia,
   formacion,
   idiomas,
@@ -270,21 +269,6 @@ export function Trayectoria() {
             <Ficha key={h.titulo} hito={h} i={i} />
           ))}
         </div>
-      ),
-    },
-    {
-      clave: "competencias",
-      palabra: "Cómo trabajo",
-      orden: "cat ./competencias",
-      hijos: (
-        <ul className="tray-competencias">
-          {competencias.map((c, i) => (
-            <li key={c.titulo} style={{ "--i": i } as CSSProperties}>
-              <h4>{c.titulo}</h4>
-              <p>{c.texto}</p>
-            </li>
-          ))}
-        </ul>
       ),
     },
     {

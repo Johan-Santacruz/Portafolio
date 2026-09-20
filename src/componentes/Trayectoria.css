@@ -7,7 +7,7 @@
   --texto: #eef0f2;
   --p: 0;
   --fin: 0;
-  --paradas: 5;
+  --paradas: 4;
   /* Lo que se baja por cada apartado, y la salida hacia el contacto. */
   --por-parada: 62svh;
   --niebla: 70svh;
@@ -249,48 +249,6 @@
   background: rgba(238, 240, 242, 0.5);
 }
 
-/* --- Cómo trabajo: placas de acero, como las herramientas. --------------------- */
-.tray-competencias {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 10px;
-}
-.tray-competencias li {
-  padding: 13px 17px 14px;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.03) 0 1px,
-      transparent 1px 4px
-    ),
-    linear-gradient(135deg, #22262c, #16181c);
-  box-shadow: inset 3px 0 0 var(--accent);
-  clip-path: polygon(
-    0 0,
-    calc(100% - 12px) 0,
-    100% 12px,
-    100% 100%,
-    12px 100%,
-    0 calc(100% - 12px)
-  );
-}
-.tray-competencias h4 {
-  margin: 0;
-  font-weight: 700;
-  font-size: clamp(14px, 1.15vw, 16px);
-  letter-spacing: 0.02em;
-}
-.tray-competencias p {
-  margin-top: 5px;
-  font-family: var(--display);
-  font-size: clamp(12.5px, 1vw, 14px);
-  line-height: 1.5;
-  color: rgba(238, 240, 242, 0.72);
-}
-
 /* --- Idiomas: el nivel como una barra que se llena. ---------------------------- */
 .tray-idiomas {
   list-style: none;
@@ -383,9 +341,6 @@
   }
   .tray-cifra {
     display: none;
-  }
-  .tray-competencias {
-    grid-template-columns: 1fr;
   }
 }
 

@@ -224,11 +224,14 @@ test("las herramientas pasan por el lector una categoría cada vez", async ({
   await page.evaluate(() => document.fonts.ready);
   const seccion = page.locator("#herramientas");
   const grupos = page.locator(".herr-grupo");
-  await expect(grupos).toHaveCount(6);
+  await expect(grupos).toHaveCount(7);
   // Todas las herramientas llevan logo.
   const placas = await page.locator(".herr-placa").count();
   expect(placas).toBeGreaterThan(20);
   await expect(page.locator(".herr-placa .herr-logo")).toHaveCount(placas);
+  // La última categoría no son herramientas: el criterio va como circuito.
+  await expect(page.locator(".herr-circuito > li")).toHaveCount(5);
+  await expect(page.locator(".herr-circuito")).toHaveCount(1);
 
   const { inicio, largo } = await seccion.evaluate((s) => ({
     inicio: s.offsetTop,
@@ -245,9 +248,13 @@ test("las herramientas pasan por el lector una categoría cada vez", async ({
   expect(
     await page.evaluate(() => document.querySelector(".herr-fijo")!.getBoundingClientRect().top),
   ).toBe(0);
-  // Al final: la última.
+  // Al final: la última, que es el criterio, con su bus ya trazado.
   await page.evaluate((y) => window.scrollTo(0, y), inicio + largo);
-  await expect.poll(activos).toEqual(["Control de versiones"]);
+  await expect.poll(activos).toEqual(["Cómo trabajo"]);
+  await expect(page.locator(".herr-circuito").first()).toHaveCSS(
+    "--traza",
+    "1",
+  );
   // Y subir vuelve atrás: no hay estado.
   await page.evaluate((y) => window.scrollTo(0, y), inicio);
   await expect.poll(activos).toEqual(["Lenguajes"]);
@@ -523,12 +530,11 @@ test("la trayectoria recorre un apartado por pantalla y abre la hoja de vida", a
   await page.evaluate(() => document.fonts.ready);
   const tray = page.locator("#trayectoria");
   const paradas = tray.locator(".tray-parada");
-  await expect(paradas).toHaveCount(5);
+  await expect(paradas).toHaveCount(4);
   await expect(paradas.locator("h3")).toHaveText([
     "Experiencia",
     "Investigación",
     "Formación",
-    "Cómo trabajo",
     "Idiomas",
   ]);
   await expect(tray).toContainText("Familia Insurances");
@@ -561,10 +567,10 @@ test("la trayectoria recorre un apartado por pantalla y abre la hoja de vida", a
   // Al final, la última.
   await page.evaluate(
     (y) => window.scrollTo(0, y),
-    inicio + alto * 0.05 + porParada * 4.6,
+    inicio + alto * 0.05 + porParada * 3.7,
   );
   await expect.poll(activa).toBe("Idiomas");
-  expect(await p()).toBeCloseTo(4, 1);
+  expect(await p()).toBeCloseTo(3, 1);
 
   // La hoja de vida se ve sin salir de la página y se puede descargar.
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));

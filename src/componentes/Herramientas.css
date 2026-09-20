@@ -682,3 +682,128 @@
     transform: none;
   }
 }
+
+/* --- Criterio: las habilidades blandas ------------------------------------------
+   No son herramientas, así que no llevan placa: salen de un bus vertical como
+   las pistas de una placa de circuito, cada una a su nodo. Lo sólido es lo que
+   se instala; lo trazado es lo que lo conecta. */
+.herr-circuito {
+  position: relative;
+  grid-row: 2;
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 clamp(26px, 3vw, 40px);
+  display: grid;
+  gap: clamp(12px, 2.2svh, 22px);
+}
+/* El bus: la línea de la que sale todo. Se dibuja de arriba abajo cuando la
+   categoría llega, y con ella las pistas. */
+.herr-circuito::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+  transform-origin: 50% 0;
+  transform: scaleY(var(--traza, 0));
+  transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.herr-circuito > li {
+  position: relative;
+  padding-left: 14px;
+}
+/* La pista: sale del bus, gira y termina en el nodo. */
+.herr-pista {
+  position: absolute;
+  left: calc(-1 * clamp(26px, 3vw, 40px));
+  top: 0.62em;
+  width: clamp(26px, 3vw, 40px);
+  height: 9px;
+  pointer-events: none;
+}
+.herr-pista::before {
+  content: "";
+  position: absolute;
+  inset: 0 9px auto 0;
+  height: 1px;
+  background: rgba(23, 24, 21, 0.45);
+  /* Se traza de izquierda a derecha al llegar la categoría. */
+  transform-origin: 0 50%;
+  transform: scaleX(var(--traza, 0));
+  transition: transform 0.4s ease calc(0.18s + var(--i) * 80ms);
+}
+/* El nodo: un cuadrado achaflanado que se enciende al final de la pista. */
+.herr-pista::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: -4px;
+  width: 9px;
+  height: 9px;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px rgba(23, 24, 21, 0.3);
+  clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%);
+  opacity: var(--traza, 0);
+  transform: scale(calc(0.3 + var(--traza, 0) * 0.7));
+  transition:
+    opacity 0.25s ease calc(0.34s + var(--i) * 80ms),
+    transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) calc(0.34s + var(--i) * 80ms);
+}
+.herr-circuito h4 {
+  margin: 0;
+  font-weight: 700;
+  font-size: clamp(15px, 1.25vw, 19px);
+  letter-spacing: 0.01em;
+  color: var(--tinta);
+}
+.herr-circuito p {
+  margin-top: 3px;
+  font-family: var(--display);
+  font-size: clamp(12.5px, 1vw, 14.5px);
+  line-height: 1.5;
+  color: rgba(23, 24, 21, 0.66);
+  max-width: 46ch;
+}
+/* Solo se traza cuando la categoría está activa. */
+.herr-grupo[data-estado="activo"] .herr-circuito {
+  --traza: 1;
+}
+/* Y el texto entra en cascada, como las placas. */
+.herr-circuito > li {
+  opacity: 0;
+  transform: translate3d(0, 10px, 0);
+  transition:
+    opacity 0.22s ease,
+    transform 0.28s ease;
+}
+.herr-grupo[data-estado="activo"] .herr-circuito > li {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.26s ease calc(0.1s + var(--i) * 80ms),
+    transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) calc(0.1s + var(--i) * 80ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .herr-circuito::before,
+  .herr-circuito > li,
+  .herr-pista::before,
+  .herr-pista::after {
+    transition: none;
+  }
+}
+@media (max-width: 860px) {
+  .herr-circuito {
+    grid-row: auto;
+    padding-left: 20px;
+    gap: 10px;
+  }
+  .herr-pista {
+    left: -20px;
+    width: 20px;
+  }
+  .herr-circuito p {
+    font-size: 12px;
+  }
+}

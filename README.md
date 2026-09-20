@@ -118,8 +118,11 @@ con ella.
 ## Trayectoria y hoja de vida
 
 `src/datos/trayectoria.ts` tiene la experiencia, la investigación, la
-formación, las competencias y los idiomas; sale de la hoja de vida, así que
-si cambia una, cambia la otra.
+formación y los idiomas; sale de la hoja de vida, así que si cambia una,
+cambia la otra. Las habilidades blandas no están aquí: van con las técnicas,
+como una categoría más de `datos/stack.ts` (campo `criterio`), porque es su
+sitio. Ese grupo no se pinta con placas sino como un circuito que sale de un
+bus: lo sólido es lo que se instala, lo trazado es lo que lo conecta.
 
 La sección es un expediente con una parada por pantalla: al bajar, un carril
 se desplaza en horizontal y cada apartado ocupa la pantalla entera, con su

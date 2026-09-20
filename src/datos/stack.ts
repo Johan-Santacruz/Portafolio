@@ -7,6 +7,11 @@ export interface GrupoStack {
   items: string[];
   /** Consola de la categoría: la orden y lo que responde. */
   consola: [string, string];
+  /**
+   * Habilidades blandas. El grupo que las lleva no se pinta con placas sino
+   * como un circuito: son lo que conecta lo demás, no otra herramienta más.
+   */
+  criterio?: { titulo: string; texto: string }[];
 }
 
 export const stack: GrupoStack[] = [
@@ -70,6 +75,38 @@ export const stack: GrupoStack[] = [
     titulo: "Control de versiones",
     items: ["Git"],
     consola: ["$ git log --oneline -1", "57c1cdd Portafolio: landing con video"],
+  },
+  {
+    titulo: "Cómo trabajo",
+    items: [],
+    consola: ["$ cat ~/.criterio", "5 hábitos cargados"],
+    criterio: [
+      {
+        titulo: "Resolver y analizar",
+        texto:
+          "Partir un problema grande hasta que queda una lista de cosas comprobables, y empezar por la que más riesgo quita.",
+      },
+      {
+        titulo: "Equipos mezclados",
+        texto:
+          "Trabajar con gente de otras carreras en hackatones y en investigación, donde nadie sabe todo y hay que ponerse de acuerdo rápido.",
+      },
+      {
+        titulo: "Aprender sobre la marcha",
+        texto:
+          "Entrar a una herramienta nueva por lo que hay que entregar, no por el tutorial completo, y dejarla documentada para el siguiente.",
+      },
+      {
+        titulo: "Explicar lo técnico",
+        texto:
+          "Escribir y sustentar: informes de investigación, decisiones de arquitectura y demos ante jurados en cinco minutos.",
+      },
+      {
+        titulo: "Investigar",
+        texto:
+          "Leer papers, reproducir resultados y publicar lo propio con el método que exige una revisión por pares.",
+      },
+    ],
   },
 ];
 

@@ -104,6 +104,7 @@ export function Herramientas() {
     const PIEZAS =
       ".herr-cabecera, .herr-marca, .herr-riel, .herr-palabras li," +
       " .herr-grupo[data-estado='activo'] .herr-placa," +
+      " .herr-grupo[data-estado='activo'] .herr-circuito > li," +
       " .herr-grupo[data-estado='activo'] .herr-consola";
     let medidas = false;
     const medirSuccion = () => {
@@ -352,6 +353,19 @@ export function Herramientas() {
               data-estado={g === 0 ? "activo" : "despues"}
             >
               <h3 className="herr-titulo">{grupo.titulo}</h3>
+              {/* El criterio no son herramientas: en vez de placas, un
+                  circuito que sale de un bus común. */}
+              {grupo.criterio ? (
+                <ul className="herr-circuito">
+                  {grupo.criterio.map((c, i) => (
+                    <li key={c.titulo} style={{ "--i": i } as CSSProperties}>
+                      <span className="herr-pista" aria-hidden="true" />
+                      <h4>{c.titulo}</h4>
+                      <p>{c.texto}</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
               <ul>
                 {grupo.items.map((item, i) => (
                   <li
@@ -373,6 +387,7 @@ export function Herramientas() {
                   </li>
                 ))}
               </ul>
+              )}
               {/* Consola: la orden se teclea al activarse la categoría. */}
               <div className="herr-consola" aria-hidden="true">
                 {grupo.consola.map((linea, l) => (
