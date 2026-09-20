@@ -7,6 +7,15 @@
   --apagado: #2e3237;
   --cubre: 0;
   --fin: 0;
+  /* Fondo propio: la sección entra transparente sobre el terminal negro de
+     Herramientas (así la orden tecleada allí se queda fija y solo sube el
+     contenido, como su salida) y toma el fondo justo al llenar la pantalla. */
+  --fondo: max(
+    clamp(0, (var(--cubre) - 0.96) / 0.04, 1),
+    /* Antes de asomar, opaco (no se ve, pero así el texto siempre tiene su
+       fondo, también para la auditoría de contraste). */
+    1 - clamp(0, var(--cubre) * 10000, 1)
+  );
   /* Solape: la sección se desliza por encima de la última pantalla de
      Herramientas (que le deja esa cola, ya apagada a este mismo negro) y
      deja al final una cola más corta para que Cierre haga lo mismo con ella
@@ -22,7 +31,7 @@
       rgba(255, 255, 255, 0.018) 0 1px,
       transparent 1px 4px
     ),
-    #0f1113;
+    rgb(15 17 19 / var(--fondo));
   color: var(--texto);
   padding: clamp(80px, 14svh, 160px) max(var(--aire), (100% - var(--ancho)) / 2)
     var(--cola);
@@ -47,7 +56,9 @@
   /* Se encienden con la sección: en el borde con Herramientas todavía no
      hay estelas, solo el mismo negro. Al final, antes de la luz, se
      encienden del todo. */
-  opacity: calc(0.55 * var(--cubre) + 0.45 * clamp(0, var(--fin) / 0.5, 1));
+  opacity: calc(
+    0.55 * clamp(0, (var(--cubre) - 0.9) / 0.1, 1) + 0.45 * clamp(0, var(--fin) / 0.5, 1)
+  );
 }
 /* --- Salida hacia Cierre --------------------------------------------------------
    Poco más de media pantalla en el flujo tras la última fila (--fin: de 0
@@ -105,6 +116,8 @@
   font-size: clamp(13px, 1vw, 15px);
   line-height: 1.7;
   color: rgba(238, 240, 242, 0.7);
+  /* Releva a la orden tecleada en Herramientas cuando ya está en su sitio. */
+  opacity: var(--fondo);
 }
 .proy-rotulo span {
   font-weight: 700;

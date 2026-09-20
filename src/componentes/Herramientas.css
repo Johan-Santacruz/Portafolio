@@ -121,7 +121,10 @@
   font-size: clamp(13px, 1vw, 15px);
   line-height: 1.7;
   color: rgba(238, 240, 242, 0.7);
-  opacity: clamp(0, (var(--apaga) - 0.12) * 12, 1);
+  /* Se queda hasta que el rótulo de Proyectos la releva en ese mismo sitio. */
+  opacity: calc(
+    clamp(0, (var(--apaga) - 0.12) * 12, 1) * (1 - clamp(0, (var(--cubre) - 0.96) / 0.04, 1))
+  );
   /* Con el zoom viaja hasta el sitio del rótulo de Proyectos (--lx, --ly). */
   transform: translate(calc(var(--lx, 0px) * var(--crece)), calc(var(--ly, 0px) * var(--crece)));
   will-change: transform;
