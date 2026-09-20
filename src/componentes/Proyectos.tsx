@@ -4,6 +4,8 @@ import { trabajos } from "../datos/trabajos";
 import type { Trabajo } from "../datos/trabajos";
 import { iconos } from "../datos/stack";
 import { Icono } from "./Icono";
+import { Borde } from "./Borde";
+import { vigilarCercania } from "../retrato/cercania";
 import "./Proyectos.css";
 
 const ICONOS = `${import.meta.env.BASE_URL}iconos/`;
@@ -46,9 +48,14 @@ export function Proyectos() {
     let pendiente = false;
     const medir = () => {
       pendiente = false;
-      const centro = window.innerHeight / 2;
+      const alto = window.innerHeight;
+      const centro = alto / 2;
+      // Cubierta: la sección se desliza sobre la anterior; de 0 al asomar por
+      // abajo a 1 al llenar la pantalla (la costura lee --borde-p).
+      const cubre = Math.min(1, Math.max(0, 1 - raiz.getBoundingClientRect().top / alto));
+      raiz.style.setProperty("--cubre", cubre.toFixed(4));
       // Alcance: a qué distancia del centro una fila ya está apagada del todo.
-      const alcance = window.innerHeight * 0.22;
+      const alcance = alto * 0.22;
       for (const fila of filas) {
         const caja = fila.getBoundingClientRect();
         const d = Math.abs(caja.top + caja.height / 2 - centro);
@@ -56,15 +63,22 @@ export function Proyectos() {
         fila.style.setProperty("--luz", luz.toFixed(3));
       }
     };
+    // Solo se mide con la sección a la vista (ver cercania.ts).
+    let cerca = true;
     const alScroll = () => {
-      if (pendiente) return;
+      if (pendiente || !cerca) return;
       pendiente = true;
       requestAnimationFrame(medir);
     };
     medir();
+    const dejarDeVigilar = vigilarCercania(raiz, (c) => {
+      cerca = c;
+      medir();
+    });
     window.addEventListener("scroll", alScroll, { passive: true });
     window.addEventListener("resize", alScroll);
     return () => {
+      dejarDeVigilar();
       window.removeEventListener("scroll", alScroll);
       window.removeEventListener("resize", alScroll);
     };
@@ -110,6 +124,8 @@ export function Proyectos() {
       id="proyectos"
       aria-labelledby="titulo-proyectos"
     >
+      {/* Costura con Herramientas: la sección llega por encima. */}
+      <Borde orden="ls ./proyectos" tono="oscuro" />
       {/* Estelas de luz lentas detrás de todo (de video5, aisladas sobre
           negro); se queda fija mientras se recorre la sección. */}
       <div className="proy-fondo" aria-hidden="true">

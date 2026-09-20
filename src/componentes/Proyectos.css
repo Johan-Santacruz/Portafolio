@@ -5,7 +5,15 @@
 .proyectos {
   --texto: #eef0f2;
   --apagado: #2e3237;
+  --cubre: 0;
+  --borde-p: var(--cubre);
+  /* Solape: la sección se desliza por encima de la última pantalla de
+     Herramientas (que le deja esa cola) y deja al final una pantalla más
+     para que Cierre haga lo mismo con ella. */
+  --solape: 100svh;
   position: relative;
+  z-index: 2;
+  margin-top: calc(-1 * var(--solape));
   background:
     repeating-linear-gradient(
       0deg,
@@ -15,7 +23,7 @@
     #0f1113;
   color: var(--texto);
   padding: clamp(80px, 14svh, 160px) max(var(--aire), (100% - var(--ancho)) / 2)
-    32svh;
+    calc(32svh + var(--solape));
   font-family: "Chakra Petch", var(--display);
   overflow: clip;
 }

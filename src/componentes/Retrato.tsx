@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MotorRetrato } from "../retrato/motor";
 import { SecuenciaFotogramas } from "../retrato/secuencia";
+import { vigilarCercania } from "../retrato/cercania";
 import { trabajos } from "../datos/trabajos";
 import "./Retrato.css";
 
@@ -322,8 +323,11 @@ export function Retrato() {
         setFase(base > 0 ? "revelado" : "mascara");
       }
     };
+    // Solo se mide con la portada a la vista (ver cercania.ts).
+    let cerca = true;
+    let dejarDeVigilar = () => {};
     const alScroll = () => {
-      if (pendiente) return;
+      if (pendiente || !cerca) return;
       pendiente = true;
       requestAnimationFrame(medir);
     };
@@ -344,6 +348,11 @@ export function Retrato() {
       window.addEventListener("scroll", alScroll, { passive: true });
       window.addEventListener("resize", alScroll);
       medir();
+      if (recorrido)
+        dejarDeVigilar = vigilarCercania(recorrido, (c) => {
+          cerca = c;
+          medir();
+        });
       // Tras la entrada, una pasada sola por la cara enseña el gesto.
       temporizadorInsinuar = window.setTimeout(() => {
         if (!zona.matches(":hover") && !enSecuencia) m?.insinuar();
@@ -372,6 +381,7 @@ export function Retrato() {
 
     return () => {
       cancelado = true;
+      dejarDeVigilar();
       secuencia.detener();
       clearTimeout(temporizadorPulsacion);
       clearTimeout(temporizadorInsinuar);

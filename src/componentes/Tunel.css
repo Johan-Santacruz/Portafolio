@@ -31,6 +31,10 @@
   );
   transform: scale(calc(0.8 + var(--pt) * 0.8 + var(--vel) * 0.25))
     rotate(calc(var(--pt) * 25deg));
+  /* En su propia capa: el degradado se rasteriza una vez y la escala y el
+     giro los aplica el compositor. Sin esto se volvía a rasterizar entero en
+     cada fotograma y era lo que hacía dar tirones al túnel. */
+  will-change: transform, opacity;
 }
 
 .tunel-escena {
@@ -115,11 +119,8 @@
       calc(1 - var(--vel) * 0.12 * (1 - var(--a)))
     );
 }
-/* El logo pasa de lima a blanco al aterrizar, como el de la placa real. */
-.tunel-aterriza i {
-  background: color-mix(in srgb, var(--accent) calc((1 - var(--a)) * 100%), currentColor);
-}
-/* Ya en la sección, las placas reales toman el relevo. */
+/* Ya en la sección, las placas reales toman el relevo (el logo pasa de lima
+   a blanco en ese instante, como si se encendiera). */
 .herramientas:not([data-fase="tunel"]) .tunel-aterriza {
   opacity: 0;
 }

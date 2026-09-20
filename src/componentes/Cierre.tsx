@@ -3,6 +3,8 @@ import type { CSSProperties } from "react";
 import { perfil } from "../datos/perfil";
 import { Icono } from "./Icono";
 import { SecuenciaFotogramas } from "../retrato/secuencia";
+import { vigilarCercania } from "../retrato/cercania";
+import { Borde } from "./Borde";
 import "./Cierre.css";
 
 const CIERRE = `${import.meta.env.BASE_URL}imagenes/cierre/`;
@@ -165,8 +167,10 @@ export function Cierre() {
       secuencia.pedir(pedido);
       if (pedido !== pintado) pintar(pedido);
     };
+    // Solo se mide con la sección a la vista (ver cercania.ts).
+    let cerca = true;
     const alScroll = () => {
-      if (pendiente) return;
+      if (pendiente || !cerca) return;
       pendiente = true;
       requestAnimationFrame(medir);
     };
@@ -175,9 +179,14 @@ export function Cierre() {
     });
     observador.observe(canvas);
     medir();
+    const dejarDeVigilar = vigilarCercania(raiz, (c) => {
+      cerca = c;
+      medir();
+    });
     window.addEventListener("scroll", alScroll, { passive: true });
     window.addEventListener("resize", alScroll);
     return () => {
+      dejarDeVigilar();
       secuencia.detener();
       vigia.disconnect();
       observador.disconnect();
@@ -204,6 +213,8 @@ export function Cierre() {
       aria-labelledby="titulo-cierre"
     >
       <div className="cierre-fijo" ref={fijo}>
+        {/* Costura con Proyectos: la sección llega por encima. */}
+        <Borde orden="open ./contacto" />
         <canvas ref={lienzo} className="cierre-video" aria-hidden="true" />
         {/* Niebla: un velo que se retira y bancos de bruma que se disipan. */}
         <div className="cierre-niebla" aria-hidden="true">

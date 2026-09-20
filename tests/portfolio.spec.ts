@@ -444,3 +444,40 @@ test("en escritorio el scroll con la rueda se desliza y el túnel reacciona a la
     page.locator("#herramientas").evaluate((s) => Number(s.style.getPropertyValue("--vel")));
   await expect.poll(vel, { timeout: 4000 }).toBe(0);
 });
+
+test("las secciones se solapan y la costura recorre la pantalla al cubrir", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const { herrFin, proyInicio, proyFin, cierreInicio, alto } = await page.evaluate(() => {
+    const h = document.querySelector<HTMLElement>("#herramientas")!;
+    const p = document.querySelector<HTMLElement>("#proyectos")!;
+    const c = document.querySelector<HTMLElement>("#contacto")!;
+    return {
+      herrFin: h.offsetTop + h.offsetHeight,
+      proyInicio: p.offsetTop,
+      proyFin: p.offsetTop + p.offsetHeight,
+      cierreInicio: c.offsetTop,
+      alto: innerHeight,
+    };
+  });
+  // Cada sección empieza una pantalla antes de que acabe la anterior.
+  expect(Math.abs(herrFin - proyInicio - alto)).toBeLessThan(3);
+  expect(Math.abs(proyFin - cierreInicio - alto)).toBeLessThan(3);
+  const v = (sel: string, n: string) =>
+    page.locator(sel).evaluate((s, n) => Number(s.style.getPropertyValue(n)), n);
+  // A media cubierta, Herramientas sigue en pantalla, oscurecida, con la
+  // costura de Proyectos en el centro.
+  await page.evaluate((y) => window.scrollTo(0, y), proyInicio - alto / 2);
+  await expect.poll(() => v("#herramientas", "--cubre")).toBeCloseTo(0.5, 1);
+  await expect.poll(() => v("#proyectos", "--cubre")).toBeCloseTo(0.5, 1);
+  const costura = await page.locator("#proyectos .borde").boundingBox();
+  expect(Math.abs(costura!.y - alto / 2)).toBeLessThan(3);
+  await expect(page.locator("#proyectos .borde-tecleo")).toHaveText("ls ./proyectos");
+  // Cubierta del todo: la costura se apaga.
+  await page.evaluate((y) => window.scrollTo(0, y), proyInicio);
+  await expect.poll(() => v("#herramientas", "--cubre")).toBe(1);
+  await expect
+    .poll(() => page.locator("#proyectos .borde").evaluate((e) => Number(getComputedStyle(e).opacity)))
+    .toBeLessThan(0.001);
+});

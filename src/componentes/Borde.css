@@ -1,0 +1,82 @@
+/* --- Costura entre secciones -------------------------------------------------
+   Línea lima en el borde superior de la sección que llega. Todo sale de
+   --borde-p (0 a 1), que hereda del contenedor. La línea se apaga al final,
+   cuando ya es el borde de la pantalla. */
+.borde {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+  pointer-events: none;
+  opacity: calc(1 - clamp(0, (var(--borde-p) - 0.9) / 0.1, 1));
+}
+/* Destello que recorre la línea de izquierda a derecha con el avance. Se
+   mueve solo con transform: se pinta una vez y lo desplaza el compositor. */
+.borde-luz {
+  position: absolute;
+  top: -2px;
+  left: 0;
+  width: 22%;
+  height: 6px;
+  background: linear-gradient(90deg, transparent, #fff 45%, #fff 55%, transparent);
+  box-shadow: 0 0 22px 2px color-mix(in srgb, var(--accent) 60%, transparent);
+  transform: translate3d(calc(var(--borde-p) * 460% - 60%), 0, 0);
+  will-change: transform;
+}
+/* La orden se teclea a medida que la costura sube por la pantalla. */
+.borde-orden {
+  position: absolute;
+  top: 16px;
+  left: max(var(--aire), (100% - var(--ancho)) / 2);
+  display: flex;
+  gap: 0.8ch;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.borde-claro .borde-orden {
+  color: rgba(23, 24, 21, 0.7);
+}
+.borde-oscuro .borde-orden {
+  color: rgba(238, 240, 242, 0.75);
+}
+.borde-prompt {
+  font-weight: 700;
+  color: #6a8f00;
+}
+.borde-oscuro .borde-prompt {
+  color: var(--accent);
+}
+.borde-tecleo {
+  --t: clamp(0, (var(--borde-p) - 0.1) / 0.4, 1);
+  display: inline-block;
+  overflow: hidden;
+  width: calc(var(--t) * var(--letras) * 1ch);
+  width: round(down, calc(var(--t) * var(--letras) * 1ch), 1ch);
+}
+/* Cursor de bloque, parpadeando. */
+.borde-orden::after {
+  content: "";
+  width: 0.55em;
+  height: 1.1em;
+  margin: auto 0 auto 2px;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px rgba(23, 24, 21, 0.25);
+  animation: borde-cursor 1s steps(2, jump-none) infinite;
+}
+@keyframes borde-cursor {
+  50% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .borde-orden::after {
+    animation: none;
+  }
+}

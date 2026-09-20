@@ -6,7 +6,11 @@
   --llegada: 0;
   /* El texto entra cuando la figura ya está casi revelada. */
   --texto: clamp(0, (var(--avance) - 0.45) / 0.3, 1);
+  --borde-p: var(--llegada);
   position: relative;
+  /* Se desliza por encima de la última pantalla de Proyectos. */
+  z-index: 3;
+  margin-top: -100svh;
   --recorrido: 220svh;
   height: calc(100svh + var(--recorrido));
   background: #fdfdfe;

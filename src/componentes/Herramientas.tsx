@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import { iconos, stack } from "../datos/stack";
+import { vigilarCercania } from "../retrato/cercania";
 import { Tunel } from "./Tunel";
 import "./Herramientas.css";
 
@@ -103,21 +104,31 @@ export function Herramientas() {
     let ultimoPt = 0;
     let ultimoT = performance.now();
     let rafVel = 0;
+    // El apagado no escribe --vel por su cuenta: lo deja en manos de pintar,
+    // que primero lee (getBoundingClientRect) y luego escribe todo de una
+    // vez. Escribir antes de esa lectura obligaba a recalcular estilos dos
+    // veces por fotograma. Si ya hay un pintado en cola, ese lo escribirá.
     const apagarVel = () => {
       vel *= 0.88;
       if (vel < 0.01) {
         vel = 0;
         rafVel = 0;
       } else rafVel = requestAnimationFrame(apagarVel);
-      raiz.style.setProperty("--vel", vel.toFixed(3));
+      if (!pendiente) pintar();
     };
     const pintar = () => {
       pendiente = false;
       const caja = raiz.getBoundingClientRect();
       const alto = window.innerHeight;
       // Primero el túnel: arranca en cuanto la sección asoma por abajo y
-      // termina tras recorrer su tramo fijo (--tunel).
+      // termina tras recorrer su tramo fijo (--tunel). La sonda también mide
+      // la cola (--cola): la última pantalla, que Proyectos cubre al llegar.
       const tunel = sonda?.offsetTop ?? 0;
+      const cola = sonda?.offsetHeight ?? 0;
+      // Cubierta: de 0 cuando Proyectos asoma por abajo a 1 cuando tapa la
+      // pantalla; la sección se hunde un poco y se oscurece por debajo.
+      const cubre = limitar((alto + cola - caja.bottom) / Math.max(1, cola));
+      raiz.style.setProperty("--cubre", cubre.toFixed(4));
       const pt = limitar((alto - caja.top) / (alto + tunel));
       raiz.style.setProperty("--pt", pt.toFixed(4));
       const ahora = performance.now();
@@ -126,9 +137,9 @@ export function Herramientas() {
       if (pt > 0 && pt < 1) {
         const inst = (Math.abs(pt - ultimoPt) / dt) * 1000; // túneles por segundo
         vel = Math.max(vel, limitar(inst / 0.9));
-        raiz.style.setProperty("--vel", vel.toFixed(3));
         if (!rafVel) rafVel = requestAnimationFrame(apagarVel);
       }
+      raiz.style.setProperty("--vel", vel.toFixed(3));
       ultimoPt = pt;
       ultimoT = ahora;
       // Al fondo del túnel, «LENGUAJES» crece desde el punto de fuga y se
@@ -137,7 +148,7 @@ export function Herramientas() {
       raiz.style.setProperty("--asienta", suave(limitar((pt - 0.8) / 0.12)).toFixed(4));
       raiz.style.setProperty("--llegada", suave(limitar((pt - 0.9) / 0.08)).toFixed(4));
       // Después, el lector recorre las categorías con el resto del scroll.
-      const largo = caja.height - alto - tunel;
+      const largo = caja.height - alto - tunel - cola;
       const avance = largo > 0 ? limitar((-caja.top - tunel) / largo) : 0;
       const tramo = Math.min(
         1,
@@ -158,8 +169,10 @@ export function Herramientas() {
         ),
       );
     };
+    // Solo se mide con la sección a la vista (ver cercania.ts).
+    let cerca = true;
     const alScroll = () => {
-      if (pendiente) return;
+      if (pendiente || !cerca) return;
       pendiente = true;
       requestAnimationFrame(pintar);
     };
@@ -170,9 +183,14 @@ export function Herramientas() {
     colocarDestino();
     document.fonts?.ready.then(colocarDestino);
     pintar();
+    const dejarDeVigilar = vigilarCercania(raiz, (c) => {
+      cerca = c;
+      pintar();
+    });
     window.addEventListener("scroll", alScroll, { passive: true });
     window.addEventListener("resize", alRedimensionar);
     return () => {
+      dejarDeVigilar();
       cancelAnimationFrame(rafVel);
       window.removeEventListener("scroll", alScroll);
       window.removeEventListener("resize", alRedimensionar);
@@ -266,6 +284,8 @@ export function Herramientas() {
           ))}
         </div>
       </div>
+      {/* Velo que oscurece la pantalla mientras Proyectos la cubre. */}
+      <div className="herr-velo" aria-hidden="true" />
     </section>
   );
 }

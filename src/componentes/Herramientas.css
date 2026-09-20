@@ -9,14 +9,20 @@
   --acerca: 0;
   --asienta: 0;
   --llegada: 0;
+  --cubre: 0;
   /* Tramo fijo del túnel antes del lector (la sonda lo mide en px). */
   --tunel: 150svh;
+  /* Cola: una pantalla más al final, en la que Proyectos se desliza por
+     encima de esta (se solapa con margen negativo, ver Proyectos.css). */
+  --cola: 100svh;
   --n: 6;
   --tinta: #1d1f22;
   --fila: 0.9em;
   position: relative;
   --por-categoria: 55svh;
-  height: calc(100svh + var(--tunel) + var(--n) * var(--por-categoria));
+  height: calc(
+    100svh + var(--tunel) + var(--n) * var(--por-categoria) + var(--cola)
+  );
   background: #fdfdfe;
   color: var(--ink);
   font-family: "Chakra Petch", var(--display);
@@ -31,6 +37,21 @@
   align-items: center;
   column-gap: clamp(32px, 4vw, 72px);
   padding-inline: max(var(--aire), (100% - var(--ancho)) / 2);
+  /* Al ser cubierta por Proyectos se hunde un poco hacia el fondo. */
+  transform: scale(calc(1 - var(--cubre) * 0.06));
+}
+/* …y se oscurece por debajo de la sección que llega. El velo es otra capa
+   fija sobre la misma pantalla (no va dentro de .herr-fijo, que al encogerse
+   dejaría sin oscurecer el borde que descubre). */
+.herr-velo {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  height: 100svh;
+  margin-top: -100svh;
+  background: #0f1113;
+  opacity: calc(var(--cubre) * 0.6);
+  pointer-events: none;
 }
 /* Lo propio de la sección emerge desde el fondo al final del túnel, en la
    misma pantalla: parece que llega, no que se baja hasta ella. */
@@ -45,7 +66,7 @@
   position: absolute;
   top: var(--tunel);
   width: 1px;
-  height: 1px;
+  height: var(--cola);
   visibility: hidden;
   pointer-events: none;
 }
@@ -72,6 +93,8 @@
     )
     scale(calc(0.03 + 0.97 * var(--acerca) * var(--acerca)));
   opacity: min(clamp(0, (var(--pt) - 0.42) / 0.06, 1), 1 - var(--llegada));
+  /* Capa propia: cambia de escala en cada fotograma sin repintar el texto. */
+  will-change: transform, opacity;
 }
 /* Rejilla de plano, muy tenue, que se apaga hacia los bordes. */
 .herr-fijo::before {
