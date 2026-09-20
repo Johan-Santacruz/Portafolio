@@ -5,13 +5,13 @@
   --avance: 0;
   --llegada: 0;
   /* El texto entra cuando la figura ya está casi revelada. */
-  --texto: clamp(0, (var(--avance) - 0.45) / 0.3, 1);
+  --texto: clamp(0, (var(--avance) - 0.3) / 0.25, 1);
   position: relative;
   /* Se desliza por encima de la última pantalla de Proyectos, ya fundida a
      este mismo blanco: no hay borde que ver. */
   z-index: 3;
   margin-top: -65svh;
-  --recorrido: 150svh;
+  --recorrido: 95svh;
   height: calc(100svh + var(--recorrido));
   background: #fdfdfe;
   color: var(--ink);
@@ -145,7 +145,7 @@
   color: #1d1f22;
 }
 .cierre-texto h2 span {
-  --entrada: clamp(0, (var(--avance) - 0.5 - var(--linea) * 0.06) / 0.18, 1);
+  --entrada: clamp(0, (var(--avance) - 0.34 - var(--linea) * 0.05) / 0.15, 1);
   display: block;
   clip-path: inset(-0.1em 0 0 0);
   overflow: hidden;
@@ -153,7 +153,7 @@
   transform: translate3d(0, calc((1 - var(--entrada)) * 0.5em), 0);
 }
 .cierre-copy {
-  --entrada: clamp(0, (var(--avance) - 0.62) / 0.16, 1);
+  --entrada: clamp(0, (var(--avance) - 0.46) / 0.13, 1);
   margin-top: 22px;
   max-width: 40ch;
   font-family: var(--display);
@@ -164,7 +164,7 @@
   transform: translate3d(0, calc((1 - var(--entrada)) * 14px), 0);
 }
 .cierre-acciones {
-  --entrada: clamp(0, (var(--avance) - 0.68) / 0.16, 1);
+  --entrada: clamp(0, (var(--avance) - 0.54) / 0.13, 1);
   display: flex;
   flex-wrap: wrap;
   align-items: center;

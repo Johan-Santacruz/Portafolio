@@ -22,7 +22,9 @@
      (margen negativo igual en Cierre.css). */
   --solape: 100svh;
   --cola: 65svh;
-  /* Tramo propio para la niebla de salida, antes de que Cierre asome. */
+  /* Reposo para leer el último proyecto, y tramo propio para la niebla de
+     salida, antes de que Cierre asome. */
+  --reposo: 55svh;
   --niebla: 70svh;
   position: relative;
   z-index: 2;
@@ -41,7 +43,8 @@
       rgb(15 17 19 / var(--fondo))
     );
   color: var(--texto);
-  padding: clamp(80px, 14svh, 160px) 0 calc(var(--niebla) + var(--cola));
+  padding: clamp(80px, 14svh, 160px) 0
+    calc(var(--reposo) + var(--niebla) + var(--cola));
   font-family: "Chakra Petch", var(--display);
   overflow: clip;
   /* La niebla se mezcla en «screen» solo con esta sección. */

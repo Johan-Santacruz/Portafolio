@@ -113,7 +113,7 @@ export function Proyectos() {
       // la última fila sale por abajo hasta que Cierre llena la pantalla: la
       // salida no se alarga.
       const niebla = sonda?.offsetHeight || alto;
-      const cola = (parseFloat(getComputedStyle(raiz).paddingBottom) || 0) - niebla;
+      const cola = sonda ? raiz.offsetHeight - (sonda.offsetTop + niebla) : alto;
       const fin = limitar((alto + cola + niebla - caja.bottom) / niebla);
       // La capa se retira mientras Cierre entra: para entonces el fondo de
       // esta sección ya es blanco, así que no reaparece el negro.

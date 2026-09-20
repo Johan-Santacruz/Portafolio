@@ -90,9 +90,9 @@ export function Cierre() {
       // Llegada: de 0 cuando la sección asoma por abajo a 1 cuando toca arriba.
       const llegada = Math.min(1, Math.max(0, 1 - caja.top / window.innerHeight));
       raiz.style.setProperty("--llegada", llegada.toFixed(4));
-      raiz.toggleAttribute("data-texto", avance > 0.6);
-      // El vídeo ocupa el 80 % del recorrido; el resto, quieto al final.
-      const t = Math.min(1, avance / 0.8);
+      raiz.toggleAttribute("data-texto", avance > 0.45);
+      // El vídeo ocupa el 70 % del recorrido; el resto, quieto al final.
+      const t = Math.min(1, avance / 0.7);
       pedido = Math.round(t * (FOTOGRAMAS - 1));
       secuencia.pedir(pedido);
       if (pedido !== pintado) pintar(pedido);
