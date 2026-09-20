@@ -11,6 +11,13 @@
   --llegada: 0;
   --cubre: 0;
   --apaga: 0;
+  --crece: 0;
+  /* Recuadro de la consola respecto a la pantalla fija (lo mide
+     Herramientas.tsx): de ahí nace la pantalla negra de Proyectos. */
+  --vx: 60vw;
+  --vy: 70vh;
+  --vw: 0.3;
+  --vh: 0.1;
   /* Tramo fijo del túnel antes del lector (la sonda lo mide en px). */
   --tunel: 150svh;
   /* Cola: una pantalla más al final, en la que Proyectos se desliza por
@@ -20,6 +27,9 @@
   --tinta: #1d1f22;
   --fila: 0.9em;
   position: relative;
+  /* Recorte solo horizontal: el zoom final agranda la pantalla fija, y las
+     placas del túnel cruzan el borde de arriba mientras la sección entra. */
+  overflow: clip visible;
   --por-categoria: 55svh;
   height: calc(
     100svh + var(--tunel) + var(--n) * var(--por-categoria) + var(--cola)
@@ -42,10 +52,15 @@
   align-items: center;
   column-gap: clamp(32px, 4vw, 72px);
   padding-inline: max(var(--aire), (100% - var(--ancho)) / 2);
+  /* Zoom de cámara hacia la consola al final: todo se agranda alrededor
+     de ella mientras su pantalla crece hasta llenar la de verdad. */
+  transform-origin: calc(var(--vx) + var(--vw) * 50%) calc(var(--vy) + var(--vh) * 50%);
+  transform: scale(calc(1 + var(--crece) * 0.5));
 }
-/* Al acabar el lector la pantalla se apaga al negro de Proyectos, que llega
-   por encima con ese mismo fondo: no hay borde que ver. Es otra capa fija
-   sobre la misma pantalla. */
+/* La pantalla negra de Proyectos nace en el recuadro de la consola (se
+   enciende en negro, --apaga) y crece con el zoom (--crece) hasta llenar la
+   pantalla; Proyectos llega por encima con ese mismo fondo: no hay borde que
+   ver. Es otra capa fija sobre la misma pantalla; solo cambia su transform. */
 .herr-velo {
   position: sticky;
   z-index: 1;
@@ -59,8 +74,77 @@
       transparent 1px 4px
     ),
     #0f1113;
-  opacity: var(--apaga);
+  transform-origin: 0 0;
+  transform: translate(
+      calc(var(--vx) * (1 - var(--crece))),
+      calc(var(--vy) * (1 - var(--crece)))
+    )
+    scale(
+      calc(var(--vw) + (1 - var(--vw)) * var(--crece)),
+      calc(var(--vh) + (1 - var(--vh)) * var(--crece))
+    );
+  /* Al nacer tiene la forma de la consola (chaflanes y filete lima), medidos
+     en el espacio ya escalado; se enderezan al crecer. */
+  --cx: calc(12px / var(--vw) * (1 - var(--crece)));
+  --cy: calc(12px / var(--vh) * (1 - var(--crece)));
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--cx)) 0,
+    100% var(--cy),
+    100% 100%,
+    var(--cx) 100%,
+    0 calc(100% - var(--cy))
+  );
+  box-shadow: inset calc(3px / var(--vw) * (1 - var(--crece))) 0 0 var(--accent);
+  opacity: clamp(0, var(--apaga) * 6, 1);
+  will-change: transform;
   pointer-events: none;
+}
+/* La orden que se teclea en la pantalla negra, en el sitio de la consola;
+   va aparte para que el zoom no la deforme. */
+.herr-final {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  height: 100svh;
+  margin-top: -100svh;
+  pointer-events: none;
+}
+.herr-final-orden {
+  position: absolute;
+  left: calc(var(--vx) + 20px);
+  top: calc(var(--vy) + 16px);
+  display: flex;
+  white-space: nowrap;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 500;
+  font-size: clamp(13px, 1vw, 15px);
+  line-height: 1.7;
+  color: rgba(238, 240, 242, 0.7);
+  opacity: clamp(0, (var(--apaga) - 0.12) * 12, 1);
+  /* Con el zoom viaja hasta el sitio del rótulo de Proyectos (--lx, --ly). */
+  transform: translate(calc(var(--lx, 0px) * var(--crece)), calc(var(--ly, 0px) * var(--crece)));
+  will-change: transform;
+}
+.herr-final-orden .herr-prompt {
+  margin-right: 0.8ch;
+  font-weight: 700;
+  color: var(--accent);
+}
+.herr-final-tecleo {
+  --t: clamp(0, (var(--apaga) - 0.16) / 0.4, 1);
+  display: inline-block;
+  overflow: hidden;
+  width: calc(var(--t) * 14ch);
+  width: round(down, calc(var(--t) * 14ch), 1ch);
+}
+.herr-final-orden::after {
+  content: "";
+  width: 0.55em;
+  height: 1.1em;
+  margin: auto 0 auto 2px;
+  background: var(--accent);
+  animation: herr-cursor 1s steps(2, jump-none) infinite;
 }
 /* Lo propio de la sección emerge desde el fondo al final del túnel, en la
    misma pantalla: parece que llega, no que se baja hasta ella. */

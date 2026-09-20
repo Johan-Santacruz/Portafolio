@@ -68,6 +68,26 @@ export function Herramientas() {
       const w = destino.offsetWidth;
       destino.style.setProperty("--sx", `${f.width / 2 - (x + w / 2)}px`);
       destino.style.setProperty("--sy", `${f.height / 2 - y}px`);
+      // La consola: de su recuadro nace la pantalla negra de Proyectos
+      // (posición y tamaño respecto a la pantalla fija, ver .herr-velo).
+      const consola = grupos[0]?.querySelector<HTMLElement>(".herr-consola");
+      if (consola) {
+        const c = consola.getBoundingClientRect();
+        raiz.style.setProperty("--vx", `${(c.left - f.left).toFixed(1)}px`);
+        raiz.style.setProperty("--vy", `${(c.top - f.top).toFixed(1)}px`);
+        raiz.style.setProperty("--vw", (c.width / f.width).toFixed(4));
+        raiz.style.setProperty("--vh", (c.height / f.height).toFixed(4));
+        // La orden tecleada viaja hasta donde queda el rótulo de Proyectos
+        // (que es esa misma orden) cuando la sección ocupa la pantalla.
+        const rotulo = document.querySelector<HTMLElement>(".proy-rotulo");
+        const seccionProy = rotulo?.closest("section");
+        if (rotulo && seccionProy) {
+          const r = rotulo.getBoundingClientRect();
+          const s = seccionProy.getBoundingClientRect();
+          raiz.style.setProperty("--lx", `${(r.left - s.left - (c.left - f.left) - 20).toFixed(1)}px`);
+          raiz.style.setProperty("--ly", `${(r.top - s.top - (c.top - f.top) - 16).toFixed(1)}px`);
+        }
+      }
       // Casilla de cada placa del primer grupo, respecto al centro de la
       // pantalla: ahí aterrizan las placas del túnel (ver Tunel.css).
       const reales = grupos[0]?.querySelectorAll<HTMLElement>(".herr-placa") ?? [];
@@ -156,9 +176,13 @@ export function Herramientas() {
       );
       const p = conReposo(tramo * (total - 1));
       raiz.style.setProperty("--p", p.toFixed(4));
-      // Al final del lector la pantalla se apaga a negro: así Proyectos, que
-      // llega por encima con el mismo negro, entra sin borde.
-      raiz.style.setProperty("--apaga", suave(limitar((avance - 0.86) / 0.14)).toFixed(4));
+      // Al final del lector, la consola se pone en negro, teclea la orden
+      // siguiente (--apaga) y la cámara hace zoom hacia ella hasta que su
+      // pantalla llena la de verdad (--crece): ese negro ya es Proyectos, que
+      // llega por encima sin borde.
+      const apaga = limitar((avance - 0.82) / 0.18);
+      raiz.style.setProperty("--apaga", apaga.toFixed(4));
+      raiz.style.setProperty("--crece", suave(limitar((apaga - 0.35) / 0.65)).toFixed(4));
       const nuevo = Math.round(p);
       if (nuevo > 0) movido = true;
       if (pt < 1) movido = false;
@@ -287,8 +311,16 @@ export function Herramientas() {
           ))}
         </div>
       </div>
-      {/* Velo que oscurece la pantalla mientras Proyectos la cubre. */}
+      {/* La pantalla negra que nace de la consola y crece hasta llenar la
+          pantalla, y la orden que se teclea en ella (aparte, para que no se
+          deforme con el zoom). */}
       <div className="herr-velo" aria-hidden="true" />
+      <div className="herr-final" aria-hidden="true">
+        <p className="herr-final-orden">
+          <span className="herr-prompt">~ $</span>
+          <span className="herr-final-tecleo">ls ./proyectos</span>
+        </p>
+      </div>
     </section>
   );
 }

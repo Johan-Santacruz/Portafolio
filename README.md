@@ -152,10 +152,12 @@ sección en `requestAnimationFrame`) y todo se anula con `prefers-reduced-motion
   las placas de los lenguajes que viajan por él aterrizan en su casilla de la
   sección, que las releva en el mismo píxel.
 - No hay bordes entre secciones: las placas del túnel cruzan el borde de la
-  sección mientras entra (recorte solo horizontal), las herramientas se apagan
-  al negro de Proyectos antes de que este llegue por encima (margen negativo de
-  una pantalla) y Proyectos se funde al blanco de Cierre antes de que este haga
-  lo mismo.
+  sección mientras entra (recorte solo horizontal); al acabar las
+  herramientas, su consola teclea `ls ./proyectos`, se pone en negro y la
+  cámara hace zoom hacia ella hasta que el terminal llena la pantalla, que ya
+  es el fondo de Proyectos (llega por encima, con esa orden como rótulo); y
+  tras el último proyecto una luz crece hasta llenar la pantalla del blanco de
+  Cierre, que llega por encima igual.
 - El cierre saca la figura de la niebla con el scroll.
 
 Cada sección solo mide su posición mientras está a la vista (`cercania.ts`):

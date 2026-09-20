@@ -95,21 +95,21 @@
 .proy-cabecera {
   text-align: center;
 }
+/* El rótulo es la orden que se tecleó en la consola de Herramientas: la
+   sección es su salida. */
 .proy-rotulo {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  font-weight: 600;
-  font-size: 13px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(238, 240, 242, 0.62);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 500;
+  font-size: clamp(13px, 1vw, 15px);
+  line-height: 1.7;
+  color: rgba(238, 240, 242, 0.7);
 }
-.proy-rotulo::before {
-  content: "";
-  width: 22px;
-  height: 3px;
-  background: var(--accent);
+.proy-rotulo span {
+  font-weight: 700;
+  color: var(--accent);
+  white-space: pre;
 }
 .proy-cabecera h2 {
   margin-top: 14px;

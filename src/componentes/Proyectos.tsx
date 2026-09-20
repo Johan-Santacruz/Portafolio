@@ -147,7 +147,9 @@ export function Proyectos() {
       </div>
 
       <header className="proy-cabecera">
-        <p className="proy-rotulo">Proyectos</p>
+        <p className="proy-rotulo">
+          <span aria-hidden="true">~ $ </span>ls ./proyectos
+        </p>
         <h2 id="titulo-proyectos">Lo que he construido</h2>
       </header>
 
