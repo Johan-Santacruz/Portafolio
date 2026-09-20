@@ -22,21 +22,30 @@
      (margen negativo igual en Cierre.css). */
   --solape: 100svh;
   --cola: 65svh;
+  /* Tramo propio para la niebla de salida, antes de que Cierre asome. */
+  --niebla: 70svh;
   position: relative;
   z-index: 2;
   margin-top: calc(-1 * var(--solape));
+  /* El fondo vira al blanco de Cierre con la niebla (--fin): así, cuando la
+     capa de niebla se retira, no reaparece el negro. */
   background:
     repeating-linear-gradient(
       0deg,
       rgba(255, 255, 255, 0.018) 0 1px,
       transparent 1px 4px
     ),
-    rgb(15 17 19 / var(--fondo));
+    color-mix(
+      in srgb,
+      #fdfdfe calc(var(--fin) * 100%),
+      rgb(15 17 19 / var(--fondo))
+    );
   color: var(--texto);
-  padding: clamp(80px, 14svh, 160px) max(var(--aire), (100% - var(--ancho)) / 2)
-    var(--cola);
+  padding: clamp(80px, 14svh, 160px) 0 calc(var(--niebla) + var(--cola));
   font-family: "Chakra Petch", var(--display);
   overflow: clip;
+  /* La niebla se mezcla en «screen» solo con esta sección. */
+  isolation: isolate;
 }
 /* Fondo: un carril del alto de la sección con el vídeo pegado arriba. */
 .proy-fondo {
@@ -56,52 +65,64 @@
   /* Se encienden con la sección: en el borde con Herramientas todavía no
      hay estelas, solo el mismo negro. Al final, antes de la luz, se
      encienden del todo. */
-  opacity: calc(
-    0.55 * clamp(0, (var(--cubre) - 0.9) / 0.1, 1) + 0.45 * clamp(0, var(--fin) / 0.5, 1)
-  );
+  opacity: calc(0.55 * clamp(0, (var(--cubre) - 0.9) / 0.1, 1));
 }
 /* --- Salida hacia Cierre --------------------------------------------------------
-   Poco más de media pantalla en el flujo tras la última fila (--fin: de 0
-   al asomar por abajo a 1 cuando Cierre asoma; el tramo es corto para no
-   alargar la llegada al contacto). Dentro, una luz redonda que crece desde
-   abajo hasta llenar la pantalla de blanco: Cierre llega por encima con ese
-   mismo blanco. Es un círculo grande escalado por el compositor (sin
-   repintar degradados en cada scroll) que se extiende por encima, sobre las
-   últimas filas. */
-.proy-velo {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  height: 55svh;
-  margin-top: 32svh;
-  /* Sin recorte propio: la luz se extiende más allá de los márgenes de la
-     sección, que es la que recorta (overflow: clip) para no ensanchar la
-     página. */
-  overflow: visible;
+   La niebla sube y se lo lleva todo. Un tramo corto tras la última fila
+   (--fin: de 0 al asomar por abajo a 1 cuando Cierre asoma). La secuencia
+   (`video7.mp4`) se pinta en modo «screen»: su negro deja ver la sección y su
+   blanco la cubre. El último cuarto lo remata un velo blanco sólido, que es
+   el fondo con el que llega Cierre: no hay borde que ver. */
+/* Fija a la pantalla: la niebla la cubre entera desde el primer fotograma
+   (que es negro y, en «screen», invisible), así no se ve ningún borde recto
+   subiendo. Fuera del tramo, --fin es 0 y la capa no se ve. */
+.proy-sonda {
+  position: absolute;
+  bottom: var(--cola);
+  width: 1px;
+  height: var(--niebla);
+  visibility: hidden;
   pointer-events: none;
 }
-.proy-luz {
-  --crece: calc(var(--fin) * var(--fin));
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 280vmax;
-  height: 280vmax;
-  border-radius: 50%;
-  translate: -50% -50%;
-  background: radial-gradient(circle, #fdfdfe 0 58%, rgba(253, 253, 254, 0) 70%);
-  transform: scale(var(--crece));
-  will-change: transform;
+.proy-velo {
+  position: fixed;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+  /* La mezcla va aquí: dentro de esta capa no habría con qué mezclarse. */
+  mix-blend-mode: screen;
+  opacity: calc(clamp(0, var(--fin) * 20, 1) * var(--velo, 1));
 }
-/* El último proyecto pasa de largo: se agranda y se apaga mientras se va. */
-.proy-fila:last-child {
-  transform-origin: 50% 50%;
-  transform: scale(calc(1 + var(--fin) * 0.9));
-  opacity: calc(1 - var(--fin) * 0.85);
+.proy-niebla,
+.proy-luz {
+  position: absolute;
+  inset: 0;
+}
+.proy-niebla {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.proy-luz {
+  background: #fdfdfe;
+  opacity: clamp(0, (var(--fin) - 0.72) / 0.28, 1);
+}
+/* Lo que queda de la sección se apaga dentro de la niebla. */
+.proy-lista,
+.proy-cabecera,
+.proy-fondo {
+  opacity: calc(1 - clamp(0, (var(--fin) - 0.35) / 0.4, 1));
 }
 .proy-cabecera,
 .proy-lista {
   position: relative;
+}
+/* El aire lateral va en el contenido, no en la sección: así la niebla de
+   salida ocupa el ancho entero. */
+.proy-cabecera,
+.proy-lista,
+.proy-pie {
+  padding-inline: max(var(--aire), (100% - var(--ancho)) / 2);
 }
 .proy-cabecera {
   text-align: center;
@@ -137,7 +158,7 @@
 .proy-lista {
   list-style: none;
   margin: clamp(80px, 16svh, 180px) 0 0;
-  padding: 0;
+  padding-block: 0;
   display: grid;
   gap: clamp(16px, 5svh, 56px);
 }

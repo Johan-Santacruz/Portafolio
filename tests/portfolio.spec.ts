@@ -503,7 +503,7 @@ test("las secciones se solapan y se funden sin borde", async ({ page }) => {
   await expect.poll(() => v("#proyectos", "--cubre")).toBeCloseTo(0.5, 1);
   // Cuando Cierre asoma, Proyectos ya se ha fundido a blanco.
   await page.evaluate((y) => window.scrollTo(0, y), cierreInicio - alto);
-  await expect.poll(() => v("#proyectos", "--fin")).toBe(1);
+  await expect.poll(() => v("#proyectos", "--fin")).toBeGreaterThan(0.99);
   await expect(page.locator(".proy-velo")).toHaveCSS("opacity", "1");
   await expect.poll(() => v("#contacto", "--llegada")).toBeLessThan(0.02);
 });

@@ -45,32 +45,6 @@
   mask-composite: intersect;
 }
 
-/* --- Pistas --------------------------------------------------------------------
-   Se trazan mientras la sección llega (--llegada) y se apagan cuando la
-   niebla empieza a abrirse (--avance), justo antes de que aparezca la cara. */
-.cierre-trazos {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  opacity: calc(1 - clamp(0, (var(--avance) - 0.1) / 0.22, 1));
-}
-.cierre-trazo {
-  --trazo: clamp(0, (var(--llegada) - 0.15 - var(--retraso)) / 0.5, 1);
-}
-.cierre-trazo path {
-  fill: none;
-  stroke: rgba(29, 31, 34, 0.55);
-  stroke-width: 1;
-  stroke-dasharray: 1;
-  stroke-dashoffset: calc(1 - var(--trazo));
-}
-.cierre-trazo-lima path {
-  stroke: #9fd12a;
-  stroke-width: 2;
-}
-
 /* --- Niebla ----------------------------------------------------------------------
    Dos capas sobre el vídeo, las dos del blanco de la página (invisibles sobre
    el fondo, solo se notan sobre la figura):

@@ -156,8 +156,8 @@ sección en `requestAnimationFrame`) y todo se anula con `prefers-reduced-motion
   un agujero negro se las traga (cada pieza cae al centro girando y volviéndose
   clara) hasta dejar la pantalla en negro, que ya es el fondo de Proyectos, y
   ahí se teclea `ls ./proyectos`, que es su rótulo; y tras el último proyecto
-  una luz crece hasta llenar la pantalla del blanco de Cierre, que llega por
-  encima igual.
+  una niebla sube y se lo lleva todo hasta dejar el blanco de Cierre, que
+  llega por encima igual.
 - El cierre saca la figura de la niebla con el scroll.
 
 Cada sección solo mide su posición mientras está a la vista (`cercania.ts`):
@@ -181,6 +181,24 @@ ffmpeg -ss 1.4 -to 9.75 -i video6.mp4 -vf "$F,scale=320:180:flags=lanczos,format
 ```
 
 Si cambia el número de fotogramas, ajusta `FOTOGRAMAS` en `Herramientas.tsx`.
+
+### La niebla
+
+La salida hacia el contacto reproduce igual los fotogramas de `video7.mp4`
+(niebla blanca muy suave sobre negro, sin remolinos ni destellos). Va en una
+capa fija a la pantalla y en modo «screen»: su negro deja ver la sección y su
+blanco la cubre, así que no hace falta tocarle los niveles. El último cuarto
+lo remata un velo blanco sólido.
+
+```bash
+F="format=rgb24,fps=36/8.7"
+ffmpeg -ss 0.8 -to 9.5 -i video7.mp4 -vf "$F,scale=1280:720:flags=lanczos,format=yuvj420p" \
+  -start_number 0 -q:v 6 public/imagenes/niebla/f%03d.jpg
+ffmpeg -ss 0.8 -to 9.5 -i video7.mp4 -vf "$F,scale=320:180:flags=lanczos,format=yuvj420p" \
+  -start_number 0 -q:v 13 public/imagenes/niebla-mini/f%03d.jpg
+```
+
+Si cambia el número de fotogramas, ajusta `FOTOGRAMAS` en `Proyectos.tsx`.
 
 ## Publicación
 

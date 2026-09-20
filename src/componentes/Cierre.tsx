@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { perfil } from "../datos/perfil";
 import { Icono } from "./Icono";
@@ -15,51 +15,6 @@ const fotograma = (i: number) =>
   `${CIERRE}f${String(i).padStart(3, "0")}.jpg`;
 const GITHUB = "https://github.com/Johan-Santacruz";
 
-interface Trazo {
-  d: string;
-  retraso: number;
-  lima: boolean;
-}
-
-/**
- * Pistas de circuito desde los bordes hacia la cara: tramo recto y luego a
- * 45°, como en una placa. Paran antes de llegar, en un anillo alrededor del
- * foco, para que la cara aparezca en el hueco que dejan.
- */
-function trazar(ancho: number, alto: number, foco: { x: number; y: number }) {
-  let s = 20260918;
-  const azar = () => {
-    s = (s + 0x6d2b79f5) | 0;
-    let t = Math.imul(s ^ (s >>> 15), 1 | s);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-  const salidas = [
-    ...[0.12, 0.3, 0.5, 0.7, 0.88].map((f) => ({ x: 0, y: alto * f })),
-    ...[0.15, 0.4, 0.62, 0.85].map((f) => ({ x: ancho * f, y: 0 })),
-    ...[0.2, 0.45, 0.7, 0.92].map((f) => ({ x: ancho * f, y: alto })),
-    ...[0.25, 0.6].map((f) => ({ x: ancho, y: alto * f })),
-  ];
-  return salidas.map((a, i): Trazo => {
-    // Punto final: en un anillo alrededor del foco, del lado de la salida.
-    const ang = Math.atan2(a.y - foco.y, a.x - foco.x) + (azar() - 0.5) * 0.5;
-    const radio = Math.min(ancho, alto) * (0.13 + azar() * 0.07);
-    const fin = { x: foco.x + Math.cos(ang) * radio, y: foco.y + Math.sin(ang) * radio };
-    const dx = fin.x - a.x;
-    const dy = fin.y - a.y;
-    // Recto por el eje largo hasta que quede justo la diagonal.
-    const codo =
-      Math.abs(dx) > Math.abs(dy)
-        ? { x: a.x + Math.sign(dx) * (Math.abs(dx) - Math.abs(dy)), y: a.y }
-        : { x: a.x, y: a.y + Math.sign(dy) * (Math.abs(dy) - Math.abs(dx)) };
-    return {
-      d: `M${a.x.toFixed(1)} ${a.y.toFixed(1)} L${codo.x.toFixed(1)} ${codo.y.toFixed(1)} L${fin.x.toFixed(1)} ${fin.y.toFixed(1)}`,
-      retraso: azar() * 0.35,
-      lima: i === 2 || i === 11,
-    };
-  });
-}
-
 /**
  * Cierre: la figura sale de la sombra a la luz mientras se baja.
  *
@@ -71,31 +26,7 @@ function trazar(ancho: number, alto: number, foco: { x: number; y: number }) {
 export function Cierre() {
   const seccion = useRef<HTMLElement>(null);
   const lienzo = useRef<HTMLCanvasElement>(null);
-  const fijo = useRef<HTMLDivElement>(null);
   const [copiado, setCopiado] = useState(false);
-  const [medida, setMedida] = useState({ ancho: 1440, alto: 900 });
-
-  // El foco es donde aparece la cara: dentro del vídeo, arriba y al centro.
-  const trazos = useMemo(() => {
-    const { ancho, alto } = medida;
-    const estrecha = ancho <= 860;
-    const foco = estrecha
-      ? { x: ancho * 0.5, y: alto * 0.2 }
-      : { x: ancho * 0.28 + ancho * 0.72 * 0.52, y: alto * 0.3 };
-    return trazar(ancho, alto, foco);
-  }, [medida]);
-
-  useEffect(() => {
-    const caja = fijo.current;
-    if (!caja) return;
-    const observador = new ResizeObserver(([e]) => {
-      const { width, height } = e.contentRect;
-      setMedida({ ancho: Math.round(width), alto: Math.round(height) });
-    });
-    observador.observe(caja);
-    return () => observador.disconnect();
-  }, []);
-
   useEffect(() => {
     const raiz = seccion.current;
     const canvas = lienzo.current;
@@ -211,7 +142,7 @@ export function Cierre() {
       id="contacto"
       aria-labelledby="titulo-cierre"
     >
-      <div className="cierre-fijo" ref={fijo}>
+      <div className="cierre-fijo">
         <canvas ref={lienzo} className="cierre-video" aria-hidden="true" />
         {/* Niebla: un velo que se retira y bancos de bruma que se disipan. */}
         <div className="cierre-niebla" aria-hidden="true">
@@ -219,24 +150,6 @@ export function Cierre() {
           <span />
           <span />
         </div>
-        {/* Pistas que convergen donde aparecerá la cara, mientras la sección
-            llega; se apagan cuando la niebla se abre. */}
-        <svg
-          className="cierre-trazos"
-          viewBox={`0 0 ${medida.ancho} ${medida.alto}`}
-          aria-hidden="true"
-        >
-          {trazos.map((t, i) => (
-            <g
-              key={i}
-              className={t.lima ? "cierre-trazo cierre-trazo-lima" : "cierre-trazo"}
-              style={{ "--retraso": t.retraso } as CSSProperties}
-            >
-              <path d={t.d} pathLength={1} />
-            </g>
-          ))}
-        </svg>
-
         <div className="cierre-texto">
           <p className="cierre-rotulo">Contacto</p>
           <h2 id="titulo-cierre">

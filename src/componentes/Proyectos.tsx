@@ -5,10 +5,15 @@ import type { Trabajo } from "../datos/trabajos";
 import { iconos } from "../datos/stack";
 import { Icono } from "./Icono";
 import { vigilarCercania } from "../retrato/cercania";
+import { SecuenciaFotogramas } from "../retrato/secuencia";
 import "./Proyectos.css";
 
 const ICONOS = `${import.meta.env.BASE_URL}iconos/`;
 const MEDIA = `${import.meta.env.BASE_URL}media/`;
+/** Fotogramas de la niebla de salida (de `video7.mp4`). Ver README. */
+const NIEBLA = `${import.meta.env.BASE_URL}imagenes/niebla/`;
+const NIEBLA_MINI = `${import.meta.env.BASE_URL}imagenes/niebla-mini/`;
+const FOTOGRAMAS = 36;
 
 /** Tecnologías de los trabajos que no están tal cual en `iconos`. */
 const ICONOS_EXTRA: Record<string, string> = {
@@ -44,7 +49,57 @@ export function Proyectos() {
     const raiz = seccion.current;
     if (!raiz) return;
     const filas = Array.from(raiz.querySelectorAll<HTMLElement>(".proy-fila"));
+    // Mide --niebla en px (svh no se puede leer desde CSS).
+    const sonda = raiz.querySelector<HTMLElement>(".proy-sonda");
     let pendiente = false;
+
+    // --- La niebla de salida: se pinta en modo «screen», así su negro deja
+    // ver la sección y su blanco la cubre; el último tramo lo remata un velo
+    // blanco sólido (ver .proy-luz).
+    const lienzo = raiz.querySelector<HTMLCanvasElement>(".proy-niebla");
+    const ctx = lienzo?.getContext("2d") ?? null;
+    let pintado = -1;
+    let pedido = 0;
+    const pintarNiebla = (quiero: number) => {
+      const img = secuencia.mejor(quiero);
+      if (!img || !lienzo || !ctx) return;
+      const cubre = Math.max(lienzo.clientWidth / 1280, lienzo.clientHeight / 720);
+      const dpr = Math.min(window.devicePixelRatio || 1, Math.max(1, 1 / cubre));
+      const ancho = lienzo.clientWidth;
+      const alto = lienzo.clientHeight;
+      const w = Math.round(ancho * dpr);
+      const h = Math.round(alto * dpr);
+      if (lienzo.width !== w || lienzo.height !== h) {
+        lienzo.width = w;
+        lienzo.height = h;
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // Como object-fit: cover, anclado abajo: la niebla entra por ahí.
+      const escala = Math.max(ancho / img.naturalWidth, alto / img.naturalHeight);
+      const dw = img.naturalWidth * escala;
+      const dh = img.naturalHeight * escala;
+      ctx.drawImage(img, (ancho - dw) / 2, alto - dh, dw, dh);
+      pintado = quiero;
+    };
+    const secuencia = new SecuenciaFotogramas(
+      FOTOGRAMAS,
+      (i) => `${NIEBLA}f${String(i).padStart(3, "0")}.jpg`,
+      (i) => {
+        if (pintado < 0 || Math.abs(i - pedido) <= 2) pintarNiebla(pedido);
+      },
+      6,
+      (i) => `${NIEBLA_MINI}f${String(i).padStart(3, "0")}.jpg`,
+    );
+    // Se empieza a cargar con la sección ya a la vista, no antes.
+    const vigiaNiebla = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return;
+        vigiaNiebla.disconnect();
+        secuencia.empezar();
+      },
+      { rootMargin: "0px" },
+    );
+    vigiaNiebla.observe(raiz);
     const medir = () => {
       pendiente = false;
       const alto = window.innerHeight;
@@ -54,14 +109,26 @@ export function Proyectos() {
       // Cubierta: la sección se desliza sobre la anterior; de 0 al asomar por
       // abajo a 1 al llenar la pantalla (las estelas se encienden con ella).
       raiz.style.setProperty("--cubre", limitar(1 - caja.top / alto).toFixed(4));
-      // Fin: la luz crece mientras el velo sube por la pantalla y llena todo
-      // justo cuando Cierre asoma por abajo (tras la cola de la sección).
-      const veloAlto = raiz.querySelector<HTMLElement>(".proy-velo")?.offsetHeight ?? alto;
-      const cola = parseFloat(getComputedStyle(raiz).paddingBottom) || 0;
+      // Fin: el avance de la niebla. Justo una pantalla de scroll, desde que
+      // la última fila sale por abajo hasta que Cierre llena la pantalla: la
+      // salida no se alarga.
+      const niebla = sonda?.offsetHeight || alto;
+      const cola = (parseFloat(getComputedStyle(raiz).paddingBottom) || 0) - niebla;
+      const fin = limitar((alto + cola + niebla - caja.bottom) / niebla);
+      // La capa se retira mientras Cierre entra: para entonces el fondo de
+      // esta sección ya es blanco, así que no reaparece el negro.
       raiz.style.setProperty(
-        "--fin",
-        limitar((alto + cola + veloAlto - caja.bottom) / Math.max(1, veloAlto)).toFixed(4),
+        "--velo",
+        (1 - limitar((alto + cola - caja.bottom) / (alto * 0.5))).toFixed(4),
       );
+      raiz.style.setProperty("--fin", fin.toFixed(4));
+      raiz.toggleAttribute("data-fin", fin > 0);
+      const cuadro = Math.round(fin * (FOTOGRAMAS - 1));
+      if (cuadro !== pedido) {
+        pedido = cuadro;
+        secuencia.pedir(pedido);
+      }
+      if (fin > 0 || pintado >= 0) pintarNiebla(pedido);
       // Alcance: a qué distancia del centro una fila ya está apagada del todo.
       const alcance = alto * 0.22;
       for (const fila of filas) {
@@ -87,6 +154,8 @@ export function Proyectos() {
     window.addEventListener("resize", alScroll);
     return () => {
       dejarDeVigilar();
+      vigiaNiebla.disconnect();
+      secuencia.detener();
       window.removeEventListener("scroll", alScroll);
       window.removeEventListener("resize", alScroll);
     };
@@ -272,7 +341,9 @@ export function Proyectos() {
       )}
     {/* Al final, una luz crece desde abajo hasta llenar la pantalla de
           blanco; Cierre llega por encima con ese mismo blanco. */}
+      <span className="proy-sonda" aria-hidden="true" />
       <div className="proy-velo" aria-hidden="true">
+        <canvas className="proy-niebla" />
         <span className="proy-luz" />
       </div>
     </section>
