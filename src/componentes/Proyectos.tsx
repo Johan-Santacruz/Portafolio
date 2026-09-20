@@ -264,9 +264,11 @@ export function Proyectos() {
           </div>
         </dialog>
       )}
-    {/* Al final, la sección se funde al blanco antes de que Cierre llegue
-          por encima con ese mismo blanco. */}
-      <div className="proy-velo" aria-hidden="true" />
+    {/* Al final, una luz crece desde abajo hasta llenar la pantalla de
+          blanco; Cierre llega por encima con ese mismo blanco. */}
+      <div className="proy-velo" aria-hidden="true">
+        <span className="proy-luz" />
+      </div>
     </section>
   );
 }

@@ -43,21 +43,47 @@
   /* Sin modo de mezcla: el vídeo ya es negro con luz, y sobre el fondo casi
      negro basta la opacidad (mezclar la pantalla entera cuesta mucho). */
   /* Se encienden con la sección: en el borde con Herramientas todavía no
-     hay estelas, solo el mismo negro. */
-  opacity: calc(0.55 * var(--cubre));
+     hay estelas, solo el mismo negro. Al final, antes de la luz, se
+     encienden del todo. */
+  opacity: calc(0.55 * var(--cubre) + 0.45 * clamp(0, var(--fin) / 0.5, 1));
 }
-/* Velo blanco al final: una pantalla en el flujo, que sube tras la última
-   fila como un banco de bruma (borde degradado) y se queda pegada arriba,
-   ya sólida, cuando Cierre llega por encima con el mismo blanco. */
+/* --- Salida hacia Cierre --------------------------------------------------------
+   Una pantalla en el flujo tras la última fila (--fin: de 0 al asomar por
+   abajo a 1 al quedar pegada arriba). Dentro, una luz redonda que crece desde
+   abajo hasta llenar la pantalla de blanco: Cierre llega por encima con ese
+   mismo blanco. Es un círculo grande escalado por el compositor (sin
+   repintar degradados en cada scroll) que se extiende por encima, sobre las
+   últimas filas. */
 .proy-velo {
   position: sticky;
   top: 0;
   z-index: 2;
   height: 100svh;
   margin-top: 32svh;
-  background: linear-gradient(to bottom, rgb(253 253 254 / var(--fin)), #fdfdfe 50%);
-  opacity: clamp(0, var(--fin) * 2, 1);
+  /* Sin recorte propio: la luz se extiende más allá de los márgenes de la
+     sección, que es la que recorta (overflow: clip) para no ensanchar la
+     página. */
+  overflow: visible;
   pointer-events: none;
+}
+.proy-luz {
+  --crece: calc(var(--fin) * var(--fin));
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 260vmax;
+  height: 260vmax;
+  border-radius: 50%;
+  translate: -50% -50%;
+  background: radial-gradient(circle, #fdfdfe 0 52%, rgba(253, 253, 254, 0) 68%);
+  transform: scale(var(--crece));
+  will-change: transform;
+}
+/* El último proyecto pasa de largo: se agranda y se apaga mientras se va. */
+.proy-fila:last-child {
+  transform-origin: 50% 50%;
+  transform: scale(calc(1 + var(--fin) * 0.9));
+  opacity: calc(1 - var(--fin) * 0.85);
 }
 .proy-cabecera,
 .proy-lista {
