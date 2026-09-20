@@ -688,8 +688,8 @@
    el lector se aparta hacia la izquierda y se apaga, y las habilidades toman
    la pantalla entera. Una palabra y una frase corta cada una. */
 .herramientas[data-criterio] .herr-lector {
-  transform: translate3d(-26%, 0, 0);
-  opacity: 0.07;
+  transform: translate3d(-34%, 0, 0);
+  opacity: 0;
 }
 .herr-lector {
   transition:
@@ -700,26 +700,33 @@
   grid-column: 1 / -1;
 }
 /* La consola sobra aquí: las cinco palabras ya lo dicen todo, y su sitio lo
-   necesitan ellas. */
+   necesitan ellas. Sin ella, el grupo se centra sin las bandas de arriba y
+   abajo que reservan las placas. */
 .herr-grupo:has(.herr-criterio) .herr-consola {
   display: none;
 }
+.herr-grupo:has(.herr-criterio) {
+  grid-template-rows: auto;
+  align-content: center;
+}
 
 .herr-grupo .herr-criterio {
-  grid-row: 2;
+  /* Sin consola no hay filas que reservar: fluye y el grupo lo centra. */
+  grid-row: auto;
   list-style: none;
   margin: 0;
-  padding: 0;
+  /* Sitio para el riel de la derecha: si no, las frases lo pisan. */
+  padding: 0 clamp(40px, 4vw, 64px) 0 0;
   display: grid;
   gap: clamp(2px, 0.6svh, 8px);
 }
 .herr-grupo .herr-criterio > li {
   position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 0.92fr);
   align-items: baseline;
-  column-gap: clamp(14px, 1.8vw, 28px);
-  padding: clamp(8px, 1.4svh, 16px) 0;
+  column-gap: clamp(12px, 1.6vw, 28px);
+  padding: clamp(6px, 1.2svh, 14px) 0;
   /* Entran desde la izquierda, una tras otra. */
   opacity: 0;
   transform: translate3d(-36px, 0, 0);
@@ -735,6 +742,7 @@
     transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) calc(0.12s + var(--i) * 90ms);
 }
 .herr-indice {
+  align-self: center;
   font-family: "JetBrains Mono", ui-monospace, monospace;
   font-weight: 700;
   font-size: clamp(11px, 0.9vw, 13px);
@@ -748,24 +756,29 @@
   margin: 0;
   font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
   font-weight: 700;
-  font-size: clamp(30px, min(4.4vw, 8.2svh), 62px);
+  font-size: clamp(28px, min(4vw, 7.6svh), 58px);
   line-height: 0.95;
   letter-spacing: 0.005em;
   text-transform: uppercase;
   color: var(--tinta);
 }
+/* La frase va al otro extremo de la fila: así la línea se lee como un índice
+   y no queda media pantalla vacía. */
 .herr-criterio p {
-  grid-column: 2;
-  margin-top: 4px;
+  grid-column: 3;
+  align-self: center;
+  margin: 0;
   font-family: var(--display);
-  font-size: clamp(13px, 1.05vw, 15.5px);
-  line-height: 1.5;
-  color: rgba(23, 24, 21, 0.6);
+  font-size: clamp(12.5px, 1vw, 15px);
+  line-height: 1.45;
+  text-align: right;
+  text-wrap: balance;
+  color: rgba(23, 24, 21, 0.55);
 }
 /* Un filo que se dibuja bajo cada línea al entrar. */
 .herr-filo {
   grid-column: 1 / -1;
-  margin-top: clamp(8px, 1.3svh, 15px);
+  margin-top: clamp(7px, 1.2svh, 14px);
   height: 1px;
   background: rgba(23, 24, 21, 0.16);
   transform-origin: 0 50%;
@@ -800,9 +813,18 @@
   .herr-grupo .herr-criterio {
     grid-row: auto;
   }
+  .herr-grupo .herr-criterio {
+    padding-right: 0;
+  }
   .herr-grupo .herr-criterio > li {
+    grid-template-columns: auto minmax(0, 1fr);
     column-gap: 12px;
     padding: 6px 0;
+  }
+  .herr-criterio p {
+    grid-column: 2;
+    margin-top: 3px;
+    text-align: left;
   }
   .herr-criterio h4 {
     font-size: clamp(26px, 8.5vw, 40px);
