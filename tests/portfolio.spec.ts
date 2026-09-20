@@ -220,6 +220,8 @@ test("las herramientas pasan por el lector una categoría cada vez", async ({
   page,
 }) => {
   await page.goto("/");
+  // Con las tipografías cargadas: la página encoge unos px al llegar.
+  await page.evaluate(() => document.fonts.ready);
   const seccion = page.locator("#herramientas");
   const grupos = page.locator(".herr-grupo");
   await expect(grupos).toHaveCount(6);
@@ -255,6 +257,8 @@ test("el cierre sale de la niebla con el scroll y deja el contacto a mano", asyn
   page,
 }) => {
   await page.goto("/");
+  // Con las tipografías cargadas: la página encoge unos px al llegar.
+  await page.evaluate(() => document.fonts.ready);
   const cierre = page.locator("#contacto");
   const { inicio, largo } = await cierre.evaluate((s) => ({
     inicio: s.offsetTop,
@@ -287,6 +291,8 @@ test("la cabecera marca el apartado visible y lleva a cada uno", async ({
   page,
 }) => {
   await page.goto("/");
+  // Con las tipografías cargadas: la página encoge unos px al llegar.
+  await page.evaluate(() => document.fonts.ready);
   const nav = page.getByRole("navigation", { name: "Apartados" });
   const actual = () =>
     nav.locator('[aria-current="location"]').textContent();
@@ -303,6 +309,8 @@ test("los proyectos se encienden al pasar por el centro y abren su ficha", async
   page,
 }) => {
   await page.goto("/");
+  // Con las tipografías cargadas: la página encoge unos px al llegar.
+  await page.evaluate(() => document.fonts.ready);
   const filas = page.locator(".proy-fila");
   await expect(filas).toHaveCount(4);
   const luz = (i: number) =>
