@@ -120,6 +120,20 @@
 .proy-lista {
   position: relative;
 }
+/* Mientras la sección entra, su contenido no se desplaza con el scroll: se
+   compensa el avance y se escala desde el centro de la pantalla, así que los
+   proyectos salen del fondo del agujero negro en vez de subir desde abajo. */
+.proy-emerge {
+  position: relative;
+  z-index: 1;
+  transform-origin: 50% 50svh;
+}
+.proyectos[data-emerge] .proy-emerge {
+  transform: translate3d(0, calc((var(--cubre) - 1) * 100svh), 0)
+    scale(calc(0.42 + var(--cubre) * 0.58));
+  opacity: clamp(0, (var(--cubre) - 0.04) / 0.3, 1);
+  will-change: transform, opacity;
+}
 /* El aire lateral va en el contenido, no en la sección: así la niebla de
    salida ocupa el ancho entero. */
 .proy-cabecera,

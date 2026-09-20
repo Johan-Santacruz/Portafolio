@@ -108,7 +108,11 @@ export function Proyectos() {
       const limitar = (v: number) => Math.min(1, Math.max(0, v));
       // Cubierta: la sección se desliza sobre la anterior; de 0 al asomar por
       // abajo a 1 al llenar la pantalla (las estelas se encienden con ella).
-      raiz.style.setProperty("--cubre", limitar(1 - caja.top / alto).toFixed(4));
+      const cubre = limitar(1 - caja.top / alto);
+      raiz.style.setProperty("--cubre", cubre.toFixed(4));
+      // Mientras entra, el contenido se queda quieto en la pantalla y crece
+      // desde el centro: parece que sale del fondo del agujero negro.
+      raiz.toggleAttribute("data-emerge", cubre > 0 && cubre < 0.999);
       // Fin: el avance de la niebla. Justo una pantalla de scroll, desde que
       // la última fila sale por abajo hasta que Cierre llena la pantalla: la
       // salida no se alarga.
@@ -215,14 +219,17 @@ export function Proyectos() {
         />
       </div>
 
-      <header className="proy-cabecera">
-        <p className="proy-rotulo">
-          <span aria-hidden="true">~ $ </span>ls ./proyectos
-        </p>
-        <h2 id="titulo-proyectos">Lo que he construido</h2>
-      </header>
+      {/* Emerge desde el fondo del agujero negro, en la misma pantalla: no
+          hay que bajar para ver los proyectos. */}
+      <div className="proy-emerge">
+        <header className="proy-cabecera">
+          <p className="proy-rotulo">
+            <span aria-hidden="true">~ $ </span>ls ./proyectos
+          </p>
+          <h2 id="titulo-proyectos">Lo que he construido</h2>
+        </header>
 
-      <ol className="proy-lista">
+        <ol className="proy-lista">
         {trabajos.map((t) => (
           <li
             key={t.id}
@@ -246,7 +253,8 @@ export function Proyectos() {
             <span className="proy-lado proy-periodo">{t.periodo}</span>
           </li>
         ))}
-      </ol>
+        </ol>
+      </div>
 
       {abierto && (
         <dialog
