@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import "./Cabecera.css";
 
+/** `corto` es lo que se lee en pantallas estrechas, donde no caben cinco
+ *  nombres largos; el nombre completo sigue siendo el accesible. */
 const APARTADOS = [
-  { id: "top", nombre: "Inicio" },
-  { id: "herramientas", nombre: "Herramientas" },
-  { id: "proyectos", nombre: "Proyectos" },
-  { id: "contacto", nombre: "Contacto" },
+  { id: "top", nombre: "Inicio", corto: "Inicio" },
+  { id: "herramientas", nombre: "Herramientas", corto: "Stack" },
+  { id: "proyectos", nombre: "Proyectos", corto: "Obra" },
+  { id: "trayectoria", nombre: "Trayectoria", corto: "Perfil" },
+  { id: "contacto", nombre: "Contacto", corto: "Contacto" },
 ];
 
 /**
@@ -71,9 +74,15 @@ export function Cabecera() {
               enlaces.current[i] = el;
             }}
             href={`#${a.id}`}
+            aria-label={a.nombre}
             aria-current={i === activo ? "location" : undefined}
           >
-            {a.nombre}
+            <span className="cab-largo" aria-hidden="true">
+              {a.nombre}
+            </span>
+            <span className="cab-corto" aria-hidden="true">
+              {a.corto}
+            </span>
           </a>
         ))}
       </nav>

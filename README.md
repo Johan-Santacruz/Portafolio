@@ -115,6 +115,20 @@ lado largo limitado a 2000 px). La foto actual es apaisada con fondo blanco, y
 el hero toma ese blanco como fondo para que los bordes que no cubra se fundan
 con ella.
 
+## Trayectoria y hoja de vida
+
+`src/datos/trayectoria.ts` tiene la experiencia, la formación, las
+competencias y los idiomas; sale de la hoja de vida, así que si cambia una,
+cambia la otra.
+
+La hoja de vida vive en `public/documentos/`: el PDF que se descarga y sus
+páginas en JPEG, que son las que se ven en la ventana (un PDF embebido no se
+muestra bien en móvil). Para regenerar las páginas tras cambiar el PDF:
+
+```bash
+node scripts/hoja-de-vida.mjs
+```
+
 ## Trabajos
 
 Los cuatro trabajos viven en `src/datos/trabajos.ts`: el primero se presenta en
@@ -155,9 +169,10 @@ sección en `requestAnimationFrame`) y todo se anula con `prefers-reduced-motion
   sección mientras entra (recorte solo horizontal); al acabar las herramientas
   un agujero negro se las traga (cada pieza cae al centro girando y volviéndose
   clara) hasta dejar la pantalla en negro, que ya es el fondo de Proyectos, y
-  ahí se teclea `ls ./proyectos`, que es su rótulo; y tras el último proyecto
-  una niebla sube y se lo lleva todo hasta dejar el blanco de Cierre, que
-  llega por encima igual.
+  ahí se teclea `ls ./proyectos`, que es su rótulo y de donde emergen los
+  proyectos; Trayectoria sigue con ese mismo fondo, sin borde; y al final una
+  niebla sube y se lo lleva todo hasta dejar el blanco de Cierre, que llega
+  por encima igual.
 - El cierre saca la figura de la niebla con el scroll.
 
 Cada sección solo mide su posición mientras está a la vista (`cercania.ts`):

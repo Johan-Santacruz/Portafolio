@@ -300,7 +300,7 @@ test("la cabecera marca el apartado visible y lleva a cada uno", async ({
   await page.evaluate(() => document.fonts.ready);
   const nav = page.getByRole("navigation", { name: "Apartados" });
   const actual = () =>
-    nav.locator('[aria-current="location"]').textContent();
+    nav.locator('[aria-current="location"]').getAttribute("aria-label");
   await expect.poll(actual).toBe("Inicio");
   await page.evaluate(() =>
     window.scrollTo(0, document.getElementById("herramientas")!.offsetTop + 50),
@@ -479,21 +479,22 @@ test("las secciones se solapan y se funden sin borde", async ({ page }) => {
   await page.goto("/");
   // Con las tipografías cargadas: la página encoge unos px al llegar.
   await page.evaluate(() => document.fonts.ready);
-  const { herrFin, proyInicio, proyFin, cierreInicio, alto } = await page.evaluate(() => {
+  const { herrFin, proyInicio, trayFin, cierreInicio, alto } = await page.evaluate(() => {
     const h = document.querySelector<HTMLElement>("#herramientas")!;
+    const t = document.querySelector<HTMLElement>("#trayectoria")!;
     const p = document.querySelector<HTMLElement>("#proyectos")!;
     const c = document.querySelector<HTMLElement>("#contacto")!;
     return {
       herrFin: h.offsetTop + h.offsetHeight,
       proyInicio: p.offsetTop,
-      proyFin: p.offsetTop + p.offsetHeight,
+      trayFin: t.offsetTop + t.offsetHeight,
       cierreInicio: c.offsetTop,
       alto: innerHeight,
     };
   });
   // Cada sección empieza una pantalla antes de que acabe la anterior.
   expect(Math.abs(herrFin - proyInicio - alto)).toBeLessThan(3);
-  expect(Math.abs(proyFin - cierreInicio - alto * 0.65)).toBeLessThan(3);
+  expect(Math.abs(trayFin - cierreInicio - alto * 0.65)).toBeLessThan(3);
   const v = (sel: string, n: string) =>
     page.locator(sel).evaluate((s, n) => Number(s.style.getPropertyValue(n)), n);
   // Cuando Proyectos asoma, el agujero negro ya se ha tragado Herramientas
@@ -506,9 +507,46 @@ test("las secciones se solapan y se funden sin borde", async ({ page }) => {
   // A media cubierta, las estelas se van encendiendo con la sección.
   await page.evaluate((y) => window.scrollTo(0, y), proyInicio - alto / 2);
   await expect.poll(() => v("#proyectos", "--cubre")).toBeCloseTo(0.5, 1);
-  // Cuando Cierre asoma, Proyectos ya se ha fundido a blanco.
+  // Cuando Cierre asoma, Trayectoria ya se ha fundido a blanco.
   await page.evaluate((y) => window.scrollTo(0, y), cierreInicio - alto);
-  await expect.poll(() => v("#proyectos", "--fin")).toBeGreaterThan(0.99);
-  await expect(page.locator(".proy-velo")).toHaveCSS("opacity", "1");
-  await expect.poll(() => v("#contacto", "--llegada")).toBeLessThan(0.02);
+  await expect.poll(() => v("#trayectoria", "--fin")).toBeGreaterThan(0.99);
+  await expect
+    .poll(() => page.locator(".tray-velo").evaluate((e) => Number(getComputedStyle(e).opacity)))
+    .toBeGreaterThan(0.99);
+});
+
+test("la trayectoria muestra la experiencia y abre la hoja de vida", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.evaluate(() => document.fonts.ready);
+  const tray = page.locator("#trayectoria");
+  await page.evaluate(() =>
+    window.scrollTo(0, document.getElementById("trayectoria")!.offsetTop),
+  );
+  // El empleo actual, la formación y las competencias, con sus datos.
+  await expect(tray.getByRole("heading", { level: 3 })).toHaveCount(4);
+  await expect(tray).toContainText("Familia Insurances");
+  await expect(tray).toContainText("Ingeniería de Sistemas");
+  await expect(tray).toContainText("Inglés");
+  // Cada bloque aparece al entrar en pantalla, no antes.
+  await expect
+    .poll(() => tray.locator('[data-entra="si"]').count())
+    .toBeGreaterThan(3);
+
+  // La hoja de vida se ve sin salir de la página y se puede descargar.
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  const abridor = page.getByRole("button", { name: /Hoja de vida/ });
+  await abridor.click();
+  const ventana = page.locator("dialog.hoja-ventana");
+  await expect(ventana).toBeVisible();
+  await expect(ventana.locator(".hoja-paginas img")).toHaveCount(2);
+  await expect(ventana.locator(".hoja-paginas img").first()).toBeVisible();
+  await expect(ventana.getByRole("link", { name: /Descargar PDF/ })).toHaveAttribute(
+    "href",
+    /hoja-de-vida-johan-balanta\.pdf$/,
+  );
+  await page.keyboard.press("Escape");
+  await expect(ventana).not.toBeVisible();
+  await expect(abridor).toBeFocused();
 });

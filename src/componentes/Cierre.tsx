@@ -14,6 +14,10 @@ const FOTOGRAMAS = 120;
 const fotograma = (i: number) =>
   `${CIERRE}f${String(i).padStart(3, "0")}.jpg`;
 const GITHUB = "https://github.com/Johan-Santacruz";
+/** Hoja de vida: el PDF para descargar y sus páginas para verlas aquí. */
+const HOJA = `${import.meta.env.BASE_URL}documentos/`;
+const HOJA_PDF = `${HOJA}hoja-de-vida-johan-balanta.pdf`;
+const HOJA_PAGINAS = [1, 2];
 
 /**
  * Cierre: la figura sale de la sombra a la luz mientras se baja.
@@ -27,6 +31,9 @@ export function Cierre() {
   const seccion = useRef<HTMLElement>(null);
   const lienzo = useRef<HTMLCanvasElement>(null);
   const [copiado, setCopiado] = useState(false);
+  const [hoja, setHoja] = useState(false);
+  const ventanaHoja = useRef<HTMLDialogElement>(null);
+  const abridorHoja = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     const raiz = seccion.current;
     const canvas = lienzo.current;
@@ -130,6 +137,18 @@ export function Cierre() {
     };
   }, []);
 
+  // La hoja de vida se abre en una ventana nativa, como las fichas de los
+  // proyectos: se ve sin salir de la página y se puede descargar.
+  useEffect(() => {
+    if (!hoja) return;
+    const anterior = document.body.style.overflow;
+    ventanaHoja.current?.showModal();
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = anterior;
+    };
+  }, [hoja]);
+
   const copiar = async () => {
     try {
       await navigator.clipboard.writeText(perfil.correo);
@@ -173,15 +192,64 @@ export function Cierre() {
               {copiado ? "Copiado" : perfil.correo}
             </button>
           </div>
-          <a
-            className="cierre-github"
-            href={GITHUB}
-            target="_blank"
-            rel="noreferrer"
-          >
-            GitHub <Icono nombre="diagonal" />
-          </a>
+          <div className="cierre-enlaces">
+            <button
+              className="cierre-enlace"
+              ref={abridorHoja}
+              onClick={() => setHoja(true)}
+            >
+              Hoja de vida <Icono nombre="diagonal" />
+            </button>
+            <a
+              className="cierre-enlace"
+              href={GITHUB}
+              target="_blank"
+              rel="noreferrer"
+            >
+              GitHub <Icono nombre="diagonal" />
+            </a>
+          </div>
         </div>
+
+        {hoja && (
+          <dialog
+            ref={ventanaHoja}
+            className="hoja-ventana"
+            aria-labelledby="titulo-hoja"
+            onClose={() => {
+              setHoja(false);
+              requestAnimationFrame(() => abridorHoja.current?.focus());
+            }}
+          >
+            <div className="hoja-barra">
+              <h2 id="titulo-hoja">Hoja de vida</h2>
+              <div className="hoja-acciones">
+                <a className="hoja-descargar" href={HOJA_PDF} download>
+                  Descargar PDF <Icono nombre="diagonal" />
+                </a>
+                <button
+                  className="hoja-cerrar"
+                  aria-label="Cerrar"
+                  onClick={() => ventanaHoja.current?.close()}
+                  autoFocus
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            <div className="hoja-paginas">
+              {HOJA_PAGINAS.map((n) => (
+                <img
+                  key={n}
+                  src={`${HOJA}hoja-de-vida-${n}.jpg`}
+                  alt={`Hoja de vida de Johan Balanta, página ${n} de ${HOJA_PAGINAS.length}`}
+                  loading={n === 1 ? "eager" : "lazy"}
+                  decoding="async"
+                />
+              ))}
+            </div>
+          </dialog>
+        )}
 
         <footer className="cierre-pie">
           <span>© {new Date().getFullYear()} Johan Santacruz</span>

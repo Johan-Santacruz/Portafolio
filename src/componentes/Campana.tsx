@@ -3,6 +3,7 @@ import { Retrato } from "./Retrato";
 import { Cabecera } from "./Cabecera";
 import { Herramientas } from "./Herramientas";
 import { Proyectos } from "./Proyectos";
+import { Trayectoria } from "./Trayectoria";
 import { Cierre } from "./Cierre";
 import "./Campana.css";
 
@@ -52,6 +53,7 @@ export function Campana() {
 
         <Herramientas />
         <Proyectos />
+        <Trayectoria />
         <Cierre />
       </main>
     </>

@@ -7,7 +7,7 @@
   /* El texto entra cuando la figura ya está casi revelada. */
   --texto: clamp(0, (var(--avance) - 0.54) / 0.18, 1);
   position: relative;
-  /* Se desliza por encima de la última pantalla de Proyectos, ya fundida a
+  /* Se desliza por encima de la última pantalla de Trayectoria, ya fundida a
      este mismo blanco: no hay borde que ver. */
   z-index: 3;
   margin-top: -65svh;
@@ -206,7 +206,7 @@
   );
 }
 .cierre-correo .icono,
-.cierre-github .icono {
+.cierre-enlace .icono {
   width: 16px;
   height: 16px;
   transition: transform 0.2s ease;
@@ -215,7 +215,7 @@
   color: var(--accent);
 }
 .cierre-correo:hover .icono,
-.cierre-github:hover .icono {
+.cierre-enlace:hover .icono {
   transform: translate(3px, -3px);
 }
 .cierre-copiar {
@@ -231,26 +231,38 @@
 .cierre-copiar:hover {
   border-bottom-color: var(--accent);
 }
-.cierre-github {
-  --entrada: clamp(0, (var(--avance) - 0.72) / 0.16, 1);
+/* Hoja de vida y GitHub, en una línea bajo el correo. */
+.cierre-enlaces {
+  --entrada: clamp(0, (var(--avance) - 0.78) / 0.14, 1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 28px;
+  margin-top: 18px;
+  opacity: var(--entrada);
+  transform: translate3d(0, calc((1 - var(--entrada)) * 12px), 0);
+}
+.cierre-enlace {
   display: inline-flex;
   align-items: center;
   gap: 10px;
   min-height: 44px;
-  margin-top: 18px;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
   font-weight: 600;
   font-size: 13px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: rgba(23, 24, 21, 0.6);
-  opacity: var(--entrada);
 }
-.cierre-github:hover {
+.cierre-enlace:hover {
   color: var(--ink);
 }
 .cierre-correo:focus-visible,
 .cierre-copiar:focus-visible,
-.cierre-github:focus-visible {
+.cierre-enlace:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 4px;
 }
@@ -327,7 +339,7 @@
   .cierre-acciones {
     margin-top: 20px;
   }
-  .cierre-github {
+  .cierre-enlace {
     display: none;
   }
   .cierre-pie {
@@ -336,4 +348,108 @@
     bottom: 18px;
     font-size: 10px;
   }
+}
+
+/* --- Ventana de la hoja de vida ------------------------------------------------
+   Las dos páginas del PDF como imágenes (se ven en cualquier navegador, también
+   en móvil) y el PDF para descargar. Mismo acero que las fichas de proyecto. */
+.hoja-ventana {
+  width: min(900px, calc(100vw - 32px));
+  max-width: none;
+  height: min(92svh, 100svh - 24px);
+  max-height: none;
+  padding: 0;
+  border: 0;
+  flex-direction: column;
+  background: #0f1113;
+  color: #eef0f2;
+  font-family: "Chakra Petch", var(--display);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 22px) 0,
+    100% 22px,
+    100% 100%,
+    22px 100%,
+    0 calc(100% - 22px)
+  );
+}
+.hoja-ventana[open] {
+  display: flex;
+}
+.hoja-ventana::backdrop {
+  background: rgba(11, 12, 14, 0.72);
+}
+.hoja-barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px clamp(18px, 3vw, 30px);
+  border-bottom: 1px solid rgba(238, 240, 242, 0.1);
+}
+.hoja-barra h2 {
+  font-weight: 700;
+  font-size: clamp(17px, 1.6vw, 22px);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.hoja-acciones {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hoja-descargar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 16px;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #171815;
+  background: var(--accent);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 9px) 0,
+    100% 9px,
+    100% 100%,
+    9px 100%,
+    0 calc(100% - 9px)
+  );
+}
+.hoja-descargar .icono {
+  width: 14px;
+  height: 14px;
+}
+.hoja-cerrar {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  color: #eef0f2;
+  background: rgba(238, 240, 242, 0.08);
+  border: 0;
+  cursor: pointer;
+}
+.hoja-cerrar:hover {
+  background: rgba(238, 240, 242, 0.16);
+}
+.hoja-paginas {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  gap: 16px;
+  padding: clamp(16px, 3vw, 28px);
+  background: #16181c;
+}
+.hoja-paginas img {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: #fff;
+  box-shadow: 0 12px 40px -18px rgba(0, 0, 0, 0.8);
 }

@@ -1,0 +1,301 @@
+/* --- Trayectoria ----------------------------------------------------------------
+   Sigue a Proyectos con su mismo fondo, así que entra sin borde. Dos columnas:
+   la línea de tiempo a la izquierda y cómo trabajo a la derecha. Al final, la
+   niebla de salida (--fin, mismo patrón que tenía Proyectos). */
+.trayectoria {
+  --texto: #eef0f2;
+  --fin: 0;
+  /* Reposo para leer lo último, tramo de niebla y solape con Cierre. */
+  --reposo: 30svh;
+  --niebla: 70svh;
+  --cola: 65svh;
+  position: relative;
+  z-index: 2;
+  /* El fondo vira al blanco de Cierre con la niebla: cuando la capa se
+     retira, no reaparece el negro. */
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.018) 0 1px,
+      transparent 1px 4px
+    ),
+    color-mix(in srgb, #fdfdfe calc(var(--fin) * 100%), #0f1113);
+  color: var(--texto);
+  padding: clamp(60px, 12svh, 120px) 0
+    calc(var(--reposo) + var(--niebla) + var(--cola));
+  font-family: "Chakra Petch", var(--display);
+  overflow: clip;
+  isolation: isolate;
+}
+.tray-sonda {
+  position: absolute;
+  bottom: var(--cola);
+  width: 1px;
+  height: var(--niebla);
+  visibility: hidden;
+  pointer-events: none;
+}
+/* Capa fija con la niebla, igual que en Proyectos. */
+.tray-velo {
+  position: fixed;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: calc(clamp(0, var(--fin) * 20, 1) * var(--velo, 1));
+}
+.tray-niebla,
+.tray-luz {
+  position: absolute;
+  inset: 0;
+}
+.tray-niebla {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.tray-luz {
+  background: #fdfdfe;
+  opacity: clamp(0, (var(--fin) - 0.72) / 0.28, 1);
+}
+
+.tray-cuerpo {
+  position: relative;
+  z-index: 1;
+  padding-inline: max(var(--aire), (100% - var(--ancho)) / 2);
+  /* Lo que queda se apaga dentro de la niebla. */
+  opacity: calc(1 - clamp(0, (var(--fin) - 0.35) / 0.4, 1));
+}
+
+/* --- Cabecera ------------------------------------------------------------------ */
+.tray-rotulo {
+  display: inline-flex;
+  align-items: center;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 500;
+  font-size: clamp(13px, 1vw, 15px);
+  line-height: 1.7;
+  color: rgba(238, 240, 242, 0.7);
+}
+.tray-rotulo span {
+  font-weight: 700;
+  color: var(--accent);
+  white-space: pre;
+}
+.tray-cabecera h2 {
+  margin-top: 10px;
+  font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
+  font-weight: 700;
+  font-size: clamp(48px, min(8vw, 13vh), 140px);
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
+/* --- Rejilla ------------------------------------------------------------------- */
+.tray-rejilla {
+  margin-top: clamp(40px, 8svh, 88px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 88px);
+  align-items: start;
+}
+.tray-columna {
+  display: grid;
+  gap: clamp(20px, 3svh, 32px);
+}
+.tray-sub {
+  margin: 0;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(238, 240, 242, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.tray-sub::before {
+  content: "";
+  width: 22px;
+  height: 3px;
+  flex-shrink: 0;
+  background: var(--accent);
+}
+.tray-columna > .tray-sub:not(:first-child) {
+  margin-top: clamp(16px, 3svh, 36px);
+}
+
+/* --- Línea de tiempo ------------------------------------------------------------
+   Un filete lima a la izquierda y una muesca por hito. */
+.tray-linea {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 clamp(20px, 2.2vw, 30px);
+  display: grid;
+  gap: clamp(20px, 3.4svh, 38px);
+  border-left: 1px solid rgba(238, 240, 242, 0.16);
+}
+.tray-linea > li {
+  position: relative;
+}
+.tray-linea > li::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * clamp(20px, 2.2vw, 30px) - 1px);
+  top: 0.55em;
+  width: 11px;
+  height: 3px;
+  background: var(--accent);
+}
+.tray-periodo {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+.tray-linea h4 {
+  margin: 6px 0 0;
+  font-weight: 700;
+  font-size: clamp(17px, 1.5vw, 22px);
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+}
+.tray-lugar {
+  margin-top: 4px;
+  font-size: clamp(13px, 1.05vw, 15px);
+  line-height: 1.5;
+  color: rgba(238, 240, 242, 0.62);
+}
+.tray-detalle {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+}
+.tray-detalle li {
+  position: relative;
+  padding-left: 18px;
+  font-family: var(--display);
+  font-size: clamp(13px, 1.05vw, 15px);
+  line-height: 1.55;
+  color: rgba(238, 240, 242, 0.78);
+}
+.tray-detalle li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 8px;
+  height: 1px;
+  background: rgba(238, 240, 242, 0.45);
+}
+
+/* --- Cómo trabajo: placas de acero, como las herramientas. --------------------- */
+.tray-competencias {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.tray-competencias li {
+  padding: 14px 18px 15px;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.03) 0 1px,
+      transparent 1px 4px
+    ),
+    linear-gradient(135deg, #22262c, #16181c);
+  box-shadow: inset 3px 0 0 var(--accent);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  );
+}
+.tray-competencias h4 {
+  margin: 0;
+  font-weight: 700;
+  font-size: clamp(14px, 1.15vw, 16px);
+  letter-spacing: 0.02em;
+}
+.tray-competencias p {
+  margin-top: 5px;
+  font-family: var(--display);
+  font-size: clamp(12.5px, 1vw, 14px);
+  line-height: 1.55;
+  color: rgba(238, 240, 242, 0.7);
+}
+
+/* --- Idiomas ------------------------------------------------------------------- */
+.tray-idiomas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.tray-idiomas li {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: clamp(14px, 1.15vw, 16px);
+}
+.tray-idiomas li::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(238, 240, 242, 0.16);
+  order: 1;
+}
+.tray-nivel {
+  order: 2;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--accent);
+}
+
+/* --- Aparición ----------------------------------------------------------------
+   Cada bloque entra una sola vez, con un desplazamiento corto y escalonado. */
+[data-entra="no"] {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+}
+[data-entra] {
+  transition:
+    opacity 0.5s ease calc(var(--i, 0) * 70ms),
+    transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i, 0) * 70ms);
+}
+[data-entra="si"] {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-entra] {
+    transition: none;
+  }
+  [data-entra="no"] {
+    opacity: 1;
+    transform: none;
+  }
+  .tray-velo {
+    display: none;
+  }
+}
+
+/* --- Pantallas estrechas: una columna. ---------------------------------------- */
+@media (max-width: 860px) {
+  .tray-rejilla {
+    grid-template-columns: 1fr;
+    gap: clamp(28px, 5svh, 48px);
+  }
+  .trayectoria {
+    --reposo: 20svh;
+    --niebla: 60svh;
+  }
+}
