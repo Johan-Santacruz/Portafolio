@@ -684,126 +684,130 @@
 }
 
 /* --- Criterio: las habilidades blandas ------------------------------------------
-   No son herramientas, así que no llevan placa: salen de un bus vertical como
-   las pistas de una placa de circuito, cada una a su nodo. Lo sólido es lo que
-   se instala; lo trazado es lo que lo conecta. */
-.herr-circuito {
-  position: relative;
+   No son herramientas, así que no comparten su sitio: al llegar la categoría,
+   el lector se aparta hacia la izquierda y se apaga, y las habilidades toman
+   la pantalla entera. Una palabra y una frase corta cada una. */
+.herramientas[data-criterio] .herr-lector {
+  transform: translate3d(-26%, 0, 0);
+  opacity: 0.07;
+}
+.herr-lector {
+  transition:
+    transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 0.45s ease;
+}
+.herramientas[data-criterio] .herr-bandeja {
+  grid-column: 1 / -1;
+}
+/* La consola sobra aquí: las cinco palabras ya lo dicen todo, y su sitio lo
+   necesitan ellas. */
+.herr-grupo:has(.herr-criterio) .herr-consola {
+  display: none;
+}
+
+.herr-grupo .herr-criterio {
   grid-row: 2;
   list-style: none;
   margin: 0;
-  padding: 0 0 0 clamp(26px, 3vw, 40px);
+  padding: 0;
   display: grid;
-  gap: clamp(12px, 2.2svh, 22px);
+  gap: clamp(2px, 0.6svh, 8px);
 }
-/* El bus: la línea de la que sale todo. Se dibuja de arriba abajo cuando la
-   categoría llega, y con ella las pistas. */
-.herr-circuito::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--accent);
-  transform-origin: 50% 0;
-  transform: scaleY(var(--traza, 0));
-  transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-.herr-circuito > li {
+.herr-grupo .herr-criterio > li {
   position: relative;
-  padding-left: 14px;
-}
-/* La pista: sale del bus, gira y termina en el nodo. */
-.herr-pista {
-  position: absolute;
-  left: calc(-1 * clamp(26px, 3vw, 40px));
-  top: 0.62em;
-  width: clamp(26px, 3vw, 40px);
-  height: 9px;
-  pointer-events: none;
-}
-.herr-pista::before {
-  content: "";
-  position: absolute;
-  inset: 0 9px auto 0;
-  height: 1px;
-  background: rgba(23, 24, 21, 0.45);
-  /* Se traza de izquierda a derecha al llegar la categoría. */
-  transform-origin: 0 50%;
-  transform: scaleX(var(--traza, 0));
-  transition: transform 0.4s ease calc(0.18s + var(--i) * 80ms);
-}
-/* El nodo: un cuadrado achaflanado que se enciende al final de la pista. */
-.herr-pista::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: -4px;
-  width: 9px;
-  height: 9px;
-  background: var(--accent);
-  box-shadow: 0 0 0 1px rgba(23, 24, 21, 0.3);
-  clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%);
-  opacity: var(--traza, 0);
-  transform: scale(calc(0.3 + var(--traza, 0) * 0.7));
-  transition:
-    opacity 0.25s ease calc(0.34s + var(--i) * 80ms),
-    transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) calc(0.34s + var(--i) * 80ms);
-}
-.herr-circuito h4 {
-  margin: 0;
-  font-weight: 700;
-  font-size: clamp(15px, 1.25vw, 19px);
-  letter-spacing: 0.01em;
-  color: var(--tinta);
-}
-.herr-circuito p {
-  margin-top: 3px;
-  font-family: var(--display);
-  font-size: clamp(12.5px, 1vw, 14.5px);
-  line-height: 1.5;
-  color: rgba(23, 24, 21, 0.66);
-  max-width: 46ch;
-}
-/* Solo se traza cuando la categoría está activa. */
-.herr-grupo[data-estado="activo"] .herr-circuito {
-  --traza: 1;
-}
-/* Y el texto entra en cascada, como las placas. */
-.herr-circuito > li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: clamp(14px, 1.8vw, 28px);
+  padding: clamp(8px, 1.4svh, 16px) 0;
+  /* Entran desde la izquierda, una tras otra. */
   opacity: 0;
-  transform: translate3d(0, 10px, 0);
+  transform: translate3d(-36px, 0, 0);
   transition:
-    opacity 0.22s ease,
-    transform 0.28s ease;
+    opacity 0.2s ease,
+    transform 0.26s ease;
 }
-.herr-grupo[data-estado="activo"] .herr-circuito > li {
+.herr-grupo[data-estado="activo"] .herr-criterio > li {
   opacity: 1;
   transform: none;
   transition:
-    opacity 0.26s ease calc(0.1s + var(--i) * 80ms),
-    transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) calc(0.1s + var(--i) * 80ms);
+    opacity 0.34s ease calc(0.12s + var(--i) * 90ms),
+    transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) calc(0.12s + var(--i) * 90ms);
 }
+.herr-indice {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 700;
+  font-size: clamp(11px, 0.9vw, 13px);
+  letter-spacing: 0.18em;
+  color: var(--accent);
+}
+/* La palabra, con la misma tipografía condensada del lector: se lee como
+   parte del mismo capítulo, no como una tarjeta pegada. */
+.herr-criterio h4 {
+  grid-column: 2;
+  margin: 0;
+  font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
+  font-weight: 700;
+  font-size: clamp(30px, min(4.4vw, 8.2svh), 62px);
+  line-height: 0.95;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  color: var(--tinta);
+}
+.herr-criterio p {
+  grid-column: 2;
+  margin-top: 4px;
+  font-family: var(--display);
+  font-size: clamp(13px, 1.05vw, 15.5px);
+  line-height: 1.5;
+  color: rgba(23, 24, 21, 0.6);
+}
+/* Un filo que se dibuja bajo cada línea al entrar. */
+.herr-filo {
+  grid-column: 1 / -1;
+  margin-top: clamp(8px, 1.3svh, 15px);
+  height: 1px;
+  background: rgba(23, 24, 21, 0.16);
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.herr-grupo[data-estado="activo"] .herr-filo {
+  transform: scaleX(1);
+  transition-delay: calc(0.26s + var(--i) * 90ms);
+}
+.herr-criterio > li:last-child .herr-filo {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .herr-circuito::before,
-  .herr-circuito > li,
-  .herr-pista::before,
-  .herr-pista::after {
+  .herr-lector,
+  .herr-criterio > li,
+  .herr-filo {
     transition: none;
   }
 }
 @media (max-width: 860px) {
-  .herr-circuito {
+  /* En una columna el lector ya está arriba: se apaga y se encoge para
+     dejarle sitio a las habilidades. */
+  .herramientas[data-criterio] .herr-lector {
+    transform: translate3d(-8%, 0, 0);
+    opacity: 0.1;
+  }
+  .herramientas[data-criterio] .herr-fijo {
+    grid-template-rows: 30svh auto;
+  }
+  .herr-grupo .herr-criterio {
     grid-row: auto;
-    padding-left: 20px;
-    gap: 10px;
   }
-  .herr-pista {
-    left: -20px;
-    width: 20px;
+  .herr-grupo .herr-criterio > li {
+    column-gap: 12px;
+    padding: 6px 0;
   }
-  .herr-circuito p {
-    font-size: 12px;
+  .herr-criterio h4 {
+    font-size: clamp(26px, 8.5vw, 40px);
+  }
+  .herr-criterio p {
+    font-size: 12.5px;
   }
 }

@@ -229,9 +229,9 @@ test("las herramientas pasan por el lector una categoría cada vez", async ({
   const placas = await page.locator(".herr-placa").count();
   expect(placas).toBeGreaterThan(20);
   await expect(page.locator(".herr-placa .herr-logo")).toHaveCount(placas);
-  // La última categoría no son herramientas: el criterio va como circuito.
-  await expect(page.locator(".herr-circuito > li")).toHaveCount(5);
-  await expect(page.locator(".herr-circuito")).toHaveCount(1);
+  // La última categoría no son herramientas: el criterio se presenta aparte.
+  await expect(page.locator(".herr-criterio > li")).toHaveCount(5);
+  await expect(page.locator(".herr-criterio")).toHaveCount(1);
 
   const { inicio, largo } = await seccion.evaluate((s) => ({
     inicio: s.offsetTop,
@@ -248,13 +248,17 @@ test("las herramientas pasan por el lector una categoría cada vez", async ({
   expect(
     await page.evaluate(() => document.querySelector(".herr-fijo")!.getBoundingClientRect().top),
   ).toBe(0);
-  // Al final: la última, que es el criterio, con su bus ya trazado.
+  // Al final: la última, que es el criterio. La pantalla cambia de
+  // composición: el lector se aparta y las habilidades toman el ancho.
   await page.evaluate((y) => window.scrollTo(0, y), inicio + largo);
   await expect.poll(activos).toEqual(["Cómo trabajo"]);
-  await expect(page.locator(".herr-circuito").first()).toHaveCSS(
-    "--traza",
-    "1",
-  );
+  await expect(seccion).toHaveAttribute("data-criterio", "");
+  const anchos = await page.evaluate(() => ({
+    bandeja: document.querySelector(".herr-bandeja")!.getBoundingClientRect().width,
+    fijo: document.querySelector(".herr-fijo")!.clientWidth,
+  }));
+  expect(anchos.bandeja).toBeGreaterThan(anchos.fijo * 0.85);
+  await expect(page.locator(".herr-criterio > li").first()).toBeVisible();
   // Y subir vuelve atrás: no hay estado.
   await page.evaluate((y) => window.scrollTo(0, y), inicio);
   await expect.poll(activos).toEqual(["Lenguajes"]);

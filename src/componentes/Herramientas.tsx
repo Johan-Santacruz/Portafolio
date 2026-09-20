@@ -104,7 +104,7 @@ export function Herramientas() {
     const PIEZAS =
       ".herr-cabecera, .herr-marca, .herr-riel, .herr-palabras li," +
       " .herr-grupo[data-estado='activo'] .herr-placa," +
-      " .herr-grupo[data-estado='activo'] .herr-circuito > li," +
+      " .herr-grupo[data-estado='activo'] .herr-criterio > li," +
       " .herr-grupo[data-estado='activo'] .herr-consola";
     let medidas = false;
     const medirSuccion = () => {
@@ -275,6 +275,12 @@ export function Herramientas() {
           i < activo ? "antes" : i > activo ? "despues" : "activo",
         ),
       );
+      // En la categoría del criterio la pantalla cambia de composición: el
+      // lector se aparta y las habilidades ocupan el ancho entero.
+      raiz.toggleAttribute(
+        "data-criterio",
+        !!grupos[activo]?.querySelector(".herr-criterio"),
+      );
     };
     // Solo se mide con la sección a la vista (ver cercania.ts).
     let cerca = true;
@@ -356,12 +362,15 @@ export function Herramientas() {
               {/* El criterio no son herramientas: en vez de placas, un
                   circuito que sale de un bus común. */}
               {grupo.criterio ? (
-                <ul className="herr-circuito">
+                <ul className="herr-criterio">
                   {grupo.criterio.map((c, i) => (
                     <li key={c.titulo} style={{ "--i": i } as CSSProperties}>
-                      <span className="herr-pista" aria-hidden="true" />
+                      <span className="herr-indice" aria-hidden="true">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
                       <h4>{c.titulo}</h4>
                       <p>{c.texto}</p>
+                      <span className="herr-filo" aria-hidden="true" />
                     </li>
                   ))}
                 </ul>

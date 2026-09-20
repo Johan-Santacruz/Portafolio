@@ -121,8 +121,10 @@ con ella.
 formación y los idiomas; sale de la hoja de vida, así que si cambia una,
 cambia la otra. Las habilidades blandas no están aquí: van con las técnicas,
 como una categoría más de `datos/stack.ts` (campo `criterio`), porque es su
-sitio. Ese grupo no se pinta con placas sino como un circuito que sale de un
-bus: lo sólido es lo que se instala, lo trazado es lo que lo conecta.
+sitio. Al llegar esa categoría la pantalla cambia de composición: el lector de
+palabras se aparta a la izquierda y se apaga, y las habilidades toman el ancho
+entero, una palabra por línea con una frase corta debajo. Si una necesita un
+párrafo para explicarse, está mal escrita.
 
 La sección es un expediente con una parada por pantalla: al bajar, un carril
 se desplaza en horizontal y cada apartado ocupa la pantalla entera, con su
