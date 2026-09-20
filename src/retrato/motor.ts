@@ -540,13 +540,24 @@ export class MotorRetrato {
       ctx.restore();
 
       // 3. Scanlines solo sobre lo revelado; se van yendo con el scroll.
+      //    Solo la zona que puede tener imagen: el círculo del revelado y la
+      //    caja del puntero (rellenar la pantalla entera cada scroll era de
+      //    lo más caro del revelado).
       if (this.patron && base < 1) {
         ctx.save();
         ctx.globalCompositeOperation = "source-atop";
         ctx.globalAlpha = 0.1 * (1 - base);
         ctx.fillStyle = this.patron;
-        if (base > 0) ctx.fillRect(0, 0, ancho, alto);
-        else ctx.fillRect(caja.x, caja.y, caja.w, caja.h);
+        if (base > 0) {
+          const rb = base * Math.hypot(ancho, alto) * 0.62;
+          const alc = rb * 1.12 + 8;
+          const x0 = Math.max(0, this.puntero.x - alc);
+          const y0 = Math.max(0, this.puntero.y - alc);
+          const x1 = Math.min(ancho, this.puntero.x + alc);
+          const y1 = Math.min(alto, this.puntero.y + alc);
+          ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+        }
+        if (r >= 0.5) ctx.fillRect(caja.x, caja.y, caja.w, caja.h);
         ctx.restore();
       }
 
@@ -576,15 +587,18 @@ export class MotorRetrato {
       }
 
       // 5. Borde: un filete lima con brillo y un anillo de puntos que gira.
+      //    El brillo es un trazo ancho y tenue debajo del fino: parece la
+      //    sombra desenfocada de antes y cuesta una décima parte.
       ctx.save();
       ctx.translate(cx, cy);
       this.trazarBlob(r, amplitud, estirar, ang);
       ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
       ctx.strokeStyle = acento;
+      ctx.lineWidth = 7;
+      ctx.globalAlpha = (0.4 + e * 0.45) * atenuar * 0.22;
+      ctx.stroke();
       ctx.lineWidth = 1;
       ctx.globalAlpha = (0.4 + e * 0.45) * atenuar;
-      ctx.shadowColor = acento;
-      ctx.shadowBlur = 16 * this.dpr;
       ctx.stroke();
       ctx.restore();
 

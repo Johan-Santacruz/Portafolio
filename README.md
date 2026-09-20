@@ -32,6 +32,11 @@ foco, el revelado del retrato (ratón, táctil, teclado y movimiento reducido),
 pausa y reproducción del video según visibilidad, revelados al desplazarse,
 ausencia de desbordamiento y auditoría axe.
 
+Para ver la fluidez en un equipo concreto, abre la página con `?diag=1`: un
+rótulo abajo a la izquierda muestra los fotogramas por segundo y cuenta los
+tirones (fotogramas de más de 50 ms) por sección. Con `?suave=0` se apaga el
+scroll suave de escritorio, para comparar con el nativo.
+
 ## Editar la campaña
 
 - `src/componentes/Campana.tsx`: estructura, textos, ventanas y trabajos.

@@ -8,12 +8,14 @@ import "lenis/dist/lenis.css";
  * inercia.
  *
  * Solo con puntero fino: en táctil el scroll del dedo ya es suave. Con
- * movimiento reducido no se activa.
+ * movimiento reducido no se activa, y `?suave=0` en la dirección lo apaga
+ * para comparar con el scroll nativo.
  */
 export function activarScrollSuave() {
   const fino = window.matchMedia("(hover: hover) and (pointer: fine)");
   const reducido = window.matchMedia("(prefers-reduced-motion: reduce)");
   if (!fino.matches || reducido.matches) return;
+  if (/[?&]suave=0/.test(location.search)) return;
   new Lenis({
     autoRaf: true,
     lerp: 0.1,
