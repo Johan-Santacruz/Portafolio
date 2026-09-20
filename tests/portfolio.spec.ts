@@ -515,24 +515,56 @@ test("las secciones se solapan y se funden sin borde", async ({ page }) => {
     .toBeGreaterThan(0.99);
 });
 
-test("la trayectoria muestra la experiencia y abre la hoja de vida", async ({
+test("la trayectoria recorre un apartado por pantalla y abre la hoja de vida", async ({
   page,
 }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
   const tray = page.locator("#trayectoria");
-  await page.evaluate(() =>
-    window.scrollTo(0, document.getElementById("trayectoria")!.offsetTop),
-  );
-  // El empleo actual, la formación y las competencias, con sus datos.
-  await expect(tray.getByRole("heading", { level: 3 })).toHaveCount(4);
+  const paradas = tray.locator(".tray-parada");
+  await expect(paradas).toHaveCount(5);
+  await expect(paradas.locator("h3")).toHaveText([
+    "Experiencia",
+    "Investigación",
+    "Formación",
+    "Cómo trabajo",
+    "Idiomas",
+  ]);
   await expect(tray).toContainText("Familia Insurances");
   await expect(tray).toContainText("Ingeniería de Sistemas");
-  await expect(tray).toContainText("Inglés");
-  // Cada bloque aparece al entrar en pantalla, no antes.
-  await expect
-    .poll(() => tray.locator('[data-entra="si"]').count())
-    .toBeGreaterThan(3);
+
+  const { inicio, porParada, alto } = await tray.evaluate((s) => {
+    const sonda = s.querySelector<HTMLElement>(".tray-sonda")!;
+    const n = s.querySelectorAll(".tray-parada").length;
+    return {
+      inicio: (s as HTMLElement).offsetTop,
+      porParada: (sonda.offsetTop - innerHeight) / n,
+      alto: innerHeight,
+    };
+  });
+  const p = () => tray.evaluate((s) => Number(s.style.getPropertyValue("--p")));
+  const activa = () =>
+    tray.locator('.tray-parada[data-estado="activa"] h3').textContent();
+
+  // Al entrar, la primera; el carril no se ha movido.
+  await page.evaluate((y) => window.scrollTo(0, y), inicio);
+  await expect.poll(p).toBeLessThan(0.1);
+  await expect.poll(activa).toBe("Experiencia");
+  // A mitad del recorrido, una parada del medio, y el carril ya se desplazó.
+  await page.evaluate(
+    (y) => window.scrollTo(0, y),
+    inicio + alto * 0.05 + porParada * 2.5,
+  );
+  await expect.poll(p).toBeGreaterThan(1.8);
+  await expect.poll(activa).toBe("Formación");
+  // Al final, la última.
+  await page.evaluate(
+    (y) => window.scrollTo(0, y),
+    inicio + alto * 0.05 + porParada * 4.6,
+  );
+  await expect.poll(activa).toBe("Idiomas");
+  expect(await p()).toBeCloseTo(4, 1);
 
   // La hoja de vida se ve sin salir de la página y se puede descargar.
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));

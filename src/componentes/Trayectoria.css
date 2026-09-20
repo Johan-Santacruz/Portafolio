@@ -1,16 +1,22 @@
 /* --- Trayectoria ----------------------------------------------------------------
-   Sigue a Proyectos con su mismo fondo, así que entra sin borde. Dos columnas:
-   la línea de tiempo a la izquierda y cómo trabajo a la derecha. Al final, la
-   niebla de salida (--fin, mismo patrón que tenía Proyectos). */
+   El expediente: la sección mide varias pantallas y su contenido queda fijo;
+   al bajar, un carril se desplaza en horizontal y cada apartado ocupa la
+   pantalla entera. --p (0 a N−1) lo escribe Trayectoria.tsx con el scroll.
+   Sigue a Proyectos con su mismo fondo, así que entra sin borde. */
 .trayectoria {
   --texto: #eef0f2;
+  --p: 0;
   --fin: 0;
-  /* Reposo para leer lo último, tramo de niebla y solape con Cierre. */
-  --reposo: 30svh;
+  --paradas: 5;
+  /* Lo que se baja por cada apartado, y la salida hacia el contacto. */
+  --por-parada: 62svh;
   --niebla: 70svh;
   --cola: 65svh;
   position: relative;
   z-index: 2;
+  height: calc(
+    100svh + var(--paradas) * var(--por-parada) + var(--niebla) + var(--cola)
+  );
   /* El fondo vira al blanco de Cierre con la niebla: cuando la capa se
      retira, no reaparece el negro. */
   background:
@@ -21,24 +27,23 @@
     ),
     color-mix(in srgb, #fdfdfe calc(var(--fin) * 100%), #0f1113);
   color: var(--texto);
-  padding: clamp(60px, 12svh, 120px) 0
-    calc(var(--reposo) + var(--niebla) + var(--cola));
   font-family: "Chakra Petch", var(--display);
   overflow: clip;
   isolation: isolate;
 }
+/* La sonda marca dónde acaban las paradas y empieza la salida. */
 .tray-sonda {
   position: absolute;
-  bottom: var(--cola);
+  top: calc(100svh + var(--paradas) * var(--por-parada));
   width: 1px;
   height: var(--niebla);
   visibility: hidden;
   pointer-events: none;
 }
-/* Capa fija con la niebla, igual que en Proyectos. */
+/* Capa fija con la niebla, igual que en el resto de salidas. */
 .tray-velo {
   position: fixed;
-  z-index: 2;
+  z-index: 3;
   inset: 0;
   pointer-events: none;
   mix-blend-mode: screen;
@@ -59,52 +64,33 @@
   opacity: clamp(0, (var(--fin) - 0.72) / 0.28, 1);
 }
 
-.tray-cuerpo {
-  position: relative;
-  z-index: 1;
-  padding-inline: max(var(--aire), (100% - var(--ancho)) / 2);
+.tray-fijo {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: clip;
   /* Lo que queda se apaga dentro de la niebla. */
-  opacity: calc(1 - clamp(0, (var(--fin) - 0.35) / 0.4, 1));
+  opacity: calc(1 - clamp(0, (var(--fin) - 0.3) / 0.4, 1));
+}
+/* Rejilla de plano, como en herramientas: sitúa el capítulo. */
+.tray-fijo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(238, 240, 242, 0.05) 1px, transparent 1px) 0 0 / 72px 72px,
+    linear-gradient(90deg, rgba(238, 240, 242, 0.05) 1px, transparent 1px) 0 0 / 72px 72px;
+  -webkit-mask-image: radial-gradient(ellipse 75% 70% at 50% 50%, #000 15%, transparent 78%);
+  mask-image: radial-gradient(ellipse 75% 70% at 50% 50%, #000 15%, transparent 78%);
 }
 
-/* --- Cabecera ------------------------------------------------------------------ */
-.tray-rotulo {
-  display: inline-flex;
-  align-items: center;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-weight: 500;
-  font-size: clamp(13px, 1vw, 15px);
-  line-height: 1.7;
-  color: rgba(238, 240, 242, 0.7);
-}
-.tray-rotulo span {
-  font-weight: 700;
-  color: var(--accent);
-  white-space: pre;
-}
-.tray-cabecera h2 {
-  margin-top: 10px;
-  font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
-  font-weight: 700;
-  font-size: clamp(48px, min(8vw, 13vh), 140px);
-  line-height: 0.9;
-  text-transform: uppercase;
-}
-
-/* --- Rejilla ------------------------------------------------------------------- */
-.tray-rejilla {
-  margin-top: clamp(40px, 8svh, 88px);
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: clamp(32px, 5vw, 88px);
-  align-items: start;
-}
-.tray-columna {
-  display: grid;
-  gap: clamp(20px, 3svh, 32px);
-}
-.tray-sub {
-  margin: 0;
+/* El rótulo del capítulo, fijo arriba mientras pasan las paradas. */
+.tray-titulo {
+  position: absolute;
+  z-index: 3;
+  top: clamp(72px, 11svh, 104px);
+  left: max(var(--aire), (100% - var(--ancho)) / 2);
   font-weight: 600;
   font-size: 13px;
   letter-spacing: 0.2em;
@@ -114,34 +100,107 @@
   align-items: center;
   gap: 12px;
 }
-.tray-sub::before {
+.tray-titulo::before {
   content: "";
   width: 22px;
   height: 3px;
-  flex-shrink: 0;
   background: var(--accent);
 }
-.tray-columna > .tray-sub:not(:first-child) {
-  margin-top: clamp(16px, 3svh, 36px);
+
+/* --- El carril ----------------------------------------------------------------
+   Una parada por pantalla; se desplaza en horizontal con --p. */
+.tray-carril {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  transform: translate3d(calc(var(--p) * -100%), 0, 0);
+  will-change: transform;
+}
+.tray-parada {
+  position: relative;
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  align-content: center;
+  gap: clamp(20px, 3.5svh, 40px);
+  padding: 0 max(var(--aire), (100% - var(--ancho)) / 2);
+  /* Las que no están en el centro se apagan y se quedan atrás: el ojo va
+     siempre a la actual. */
+  --d: max(var(--n) - var(--p), var(--p) - var(--n));
+  --luz: clamp(0, 1 - var(--d), 1);
+  opacity: clamp(0.08, 1 - var(--d) * 1.4, 1);
+}
+.tray-parada > * {
+  transform: translate3d(0, calc((1 - var(--luz)) * 26px), 0);
 }
 
-/* --- Línea de tiempo ------------------------------------------------------------
-   Un filete lima a la izquierda y una muesca por hito. */
-.tray-linea {
-  list-style: none;
-  margin: 0;
-  padding: 0 0 0 clamp(20px, 2.2vw, 30px);
+/* --- Encabezado de cada parada ------------------------------------------------- */
+.tray-encabezado {
   display: grid;
-  gap: clamp(20px, 3.4svh, 38px);
+  gap: 6px;
+  justify-items: start;
+}
+.tray-numero {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.24em;
+  color: var(--accent);
+}
+.tray-orden {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 500;
+  font-size: clamp(12px, 0.95vw, 14px);
+  color: rgba(238, 240, 242, 0.55);
+}
+.tray-orden span {
+  font-weight: 700;
+  color: var(--accent);
+  white-space: pre;
+}
+/* La palabra gigante, en dos capas: contorno fijo y relleno que se enciende
+   con la parada (el mismo recurso que el lector de herramientas). */
+.tray-palabra {
+  position: relative;
+  margin-top: 2px;
+  font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
+  font-weight: 700;
+  font-size: clamp(46px, min(8.4vw, 14svh), 152px);
+  /* Aire arriba: con menos, la tilde de «Cómo» se corta. */
+  padding-top: 0.1em;
+  line-height: 0.9;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  color: transparent;
+  -webkit-text-stroke: 1.2px rgba(238, 240, 242, 0.28);
+}
+.tray-palabra::after {
+  content: attr(data-texto);
+  position: absolute;
+  inset: 0;
+  color: var(--texto);
+  -webkit-text-stroke: 1.2px var(--texto);
+  opacity: var(--luz);
+}
+
+/* --- Fichas de la línea de tiempo ---------------------------------------------- */
+.tray-contenido {
+  max-width: min(760px, 100%);
+}
+.tray-fichas {
+  display: grid;
+  gap: clamp(18px, 3svh, 30px);
+  padding-left: clamp(18px, 2vw, 26px);
   border-left: 1px solid rgba(238, 240, 242, 0.16);
 }
-.tray-linea > li {
+.tray-ficha {
   position: relative;
 }
-.tray-linea > li::before {
+.tray-ficha::before {
   content: "";
   position: absolute;
-  left: calc(-1 * clamp(20px, 2.2vw, 30px) - 1px);
+  left: calc(-1 * clamp(18px, 2vw, 26px) - 1px);
   top: 0.55em;
   width: 11px;
   height: 3px;
@@ -153,18 +212,17 @@
   letter-spacing: 0.04em;
   color: var(--accent);
 }
-.tray-linea h4 {
+.tray-ficha h4 {
   margin: 6px 0 0;
   font-weight: 700;
   font-size: clamp(17px, 1.5vw, 22px);
   line-height: 1.25;
-  letter-spacing: 0.01em;
 }
 .tray-lugar {
   margin-top: 4px;
   font-size: clamp(13px, 1.05vw, 15px);
   line-height: 1.5;
-  color: rgba(238, 240, 242, 0.62);
+  color: rgba(238, 240, 242, 0.68);
 }
 .tray-detalle {
   list-style: none;
@@ -179,7 +237,7 @@
   font-family: var(--display);
   font-size: clamp(13px, 1.05vw, 15px);
   line-height: 1.55;
-  color: rgba(238, 240, 242, 0.78);
+  color: rgba(238, 240, 242, 0.8);
 }
 .tray-detalle li::before {
   content: "";
@@ -188,7 +246,7 @@
   top: 0.62em;
   width: 8px;
   height: 1px;
-  background: rgba(238, 240, 242, 0.45);
+  background: rgba(238, 240, 242, 0.5);
 }
 
 /* --- Cómo trabajo: placas de acero, como las herramientas. --------------------- */
@@ -197,10 +255,11 @@
   margin: 0;
   padding: 0;
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 10px;
 }
 .tray-competencias li {
-  padding: 14px 18px 15px;
+  padding: 13px 17px 14px;
   background:
     repeating-linear-gradient(
       0deg,
@@ -228,74 +287,113 @@
   margin-top: 5px;
   font-family: var(--display);
   font-size: clamp(12.5px, 1vw, 14px);
-  line-height: 1.55;
-  color: rgba(238, 240, 242, 0.7);
+  line-height: 1.5;
+  color: rgba(238, 240, 242, 0.72);
 }
 
-/* --- Idiomas ------------------------------------------------------------------- */
+/* --- Idiomas: el nivel como una barra que se llena. ---------------------------- */
 .tray-idiomas {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 8px;
+  gap: 16px;
+  max-width: 520px;
 }
 .tray-idiomas li {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  font-size: clamp(14px, 1.15vw, 16px);
+  display: grid;
+  grid-template-columns: auto minmax(60px, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  font-size: clamp(16px, 1.5vw, 21px);
+  font-weight: 600;
 }
-.tray-idiomas li::after {
+.tray-medida {
+  height: 3px;
+  background: rgba(238, 240, 242, 0.14);
+}
+.tray-medida::before {
   content: "";
-  flex: 1;
-  height: 1px;
-  background: rgba(238, 240, 242, 0.16);
-  order: 1;
+  display: block;
+  height: 100%;
+  width: calc(var(--barra) * var(--luz) * 100%);
+  background: var(--accent);
+  transition: width 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 .tray-nivel {
-  order: 2;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--accent);
 }
 
-/* --- Aparición ----------------------------------------------------------------
-   Cada bloque entra una sola vez, con un desplazamiento corto y escalonado. */
-[data-entra="no"] {
-  opacity: 0;
-  transform: translate3d(0, 18px, 0);
+/* --- La cifra: un dato grande, abajo a la derecha. ----------------------------- */
+.tray-cifra {
+  position: absolute;
+  right: max(var(--aire), (100% - var(--ancho)) / 2);
+  bottom: clamp(56px, 12svh, 110px);
+  text-align: right;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(238, 240, 242, 0.5);
+  opacity: var(--luz);
 }
-[data-entra] {
-  transition:
-    opacity 0.5s ease calc(var(--i, 0) * 70ms),
-    transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i, 0) * 70ms);
+.tray-cifra span {
+  display: block;
+  font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
+  font-weight: 700;
+  font-size: clamp(38px, 5vw, 74px);
+  line-height: 0.9;
+  letter-spacing: 0.01em;
+  color: var(--accent);
 }
-[data-entra="si"] {
-  opacity: 1;
-  transform: none;
+
+/* --- Riel de progreso: una muesca por parada. ---------------------------------- */
+.tray-riel {
+  position: absolute;
+  z-index: 3;
+  left: max(var(--aire), (100% - var(--ancho)) / 2);
+  bottom: clamp(32px, 6svh, 56px);
+  display: flex;
+  gap: 10px;
 }
-@media (prefers-reduced-motion: reduce) {
-  [data-entra] {
-    transition: none;
+.tray-riel span {
+  --d: max(var(--i) - var(--p), var(--p) - var(--i));
+  --luz: clamp(0, 1 - var(--d) * 1.6, 1);
+  display: block;
+  width: calc(14px + var(--luz) * 22px);
+  height: 3px;
+  background: color-mix(
+    in srgb,
+    var(--accent) calc(var(--luz) * 100%),
+    rgba(238, 240, 242, 0.2)
+  );
+}
+
+/* --- Pantallas estrechas ------------------------------------------------------- */
+@media (max-width: 860px) {
+  .trayectoria {
+    --por-parada: 52svh;
+    --niebla: 60svh;
   }
-  [data-entra="no"] {
-    opacity: 1;
-    transform: none;
+  .tray-parada {
+    align-content: start;
+    padding-top: clamp(112px, 19svh, 172px);
+    gap: 18px;
   }
-  .tray-velo {
+  .tray-cifra {
     display: none;
+  }
+  .tray-competencias {
+    grid-template-columns: 1fr;
   }
 }
 
-/* --- Pantallas estrechas: una columna. ---------------------------------------- */
-@media (max-width: 860px) {
-  .tray-rejilla {
-    grid-template-columns: 1fr;
-    gap: clamp(28px, 5svh, 48px);
+@media (prefers-reduced-motion: reduce) {
+  .tray-medida::before {
+    transition: none;
   }
-  .trayectoria {
-    --reposo: 20svh;
-    --niebla: 60svh;
+  .tray-velo {
+    display: none;
   }
 }

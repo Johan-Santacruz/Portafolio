@@ -117,9 +117,16 @@ con ella.
 
 ## Trayectoria y hoja de vida
 
-`src/datos/trayectoria.ts` tiene la experiencia, la formación, las
-competencias y los idiomas; sale de la hoja de vida, así que si cambia una,
-cambia la otra.
+`src/datos/trayectoria.ts` tiene la experiencia, la investigación, la
+formación, las competencias y los idiomas; sale de la hoja de vida, así que
+si cambia una, cambia la otra.
+
+La sección es un expediente con una parada por pantalla: al bajar, un carril
+se desplaza en horizontal y cada apartado ocupa la pantalla entera, con su
+número, su orden de terminal y su palabra gigante. El carril se detiene en
+cada parada (`conReposo`, el mismo recurso que el lector de herramientas),
+así que nada pasa de largo. Añadir un apartado es añadir una parada en
+`Trayectoria.tsx`; la altura de la sección se calcula sola con `--paradas`.
 
 La hoja de vida vive en `public/documentos/`: el PDF que se descarga y sus
 páginas en JPEG, que son las que se ven en la ventana (un PDF embebido no se
@@ -165,6 +172,8 @@ sección en `requestAnimationFrame`) y todo se anula con `prefers-reduced-motion
 - De la portada a las herramientas se pasa por un túnel en 3D (`Tunel.tsx`);
   las placas de los lenguajes que viajan por él aterrizan en su casilla de la
   sección, que las releva en el mismo píxel.
+- Trayectoria recorre sus apartados en horizontal mientras se baja, con el
+  mismo fondo que los proyectos.
 - No hay bordes entre secciones: las placas del túnel cruzan el borde de la
   sección mientras entra (recorte solo horizontal); al acabar las herramientas
   un agujero negro se las traga (cada pieza cae al centro girando y volviéndose
