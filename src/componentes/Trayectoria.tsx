@@ -1,12 +1,6 @@
 import { useEffect, useRef } from "react";
-import type { CSSProperties, ReactNode } from "react";
-import {
-  experiencia,
-  formacion,
-  idiomas,
-  investigacion,
-} from "../datos/trayectoria";
-import type { Hito } from "../datos/trayectoria";
+import type { CSSProperties } from "react";
+import { idiomas, pases } from "../datos/trayectoria";
 import { vigilarCercania } from "../retrato/cercania";
 import { SecuenciaFotogramas } from "../retrato/secuencia";
 import "./Trayectoria.css";
@@ -16,13 +10,13 @@ const NIEBLA = `${import.meta.env.BASE_URL}imagenes/niebla/`;
 const NIEBLA_MINI = `${import.meta.env.BASE_URL}imagenes/niebla-mini/`;
 const FOTOGRAMAS = 36;
 
-/** Tramos del recorrido en que el carril se queda quieto al empezar y acabar. */
+/** Tramos del recorrido en que la pila se queda quieta al empezar y acabar. */
 const PAUSA_INICIO = 0.05;
 const PAUSA_FINAL = 0.05;
-/** Parte de cada tramo entre dos paradas en que el carril reposa. */
+/** Parte de cada tramo entre dos pases en que la pila reposa. */
 const REPOSO = 0.5;
 
-/** Avance con reposo: se queda en cada parada y se desliza entre ellas. */
+/** Avance con reposo: se queda en cada pase y se desliza entre ellos. */
 function conReposo(x: number) {
   const i = Math.floor(x);
   const f = x - i;
@@ -31,79 +25,38 @@ function conReposo(x: number) {
 }
 
 /**
- * Trayectoria: el expediente, una parada por pantalla.
+ * Trayectoria: una pila de credenciales que se va pasando.
  *
- * La sección mide varias pantallas y su contenido queda fijo; al bajar, un
- * carril se desplaza en horizontal y cada apartado ocupa la pantalla entera,
- * con su número, su palabra gigante y su contenido. El carril se detiene en
- * cada parada (`conReposo`), así que nada pasa de largo.
+ * La sección mide varias pantallas y su contenido queda fijo. Al bajar, el
+ * pase de delante sale y entra el siguiente; a la izquierda cambia su ficha,
+ * con el año en grande. La pila se detiene en cada pase (`conReposo`), así
+ * que ninguno pasa de largo.
  *
  * Sigue al capítulo de proyectos con su mismo fondo, así que entra sin borde.
  * Al final, la niebla se lleva la sección y deja el blanco con el que llega
  * el contacto (`--fin`).
  */
 
-/** Un hito de la línea de tiempo, con su periodo, su sitio y lo que se hizo. */
-function Ficha({ hito, i }: { hito: Hito; i: number }) {
+/**
+ * Un pase: acero achaflanado con su filete lima, la banda del tipo arriba, el
+ * sitio en grande y los datos en mono abajo. Su sitio en la pila sale de la
+ * distancia al pase activo (--d), que se calcula en CSS.
+ */
+function Credencial({ n, pase }: { n: number; pase: (typeof pases)[number] }) {
   return (
-    <article className="tray-ficha" style={{ "--i": i } as CSSProperties}>
-      <p className="tray-periodo">{hito.periodo}</p>
-      <h4>{hito.titulo}</h4>
-      <p className="tray-lugar">{hito.lugar}</p>
-      {hito.detalle.length > 0 && (
-        <ul className="tray-detalle">
-          {hito.detalle.map((d) => (
-            <li key={d}>{d}</li>
-          ))}
-        </ul>
-      )}
-    </article>
-  );
-}
-
-/** Una parada del carril: número, palabra gigante y contenido. */
-function Parada({
-  n,
-  clave,
-  palabra,
-  orden,
-  cifra,
-  children,
-}: {
-  n: number;
-  clave: string;
-  palabra: string;
-  orden: string;
-  cifra?: { valor: string; pie: string };
-  children: ReactNode;
-}) {
-  return (
-    <section
-      className="tray-parada"
-      data-clave={clave}
-      style={{ "--n": n } as CSSProperties}
-      aria-label={palabra}
-    >
-      <header className="tray-encabezado">
-        <p className="tray-numero" aria-hidden="true">
-          {String(n + 1).padStart(2, "0")}
-        </p>
-        <p className="tray-orden" aria-hidden="true">
-          <span>~ $ </span>
-          {orden}
-        </p>
-        <h3 className="tray-palabra" data-texto={palabra}>
-          {palabra}
-        </h3>
-      </header>
-      <div className="tray-contenido">{children}</div>
-      {cifra && (
-        <p className="tray-cifra" aria-hidden="true">
-          <span>{cifra.valor}</span>
-          {cifra.pie}
-        </p>
-      )}
-    </section>
+    <li className="tray-pase" style={{ "--n": n } as CSSProperties}>
+      <span className="tray-troquel" aria-hidden="true" />
+      <p className="tray-tipo">
+        <span>{pase.tipo}</span>
+        {pase.sello && <b className="tray-sello">{pase.sello}</b>}
+      </p>
+      <h3 className="tray-donde">{pase.donde}</h3>
+      <p className="tray-rol">{pase.rol}</p>
+      <p className="tray-codigo" aria-hidden="true">
+        {pase.codigo}
+        <span className="tray-barras" />
+      </p>
+    </li>
   );
 }
 
@@ -113,11 +66,11 @@ export function Trayectoria() {
   useEffect(() => {
     const raiz = seccion.current;
     if (!raiz) return;
-    const paradas = Array.from(raiz.querySelectorAll<HTMLElement>(".tray-parada"));
+    const listaPases = Array.from(raiz.querySelectorAll<HTMLElement>(".tray-pase"));
     const sonda = raiz.querySelector<HTMLElement>(".tray-sonda");
     const lienzo = raiz.querySelector<HTMLCanvasElement>(".tray-niebla");
     const ctx = lienzo?.getContext("2d") ?? null;
-    const total = paradas.length;
+    const total = listaPases.length;
     let activa = -1;
     let pintado = -1;
     let pedido = 0;
@@ -173,8 +126,8 @@ export function Trayectoria() {
       const niebla = sonda?.offsetHeight || alto;
       const cola = sonda ? raiz.offsetHeight - (sonda.offsetTop + niebla) : alto;
 
-      // El carril recorre las paradas con el scroll, hasta donde empieza la
-      // salida (la sonda marca ese punto).
+      // Los pases se van pasando con el scroll, hasta donde empieza la salida
+      // (la sonda marca ese punto).
       const largo = (sonda?.offsetTop ?? caja.height) - alto;
       const avance = largo > 0 ? limitar(-caja.top / largo) : 0;
       const tramo = limitar(
@@ -185,15 +138,16 @@ export function Trayectoria() {
       const nueva = Math.round(p);
       if (nueva !== activa) {
         activa = nueva;
-        paradas.forEach((s, i) =>
+        listaPases.forEach((s, i) =>
           s.setAttribute(
             "data-estado",
             i < activa ? "antes" : i > activa ? "despues" : "activa",
           ),
         );
+        raiz.setAttribute("data-pase", String(activa));
       }
 
-      // Salida: una pantalla de niebla, desde que las paradas se acaban hasta
+      // Salida: una pantalla de niebla, desde que los pases se acaban hasta
       // que el contacto llena la pantalla.
       const fin = limitar((alto + cola + niebla - caja.bottom) / niebla);
       raiz.style.setProperty("--fin", fin.toFixed(4));
@@ -231,74 +185,13 @@ export function Trayectoria() {
     };
   }, []);
 
-  const paradas = [
-    {
-      clave: "experiencia",
-      palabra: "Experiencia",
-      orden: "cat ./experiencia",
-      cifra: experiencia[0]?.cifra,
-      hijos: (
-        <div className="tray-fichas">
-          {experiencia.map((h, i) => (
-            <Ficha key={h.titulo} hito={h} i={i} />
-          ))}
-        </div>
-      ),
-    },
-    {
-      clave: "investigacion",
-      palabra: "Investigación",
-      orden: "cat ./investigacion",
-      cifra: investigacion[1]?.cifra,
-      hijos: (
-        <div className="tray-fichas">
-          {investigacion.map((h, i) => (
-            <Ficha key={h.titulo} hito={h} i={i} />
-          ))}
-        </div>
-      ),
-    },
-    {
-      clave: "formacion",
-      palabra: "Formación",
-      orden: "cat ./formacion",
-      cifra: formacion[0]?.cifra,
-      hijos: (
-        <div className="tray-fichas">
-          {formacion.map((h, i) => (
-            <Ficha key={h.titulo} hito={h} i={i} />
-          ))}
-        </div>
-      ),
-    },
-    {
-      clave: "idiomas",
-      palabra: "Idiomas",
-      orden: "cat ./idiomas",
-      hijos: (
-        <ul className="tray-idiomas">
-          {idiomas.map((l, i) => (
-            <li
-              key={l.lengua}
-              style={{ "--i": i, "--barra": l.barra } as CSSProperties}
-            >
-              <span className="tray-lengua">{l.lengua}</span>
-              <span className="tray-medida" aria-hidden="true" />
-              <span className="tray-nivel">{l.nivel}</span>
-            </li>
-          ))}
-        </ul>
-      ),
-    },
-  ];
-
   return (
     <section
       ref={seccion}
       className="trayectoria"
       id="trayectoria"
       aria-labelledby="titulo-trayectoria"
-      style={{ "--paradas": paradas.length } as CSSProperties}
+      style={{ "--pases": pases.length } as CSSProperties}
     >
       <span className="tray-sonda" aria-hidden="true" />
       <div className="tray-velo" aria-hidden="true">
@@ -311,25 +204,44 @@ export function Trayectoria() {
           Trayectoria
         </h2>
 
-        <div className="tray-carril">
-          {paradas.map((p, i) => (
-            <Parada
-              key={p.clave}
-              n={i}
-              clave={p.clave}
-              palabra={p.palabra}
-              orden={p.orden}
-              cifra={p.cifra}
+        {/* La ficha del pase activo: el año en grande y lo que se hizo. */}
+        <div className="tray-ficha">
+          {pases.map((pase, i) => (
+            <article
+              key={pase.codigo}
+              className="tray-detalle"
+              style={{ "--n": i } as CSSProperties}
             >
-              {p.hijos}
-            </Parada>
+              <p className="tray-anio">{pase.año}</p>
+              <p className="tray-lugar">{pase.lugar}</p>
+              <ul>
+                {pase.notas.map((nota) => (
+                  <li key={nota}>{nota}</li>
+                ))}
+              </ul>
+            </article>
           ))}
         </div>
 
-        {/* Riel: una muesca por parada, la actual en lima. */}
+        {/* La pila de pases: el activo al frente, los demás detrás. */}
+        <ul className="tray-pila">
+          {pases.map((pase, i) => (
+            <Credencial key={pase.codigo} n={i} pase={pase} />
+          ))}
+        </ul>
+
+        <p className="tray-idiomas">
+          {idiomas.map((l) => (
+            <span key={l.lengua}>
+              {l.lengua} <b>{l.nivel}</b>
+            </span>
+          ))}
+        </p>
+
+        {/* Riel: una muesca por pase, el actual en lima. */}
         <div className="tray-riel" aria-hidden="true">
-          {paradas.map((p, i) => (
-            <span key={p.clave} style={{ "--i": i } as CSSProperties} />
+          {pases.map((pase, i) => (
+            <span key={pase.codigo} style={{ "--i": i } as CSSProperties} />
           ))}
         </div>
       </div>

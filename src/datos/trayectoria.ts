@@ -1,75 +1,95 @@
 /**
- * El expediente: experiencia, investigación, formación e idiomas. Las
- * habilidades blandas viven con las técnicas, en `datos/stack.ts`. Cada
- * bloque es una parada del carril horizontal (ver `Trayectoria.tsx`). Sale de
- * la hoja de vida
- * (`public/documentos/hoja-de-vida-johan-balanta.pdf`): si cambias una,
- * cambia la otra.
+ * La trayectoria como una pila de credenciales: cada sitio donde he estado dio
+ * un pase, y los pases se van pasando con el scroll. Poco texto por pase: lo
+ * que se lee de un vistazo en un gafete.
+ *
+ * Sale de la hoja de vida (`public/documentos/hoja-de-vida-johan-balanta.pdf`):
+ * si cambia una, cambia la otra. Las habilidades blandas no están aquí: van
+ * con las técnicas, en `datos/stack.ts`.
  */
 
-export interface Hito {
-  /** Fechas, tal como se leen en la parada. */
-  periodo: string;
-  titulo: string;
-  /** Empresa, universidad o publicación. */
+export interface Pase {
+  /** Lo que es: trabajo, investigación, publicación, hackatón, grado. */
+  tipo: string;
+  /** El año, en grande. */
+  año: string;
+  /** Dónde: el nombre que va en el pase, corto. */
+  donde: string;
+  /** Qué hice ahí, en una línea. */
+  rol: string;
+  /** El sitio, si hace falta situarlo. */
   lugar: string;
-  /** Lo que se hizo, en frases sueltas. Puede ir vacío. */
-  detalle: string[];
-  /** Un dato que resume el hito, en grande. */
-  cifra?: { valor: string; pie: string };
+  /** Dos o tres frases cortas. Lo que no cabe en un gafete, sobra. */
+  notas: string[];
+  /** El sello: un dato que lo resume, si lo hay. */
+  sello?: string;
+  /** Código del pase, decorativo. */
+  codigo: string;
 }
 
-export const experiencia: Hito[] = [
+export const pases: Pase[] = [
   {
-    periodo: "feb 2026 — hoy",
-    titulo: "Desarrollador RPA e integrador de APIs / IA",
-    lugar: "Familia Insurances · Massachusetts, EE. UU. · Híbrido",
-    detalle: [
-      "Automatizaciones que le quitan trabajo manual a los procesos internos.",
-      "APIs, servicios externos y modelos de IA metidos en los flujos de la empresa.",
-      "Pruebas, validación y calidad de lo que sale a producción.",
+    tipo: "Trabajo",
+    año: "2026",
+    donde: "Familia Insurances",
+    rol: "Desarrollador RPA · APIs · IA",
+    lugar: "Massachusetts, EE. UU. · Híbrido",
+    notas: [
+      "Automatizo procesos internos que antes eran manuales.",
+      "Conecto APIs y modelos de IA a los flujos de la empresa.",
+      "Pruebo y valido lo que sale a producción.",
     ],
-    cifra: { valor: "EE. UU.", pie: "En remoto desde Cali" },
+    sello: "Actual",
+    codigo: "TRB-2026-01",
   },
-];
-
-export const investigacion: Hito[] = [
   {
-    periodo: "2025 — hoy",
-    titulo: "Grupo de investigación PADIA",
+    tipo: "Hackatón",
+    año: "2026",
+    donde: "SALA AI Summit",
+    rol: "Predicción climática con redes neuronales líquidas",
+    lugar: "Quito, Ecuador",
+    notas: [
+      "Modelo de series de tiempo para las Islas Galápagos.",
+      "Cuarto lugar entre los proyectos del evento.",
+    ],
+    sello: "4.º",
+    codigo: "HCK-2026-02",
+  },
+  {
+    tipo: "Publicación",
+    año: "2025",
+    donde: "IEEE · AMITIC",
+    rol: "Planificación de rutas en robótica móvil",
+    lugar: "Publicado en IEEE Xplore",
+    notas: [
+      "Programación dinámica con memoización frente a búsqueda voraz.",
+      "Escrito, sustentado y revisado por pares.",
+    ],
+    sello: "IEEE",
+    codigo: "PUB-2025-03",
+  },
+  {
+    tipo: "Investigación",
+    año: "2025",
+    donde: "Grupo PADIA",
+    rol: "Programación, IA y análisis de datos",
     lugar: "Universidad de San Buenaventura, Cali",
-    detalle: [
-      "Programación, inteligencia artificial y análisis de datos aplicados a problemas reales.",
-    ],
+    notas: ["Proyectos aplicados a problemas reales, no de laboratorio."],
+    codigo: "INV-2025-04",
   },
   {
-    periodo: "2025",
-    titulo: "Publicación IEEE · AMITIC",
-    lugar: "«Evaluation of Dynamic Programming with Memoization and Greedy-First Search for Route Planning in Mobile Robots»",
-    detalle: [
-      "Planificación de rutas y optimización en robótica móvil, publicada en IEEE Xplore.",
-    ],
-    cifra: { valor: "IEEE", pie: "Revisión por pares" },
-  },
-];
-
-export const formacion: Hito[] = [
-  {
-    periodo: "8.º semestre",
-    titulo: "Ingeniería de Sistemas",
-    lugar: "Universidad de San Buenaventura, Cali",
-    detalle: [],
-    cifra: { valor: "8.º", pie: "Semestre en curso" },
-  },
-  {
-    periodo: "Bachillerato",
-    titulo: "Técnico en Electricidad Industrial",
-    lugar: "Institución Educativa Rafael Navia Varón",
-    detalle: [],
+    tipo: "Grado",
+    año: "En curso",
+    donde: "Ingeniería de Sistemas",
+    rol: "Universidad de San Buenaventura, Cali",
+    lugar: "Antes: técnico en Electricidad Industrial",
+    notas: ["Octavo semestre."],
+    sello: "8.º",
+    codigo: "EDU-2022-05",
   },
 ];
 
 export const idiomas = [
-  { lengua: "Español", nivel: "Nativo", barra: 1 },
-  { lengua: "Inglés", nivel: "B1", barra: 0.55 },
+  { lengua: "Español", nivel: "Nativo" },
+  { lengua: "Inglés", nivel: "B1" },
 ] as const;

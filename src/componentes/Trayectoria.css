@@ -1,21 +1,21 @@
 /* --- Trayectoria ----------------------------------------------------------------
-   El expediente: la sección mide varias pantallas y su contenido queda fijo;
-   al bajar, un carril se desplaza en horizontal y cada apartado ocupa la
-   pantalla entera. --p (0 a N−1) lo escribe Trayectoria.tsx con el scroll.
-   Sigue a Proyectos con su mismo fondo, así que entra sin borde. */
+   Una pila de credenciales que se va pasando: cada sitio donde he estado dio
+   un pase. La sección mide varias pantallas y su contenido queda fijo; --p
+   (0 a N−1) lo escribe Trayectoria.tsx con el scroll. Sigue a Proyectos con
+   su mismo fondo, así que entra sin borde. */
 .trayectoria {
   --texto: #eef0f2;
   --p: 0;
   --fin: 0;
-  --paradas: 4;
-  /* Lo que se baja por cada apartado, y la salida hacia el contacto. */
-  --por-parada: 62svh;
+  --pases: 5;
+  /* Lo que se baja por cada pase, y la salida hacia el contacto. */
+  --por-pase: 66svh;
   --niebla: 70svh;
   --cola: 65svh;
   position: relative;
   z-index: 2;
   height: calc(
-    100svh + var(--paradas) * var(--por-parada) + var(--niebla) + var(--cola)
+    100svh + var(--pases) * var(--por-pase) + var(--niebla) + var(--cola)
   );
   /* El fondo vira al blanco de Cierre con la niebla: cuando la capa se
      retira, no reaparece el negro. */
@@ -31,10 +31,10 @@
   overflow: clip;
   isolation: isolate;
 }
-/* La sonda marca dónde acaban las paradas y empieza la salida. */
+/* La sonda marca dónde acaban los pases y empieza la salida. */
 .tray-sonda {
   position: absolute;
-  top: calc(100svh + var(--paradas) * var(--por-parada));
+  top: calc(100svh + var(--pases) * var(--por-pase));
   width: 1px;
   height: var(--niebla);
   visibility: hidden;
@@ -69,10 +69,15 @@
   top: 0;
   height: 100svh;
   overflow: clip;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+  align-items: center;
+  column-gap: clamp(24px, 3vw, 52px);
+  padding-inline: max(var(--aire), (100% - var(--ancho)) / 2);
   /* Lo que queda se apaga dentro de la niebla. */
   opacity: calc(1 - clamp(0, (var(--fin) - 0.3) / 0.4, 1));
 }
-/* Rejilla de plano, como en herramientas: sitúa el capítulo. */
+/* Rejilla de plano, tenue: sitúa el capítulo. */
 .tray-fijo::before {
   content: "";
   position: absolute;
@@ -85,7 +90,6 @@
   mask-image: radial-gradient(ellipse 75% 70% at 50% 50%, #000 15%, transparent 78%);
 }
 
-/* El rótulo del capítulo, fijo arriba mientras pasan las paradas. */
 .tray-titulo {
   position: absolute;
   z-index: 3;
@@ -107,129 +111,42 @@
   background: var(--accent);
 }
 
-/* --- El carril ----------------------------------------------------------------
-   Una parada por pantalla; se desplaza en horizontal con --p. */
-.tray-carril {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  transform: translate3d(calc(var(--p) * -100%), 0, 0);
-  will-change: transform;
-}
-.tray-parada {
-  position: relative;
-  flex: 0 0 100%;
-  width: 100%;
-  height: 100%;
-  display: grid;
-  align-content: center;
-  gap: clamp(20px, 3.5svh, 40px);
-  padding: 0 max(var(--aire), (100% - var(--ancho)) / 2);
-  /* Las que no están en el centro se apagan y se quedan atrás: el ojo va
-     siempre a la actual. */
-  --d: max(var(--n) - var(--p), var(--p) - var(--n));
-  --luz: clamp(0, 1 - var(--d), 1);
-  opacity: clamp(0.08, 1 - var(--d) * 1.4, 1);
-}
-.tray-parada > * {
-  transform: translate3d(0, calc((1 - var(--luz)) * 26px), 0);
-}
-
-/* --- Encabezado de cada parada ------------------------------------------------- */
-.tray-encabezado {
-  display: grid;
-  gap: 6px;
-  justify-items: start;
-}
-.tray-numero {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.24em;
-  color: var(--accent);
-}
-.tray-orden {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-weight: 500;
-  font-size: clamp(12px, 0.95vw, 14px);
-  color: rgba(238, 240, 242, 0.55);
-}
-.tray-orden span {
-  font-weight: 700;
-  color: var(--accent);
-  white-space: pre;
-}
-/* La palabra gigante, en dos capas: contorno fijo y relleno que se enciende
-   con la parada (el mismo recurso que el lector de herramientas). */
-.tray-palabra {
-  position: relative;
-  margin-top: 2px;
-  font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
-  font-weight: 700;
-  font-size: clamp(46px, min(8.4vw, 14svh), 152px);
-  /* Aire arriba: con menos, la tilde de «Cómo» se corta. */
-  padding-top: 0.1em;
-  line-height: 0.9;
-  letter-spacing: 0.005em;
-  text-transform: uppercase;
-  color: transparent;
-  -webkit-text-stroke: 1.2px rgba(238, 240, 242, 0.28);
-}
-.tray-palabra::after {
-  content: attr(data-texto);
-  position: absolute;
-  inset: 0;
-  color: var(--texto);
-  -webkit-text-stroke: 1.2px var(--texto);
-  opacity: var(--luz);
-}
-
-/* --- Fichas de la línea de tiempo ---------------------------------------------- */
-.tray-contenido {
-  max-width: min(760px, 100%);
-}
-.tray-fichas {
-  display: grid;
-  gap: clamp(18px, 3svh, 30px);
-  padding-left: clamp(18px, 2vw, 26px);
-  border-left: 1px solid rgba(238, 240, 242, 0.16);
-}
+/* --- La ficha: el año en grande y lo que se hizo. ------------------------------
+   Todas ocupan la misma celda; solo se ve la del pase activo. */
 .tray-ficha {
   position: relative;
-}
-.tray-ficha::before {
-  content: "";
-  position: absolute;
-  left: calc(-1 * clamp(18px, 2vw, 26px) - 1px);
-  top: 0.55em;
-  width: 11px;
-  height: 3px;
-  background: var(--accent);
-}
-.tray-periodo {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  color: var(--accent);
-}
-.tray-ficha h4 {
-  margin: 6px 0 0;
-  font-weight: 700;
-  font-size: clamp(17px, 1.5vw, 22px);
-  line-height: 1.25;
-}
-.tray-lugar {
-  margin-top: 4px;
-  font-size: clamp(13px, 1.05vw, 15px);
-  line-height: 1.5;
-  color: rgba(238, 240, 242, 0.68);
+  display: grid;
+  z-index: 1;
 }
 .tray-detalle {
+  grid-area: 1 / 1;
+  --d: calc(var(--n) - var(--p));
+  --luz: clamp(0, 1 - max(var(--d), 0 - var(--d)) * 2.4, 1);
+  opacity: var(--luz);
+  transform: translate3d(0, calc(var(--d) * -26px), 0);
+  pointer-events: none;
+}
+.tray-anio {
+  font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
+  font-weight: 700;
+  font-size: clamp(64px, min(11vw, 20svh), 200px);
+  line-height: 0.82;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  color: var(--texto);
+}
+.tray-lugar {
+  margin-top: 14px;
+  font-size: clamp(13px, 1.1vw, 16px);
+  color: rgba(238, 240, 242, 0.62);
+}
+.tray-detalle ul {
   list-style: none;
-  margin: 12px 0 0;
+  margin: 18px 0 0;
   padding: 0;
   display: grid;
-  gap: 7px;
+  gap: 8px;
+  max-width: 44ch;
 }
 .tray-detalle li {
   position: relative;
@@ -237,89 +154,183 @@
   font-family: var(--display);
   font-size: clamp(13px, 1.05vw, 15px);
   line-height: 1.55;
-  color: rgba(238, 240, 242, 0.8);
+  color: rgba(238, 240, 242, 0.82);
 }
 .tray-detalle li::before {
   content: "";
   position: absolute;
   left: 0;
   top: 0.62em;
-  width: 8px;
+  width: 9px;
   height: 1px;
-  background: rgba(238, 240, 242, 0.5);
+  background: var(--accent);
 }
 
-/* --- Idiomas: el nivel como una barra que se llena. ---------------------------- */
-.tray-idiomas {
+/* --- La pila de pases ----------------------------------------------------------
+   Todos en la misma celda, con perspectiva: el activo al frente y los
+   siguientes detrás, más pequeños y desplazados. Al pasar, el de delante cae
+   hacia abajo girando. */
+.tray-pila {
+  position: relative;
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 16px;
-  max-width: 520px;
-}
-.tray-idiomas li {
-  display: grid;
-  grid-template-columns: auto minmax(60px, 1fr) auto;
+  justify-items: center;
   align-items: center;
-  gap: 18px;
-  font-size: clamp(16px, 1.5vw, 21px);
-  font-weight: 600;
+  perspective: 1100px;
+  height: min(62svh, 460px);
 }
-.tray-medida {
-  height: 3px;
-  background: rgba(238, 240, 242, 0.14);
+.tray-pase {
+  grid-area: 1 / 1;
+  --d: calc(var(--n) - var(--p));
+  --ad: max(var(--d), 0 - var(--d));
+  position: relative;
+  width: min(400px, 100%);
+  aspect-ratio: 5 / 6.8;
+  padding: clamp(18px, 2.4vw, 26px);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.035) 0 1px,
+      transparent 1px 4px
+    ),
+    linear-gradient(150deg, #262b31, #14161a 70%);
+  box-shadow:
+    inset 3px 0 0 var(--accent),
+    0 30px 60px -30px rgba(0, 0, 0, 0.9);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 20px) 0,
+    100% 20px,
+    100% 100%,
+    20px 100%,
+    0 calc(100% - 20px)
+  );
+  /* CSS no tiene condicionales: --ido vale 1 cuando el pase ya quedó atrás
+     (--d negativo) y 0 cuando está por venir. */
+  --ido: clamp(0, (0 - var(--d)) * 1000, 1);
+  /* Los que vienen se apilan detrás, más pequeños y un poco más arriba; el
+     que ya pasó se va por arriba girando y se desvanece enseguida. */
+  transform: translate3d(
+      calc(var(--ido) * 24%),
+      calc(var(--d) * -5% + var(--ido) * -38%),
+      calc(var(--d) * -115px)
+    )
+    rotate(calc(var(--ido) * 9deg + var(--d) * 1.6deg));
+  opacity: clamp(0, 1 - var(--ad) * 0.26 - var(--ido) * 0.9, 1);
+  z-index: calc(20 - var(--ad) * 10);
 }
-.tray-medida::before {
-  content: "";
-  display: block;
-  height: 100%;
-  width: calc(var(--barra) * var(--luz) * 100%);
-  background: var(--accent);
-  transition: width 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-.tray-nivel {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 13px;
-  color: var(--accent);
-}
-
-/* --- La cifra: un dato grande, abajo a la derecha. ----------------------------- */
-.tray-cifra {
+/* El troquel del gafete, arriba al centro. */
+.tray-troquel {
   position: absolute;
-  right: max(var(--aire), (100% - var(--ancho)) / 2);
-  bottom: clamp(56px, 12svh, 110px);
-  text-align: right;
-  font-size: 12px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(238, 240, 242, 0.5);
-  opacity: var(--luz);
+  top: 14px;
+  left: 50%;
+  translate: -50% 0;
+  width: 46px;
+  height: 8px;
+  border-radius: 999px;
+  background: #0f1113;
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.6);
 }
-.tray-cifra span {
-  display: block;
+.tray-tipo {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(238, 240, 242, 0.55);
+}
+.tray-sello {
+  padding: 3px 9px 2px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: #171815;
+  background: var(--accent);
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+}
+.tray-donde {
+  align-self: center;
   font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
   font-weight: 700;
-  font-size: clamp(38px, 5vw, 74px);
-  line-height: 0.9;
-  letter-spacing: 0.01em;
-  color: var(--accent);
+  font-size: clamp(30px, 3.2vw, 46px);
+  line-height: 0.95;
+  text-transform: uppercase;
+  color: var(--texto);
+}
+.tray-rol {
+  margin-top: 8px;
+  font-size: clamp(12.5px, 1vw, 14.5px);
+  line-height: 1.45;
+  color: rgba(238, 240, 242, 0.7);
+}
+.tray-donde + .tray-rol {
+  align-self: start;
+}
+.tray-codigo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  color: rgba(238, 240, 242, 0.42);
+}
+/* Código de barras, decorativo. */
+.tray-barras {
+  flex: 0 0 88px;
+  height: 22px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(238, 240, 242, 0.55) 0 1px,
+    transparent 1px 3px,
+    rgba(238, 240, 242, 0.55) 3px 5px,
+    transparent 5px 7px
+  );
 }
 
-/* --- Riel de progreso: una muesca por parada. ---------------------------------- */
-.tray-riel {
+/* --- Idiomas: una línea fija abajo, no merece pantalla propia. ---------------- */
+.tray-idiomas {
   position: absolute;
   z-index: 3;
   left: max(var(--aire), (100% - var(--ancho)) / 2);
-  bottom: clamp(32px, 6svh, 56px);
+  bottom: clamp(30px, 5.5svh, 52px);
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(238, 240, 242, 0.45);
+}
+.tray-idiomas b {
+  color: var(--accent);
+}
+
+/* --- Riel de progreso: una muesca por pase. ----------------------------------- */
+.tray-riel {
+  position: absolute;
+  z-index: 3;
+  right: max(var(--aire), (100% - var(--ancho)) / 2);
+  top: 50%;
+  translate: 0 -50%;
+  display: grid;
   gap: 10px;
+  justify-items: end;
 }
 .tray-riel span {
   --d: max(var(--i) - var(--p), var(--p) - var(--i));
   --luz: clamp(0, 1 - var(--d) * 1.6, 1);
   display: block;
-  width: calc(14px + var(--luz) * 22px);
+  width: calc(10px + var(--luz) * 20px);
   height: 3px;
   background: color-mix(
     in srgb,
@@ -328,26 +339,42 @@
   );
 }
 
-/* --- Pantallas estrechas ------------------------------------------------------- */
+/* --- Pantallas estrechas: el pase arriba y la ficha debajo. -------------------- */
 @media (max-width: 860px) {
   .trayectoria {
-    --por-parada: 52svh;
+    --por-pase: 56svh;
     --niebla: 60svh;
   }
-  .tray-parada {
-    align-content: start;
-    padding-top: clamp(112px, 19svh, 172px);
-    gap: 18px;
+  .tray-fijo {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    align-content: center;
+    gap: clamp(18px, 3svh, 30px);
+    padding-top: clamp(96px, 16svh, 150px);
   }
-  .tray-cifra {
-    display: none;
+  .tray-pila {
+    order: -1;
+    height: min(40svh, 300px);
+  }
+  .tray-pase {
+    width: min(230px, 72vw);
+  }
+  .tray-anio {
+    font-size: clamp(48px, 16vw, 92px);
+  }
+  .tray-detalle ul {
+    gap: 6px;
+  }
+  .tray-riel {
+    top: auto;
+    bottom: clamp(30px, 5.5svh, 52px);
+    right: max(var(--aire), (100% - var(--ancho)) / 2);
+    translate: none;
+    grid-auto-flow: column;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tray-medida::before {
-    transition: none;
-  }
   .tray-velo {
     display: none;
   }

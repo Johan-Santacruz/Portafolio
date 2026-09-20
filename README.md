@@ -117,21 +117,22 @@ con ella.
 
 ## Trayectoria y hoja de vida
 
-`src/datos/trayectoria.ts` tiene la experiencia, la investigación, la
-formación y los idiomas; sale de la hoja de vida, así que si cambia una,
-cambia la otra. Las habilidades blandas no están aquí: van con las técnicas,
+`src/datos/trayectoria.ts` tiene los pases: cada sitio donde he estado dio
+uno. Sale de la hoja de vida, así que si cambia una, cambia la otra. Las habilidades blandas no están aquí: van con las técnicas,
 como una categoría más de `datos/stack.ts` (campo `criterio`), porque es su
 sitio. Al llegar esa categoría la pantalla cambia de composición: el lector de
 palabras se aparta a la izquierda y se apaga, y las habilidades toman el ancho
 entero, una palabra por línea con una frase corta debajo. Si una necesita un
 párrafo para explicarse, está mal escrita.
 
-La sección es un expediente con una parada por pantalla: al bajar, un carril
-se desplaza en horizontal y cada apartado ocupa la pantalla entera, con su
-número, su orden de terminal y su palabra gigante. El carril se detiene en
-cada parada (`conReposo`, el mismo recurso que el lector de herramientas),
-así que nada pasa de largo. Añadir un apartado es añadir una parada en
-`Trayectoria.tsx`; la altura de la sección se calcula sola con `--paradas`.
+La sección es una pila de credenciales. Al bajar, el pase de delante se va
+por arriba girando y entra el siguiente, mientras a la izquierda cambia su
+ficha con el año en grande. La pila se detiene en cada pase (`conReposo`, el
+mismo recurso que el lector de herramientas), así que ninguno pasa de largo.
+Cada pase lleva lo que cabe en un gafete: el tipo, el sitio, el rol y un
+código; si hace falta un párrafo, va en la ficha de al lado. Añadir uno es
+añadir una entrada en `pases`; la altura de la sección se calcula sola con
+`--pases`.
 
 La hoja de vida vive en `public/documentos/`: el PDF que se descarga y sus
 páginas en JPEG, que son las que se ven en la ventana (un PDF embebido no se

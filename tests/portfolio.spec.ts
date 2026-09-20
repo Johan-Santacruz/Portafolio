@@ -526,55 +526,56 @@ test("las secciones se solapan y se funden sin borde", async ({ page }) => {
     .toBeGreaterThan(0.99);
 });
 
-test("la trayectoria recorre un apartado por pantalla y abre la hoja de vida", async ({
+test("la trayectoria pasa las credenciales y abre la hoja de vida", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
   const tray = page.locator("#trayectoria");
-  const paradas = tray.locator(".tray-parada");
-  await expect(paradas).toHaveCount(4);
-  await expect(paradas.locator("h3")).toHaveText([
-    "Experiencia",
-    "Investigación",
-    "Formación",
-    "Idiomas",
+  const pases = tray.locator(".tray-pase");
+  await expect(pases).toHaveCount(5);
+  await expect(pases.locator(".tray-donde")).toHaveText([
+    "Familia Insurances",
+    "SALA AI Summit",
+    "IEEE · AMITIC",
+    "Grupo PADIA",
+    "Ingeniería de Sistemas",
   ]);
-  await expect(tray).toContainText("Familia Insurances");
-  await expect(tray).toContainText("Ingeniería de Sistemas");
+  await expect(tray).toContainText("Massachusetts");
+  await expect(tray).toContainText("Inglés");
 
-  const { inicio, porParada, alto } = await tray.evaluate((s) => {
+  const { inicio, porPase, alto } = await tray.evaluate((s) => {
     const sonda = s.querySelector<HTMLElement>(".tray-sonda")!;
-    const n = s.querySelectorAll(".tray-parada").length;
+    const n = s.querySelectorAll(".tray-pase").length;
     return {
       inicio: (s as HTMLElement).offsetTop,
-      porParada: (sonda.offsetTop - innerHeight) / n,
+      porPase: (sonda.offsetTop - innerHeight) / n,
       alto: innerHeight,
     };
   });
   const p = () => tray.evaluate((s) => Number(s.style.getPropertyValue("--p")));
-  const activa = () =>
-    tray.locator('.tray-parada[data-estado="activa"] h3').textContent();
+  const activo = () =>
+    tray.locator('.tray-pase[data-estado="activa"] .tray-donde').textContent();
 
-  // Al entrar, la primera; el carril no se ha movido.
+  // Al entrar, el primero; la pila no se ha movido.
   await page.evaluate((y) => window.scrollTo(0, y), inicio);
   await expect.poll(p).toBeLessThan(0.1);
-  await expect.poll(activa).toBe("Experiencia");
-  // A mitad del recorrido, una parada del medio, y el carril ya se desplazó.
+  await expect.poll(activo).toBe("Familia Insurances");
+  // A mitad, uno del medio.
   await page.evaluate(
     (y) => window.scrollTo(0, y),
-    inicio + alto * 0.05 + porParada * 2.5,
+    inicio + alto * 0.05 + porPase * 2.5,
   );
   await expect.poll(p).toBeGreaterThan(1.8);
-  await expect.poll(activa).toBe("Formación");
-  // Al final, la última.
+  await expect.poll(activo).toBe("IEEE · AMITIC");
+  // Al final, el último, y la ficha muestra su año.
   await page.evaluate(
     (y) => window.scrollTo(0, y),
-    inicio + alto * 0.05 + porParada * 3.7,
+    inicio + alto * 0.05 + porPase * 4.6,
   );
-  await expect.poll(activa).toBe("Idiomas");
-  expect(await p()).toBeCloseTo(3, 1);
+  await expect.poll(activo).toBe("Ingeniería de Sistemas");
+  expect(await p()).toBeCloseTo(4, 1);
 
   // La hoja de vida se ve sin salir de la página y se puede descargar.
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
