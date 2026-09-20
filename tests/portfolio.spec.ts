@@ -260,9 +260,10 @@ test("el cierre sale de la niebla con el scroll y deja el contacto a mano", asyn
   // Con las tipografías cargadas: la página encoge unos px al llegar.
   await page.evaluate(() => document.fonts.ready);
   const cierre = page.locator("#contacto");
-  const { inicio, largo } = await cierre.evaluate((s) => ({
+  const { inicio, largo, alto } = await cierre.evaluate((s) => ({
     inicio: s.offsetTop,
     largo: s.offsetHeight - innerHeight,
+    alto: innerHeight,
   }));
   const velo = () =>
     page
@@ -271,9 +272,13 @@ test("el cierre sale de la niebla con el scroll y deja el contacto a mano", asyn
   const pintado = () =>
     page.locator(".cierre-video").evaluate((c: HTMLCanvasElement) => c.width > 0);
 
-  // Al entrar: la niebla lo tapa todo.
-  await page.evaluate((y) => window.scrollTo(0, y), inicio);
+  // Al asomar por abajo: la niebla lo tapa todo.
+  await page.evaluate((y) => window.scrollTo(0, y), inicio - alto);
   await expect.poll(velo).toBeGreaterThan(0.95);
+  expect(await cierre.getAttribute("data-texto")).toBeNull();
+  // A media llegada la niebla ya se ha abierto: la figura no se hace esperar.
+  await page.evaluate((y) => window.scrollTo(0, y), inicio - alto * 0.5);
+  await expect.poll(velo).toBe(0);
   expect(await cierre.getAttribute("data-texto")).toBeNull();
 
   // Al final: sin niebla, con el vídeo pintado y el correo a la vista.

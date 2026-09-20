@@ -84,15 +84,20 @@ export function Cierre() {
     const medir = () => {
       pendiente = false;
       const caja = raiz.getBoundingClientRect();
-      const largo = caja.height - window.innerHeight;
-      const avance = largo > 0 ? Math.min(1, Math.max(0, -caja.top / largo)) : 0;
+      const alto = window.innerHeight;
+      const largo = caja.height - alto;
+      // El avance arranca en cuanto la sección asoma por abajo, no cuando
+      // queda pegada arriba: si no, la figura tardaba una pantalla entera en
+      // empezar a salir de la niebla. A 0,5 la sección ya está pegada.
+      const avance =
+        largo > 0 ? Math.min(1, Math.max(0, (alto - caja.top) / (alto + largo))) : 0;
       raiz.style.setProperty("--avance", avance.toFixed(4));
       // Llegada: de 0 cuando la sección asoma por abajo a 1 cuando toca arriba.
-      const llegada = Math.min(1, Math.max(0, 1 - caja.top / window.innerHeight));
+      const llegada = Math.min(1, Math.max(0, 1 - caja.top / alto));
       raiz.style.setProperty("--llegada", llegada.toFixed(4));
-      raiz.toggleAttribute("data-texto", avance > 0.45);
-      // El vídeo ocupa el 70 % del recorrido; el resto, quieto al final.
-      const t = Math.min(1, avance / 0.7);
+      raiz.toggleAttribute("data-texto", avance > 0.62);
+      // El vídeo ocupa el 85 % del recorrido; el resto, quieto al final.
+      const t = Math.min(1, avance / 0.85);
       pedido = Math.round(t * (FOTOGRAMAS - 1));
       secuencia.pedir(pedido);
       if (pedido !== pintado) pintar(pedido);
