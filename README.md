@@ -152,17 +152,35 @@ sección en `requestAnimationFrame`) y todo se anula con `prefers-reduced-motion
   las placas de los lenguajes que viajan por él aterrizan en su casilla de la
   sección, que las releva en el mismo píxel.
 - No hay bordes entre secciones: las placas del túnel cruzan el borde de la
-  sección mientras entra (recorte solo horizontal); al acabar las
-  herramientas, su consola teclea `ls ./proyectos`, se pone en negro y la
-  cámara hace zoom hacia ella hasta que el terminal llena la pantalla, que ya
-  es el fondo de Proyectos (llega por encima, con esa orden como rótulo); y
-  tras el último proyecto una luz crece hasta llenar la pantalla del blanco de
-  Cierre, que llega por encima igual.
+  sección mientras entra (recorte solo horizontal); al acabar las herramientas
+  un agujero negro se las traga (cada pieza cae al centro girando y volviéndose
+  clara) hasta dejar la pantalla en negro, que ya es el fondo de Proyectos, y
+  ahí se teclea `ls ./proyectos`, que es su rótulo; y tras el último proyecto
+  una luz crece hasta llenar la pantalla del blanco de Cierre, que llega por
+  encima igual.
 - El cierre saca la figura de la niebla con el scroll.
 
 Cada sección solo mide su posición mientras está a la vista (`cercania.ts`):
 medir las lejanas fuerza recálculos de estilo que se notaban como tirones. En
 escritorio, Lenis suaviza la rueda (`suave.ts`).
+
+### El agujero negro
+
+La transición de herramientas a proyectos reproduce con el scroll los
+fotogramas de `video6.mp4` (generado con IA a partir del prompt que hay en el
+historial: agujero negro minimalista, fondo blanco, un anillo lima, sin
+estrellas, cámara fija). Se recorta al tramo con movimiento y se le llevan el
+blanco y el negro a los de la página, para que empalme sin saltos:
+
+```bash
+F="format=rgb24,lutrgb=r='clip(15+val*0.9597,0,255)':g='clip(17+val*0.9516,0,255)':b='clip(19+val*0.9435,0,255)',fps=52/8.35"
+ffmpeg -ss 1.4 -to 9.75 -i video6.mp4 -vf "$F,scale=1280:720:flags=lanczos,format=yuvj420p" \
+  -start_number 0 -q:v 5 public/imagenes/agujero/f%03d.jpg
+ffmpeg -ss 1.4 -to 9.75 -i video6.mp4 -vf "$F,scale=320:180:flags=lanczos,format=yuvj420p" \
+  -start_number 0 -q:v 13 public/imagenes/agujero-mini/f%03d.jpg
+```
+
+Si cambia el número de fotogramas, ajusta `FOTOGRAMAS` en `Herramientas.tsx`.
 
 ## Publicación
 

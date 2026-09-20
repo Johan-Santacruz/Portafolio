@@ -2,10 +2,16 @@ import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import { iconos, stack } from "../datos/stack";
 import { vigilarCercania } from "../retrato/cercania";
+import { SecuenciaFotogramas } from "../retrato/secuencia";
 import { Tunel } from "./Tunel";
 import "./Herramientas.css";
 
 const ICONOS = `${import.meta.env.BASE_URL}iconos/`;
+/** Fotogramas del agujero negro (de `video6.mp4`, con el blanco y el negro
+ *  llevados a los de la página). Ver README, «Movimiento». */
+const AGUJERO = `${import.meta.env.BASE_URL}imagenes/agujero/`;
+const AGUJERO_MINI = `${import.meta.env.BASE_URL}imagenes/agujero-mini/`;
+const FOTOGRAMAS = 52;
 
 /**
  * Herramientas como una lista de palabras que pasa por un lector.
@@ -45,6 +51,8 @@ export function Herramientas() {
     const grupos = Array.from(raiz.querySelectorAll<HTMLElement>(".herr-grupo"));
     // Mide --tunel en px (svh no se puede leer desde CSS).
     const sonda = raiz.querySelector<HTMLElement>(".herr-sonda");
+    const sondaAgujero = raiz.querySelector<HTMLElement>(".herr-sonda-agujero");
+    const lienzo = raiz.querySelector<HTMLCanvasElement>(".herr-agujero");
     const fijo = raiz.querySelector<HTMLElement>(".herr-fijo");
     const palabras = raiz.querySelector<HTMLElement>(".herr-palabras");
     const marca = raiz.querySelector<HTMLElement>(".herr-marca");
@@ -68,25 +76,15 @@ export function Herramientas() {
       const w = destino.offsetWidth;
       destino.style.setProperty("--sx", `${f.width / 2 - (x + w / 2)}px`);
       destino.style.setProperty("--sy", `${f.height / 2 - y}px`);
-      // La consola: de su recuadro nace la pantalla negra de Proyectos
-      // (posición y tamaño respecto a la pantalla fija, ver .herr-velo).
-      const consola = grupos[0]?.querySelector<HTMLElement>(".herr-consola");
-      if (consola) {
-        const c = consola.getBoundingClientRect();
-        raiz.style.setProperty("--vx", `${(c.left - f.left).toFixed(1)}px`);
-        raiz.style.setProperty("--vy", `${(c.top - f.top).toFixed(1)}px`);
-        raiz.style.setProperty("--vw", (c.width / f.width).toFixed(4));
-        raiz.style.setProperty("--vh", (c.height / f.height).toFixed(4));
-        // La orden tecleada viaja hasta donde queda el rótulo de Proyectos
-        // (que es esa misma orden) cuando la sección ocupa la pantalla.
-        const rotulo = document.querySelector<HTMLElement>(".proy-rotulo");
-        const seccionProy = rotulo?.closest("section");
-        if (rotulo && seccionProy) {
-          const r = rotulo.getBoundingClientRect();
-          const s = seccionProy.getBoundingClientRect();
-          raiz.style.setProperty("--lx", `${(r.left - s.left - (c.left - f.left) - 20).toFixed(1)}px`);
-          raiz.style.setProperty("--ly", `${(r.top - s.top - (c.top - f.top) - 16).toFixed(1)}px`);
-        }
+      // La orden que se teclea al final aparece exactamente donde quedará el
+      // rótulo de Proyectos, que es esa misma orden.
+      const rotulo = document.querySelector<HTMLElement>(".proy-rotulo");
+      const seccionProy = rotulo?.closest("section");
+      if (rotulo && seccionProy) {
+        const r = rotulo.getBoundingClientRect();
+        const s = seccionProy.getBoundingClientRect();
+        raiz.style.setProperty("--ox", `${(r.left - s.left).toFixed(1)}px`);
+        raiz.style.setProperty("--oy", `${(r.top - s.top).toFixed(1)}px`);
       }
       // Casilla de cada placa del primer grupo, respecto al centro de la
       // pantalla: ahí aterrizan las placas del túnel (ver Tunel.css).
@@ -98,6 +96,30 @@ export function Herramientas() {
         placa.style.setProperty("--tx", `${r.left + r.width / 2 - (f.left + f.width / 2)}px`);
         placa.style.setProperty("--ty", `${r.top + r.height / 2 - (f.top + f.height / 2)}px`);
       });
+    };
+    // Succión: cada pieza de la sección guarda su vector hacia el centro de
+    // la pantalla, para caer dentro del agujero. Se mide la primera vez que
+    // el agujero entra en juego, cuando la lista ya está en su última
+    // posición; al redimensionar se vuelve a medir.
+    const PIEZAS =
+      ".herr-cabecera, .herr-marca, .herr-riel, .herr-palabras li," +
+      " .herr-grupo[data-estado='activo'] .herr-placa," +
+      " .herr-grupo[data-estado='activo'] .herr-consola";
+    let medidas = false;
+    const medirSuccion = () => {
+      if (!fijo) return;
+      const f = fijo.getBoundingClientRect();
+      const cx = f.left + f.width / 2;
+      const cy = f.top + f.height / 2;
+      raiz.querySelectorAll<HTMLElement>(PIEZAS).forEach((el, i) => {
+        const r = el.getBoundingClientRect();
+        el.style.setProperty("--ax", `${(cx - (r.left + r.width / 2)).toFixed(1)}px`);
+        el.style.setProperty("--ay", `${(cy - (r.top + r.height / 2)).toFixed(1)}px`);
+        // Giro alterno y arranque escalonado: caen en desorden, no a la vez.
+        el.style.setProperty("--ag", `${(i % 2 ? 1 : -1) * (18 + (i % 3) * 14)}deg`);
+        el.style.setProperty("--ar", ((i % 5) * 0.05).toFixed(2));
+      });
+      medidas = true;
     };
     const total = grupos.length;
     let activo = -1;
@@ -117,6 +139,56 @@ export function Herramientas() {
     const limitar = (v: number) => Math.min(1, Math.max(0, v));
     // Curva suave (arranca y frena despacio).
     const suave = (v: number) => v * v * (3 - 2 * v);
+
+    // --- El agujero negro: secuencia de fotogramas, como la portada -------
+    const ctx = lienzo?.getContext("2d") ?? null;
+    let pintadoAgujero = -1;
+    let pedido = 0;
+    const pintarAgujero = (quiero: number) => {
+      const img = secuencia.mejor(quiero);
+      if (!img || !lienzo || !ctx) return;
+      // Sin más resolución que la del fotograma (ver Retrato.tsx).
+      const cubreCaja = Math.max(lienzo.clientWidth / 1280, lienzo.clientHeight / 720);
+      const dpr = Math.min(window.devicePixelRatio || 1, Math.max(1, 1 / cubreCaja));
+      const ancho = lienzo.clientWidth;
+      const alto = lienzo.clientHeight;
+      const w = Math.round(ancho * dpr);
+      const h = Math.round(alto * dpr);
+      if (lienzo.width !== w || lienzo.height !== h) {
+        lienzo.width = w;
+        lienzo.height = h;
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // Como object-fit: cover, centrado: el agujero nace en el centro de la
+      // pantalla y acaba cubriéndola entera.
+      const iw = img.naturalWidth;
+      const ih = img.naturalHeight;
+      const escala = Math.max(ancho / iw, alto / ih);
+      const dw = iw * escala;
+      const dh = ih * escala;
+      ctx.drawImage(img, (ancho - dw) / 2, (alto - dh) / 2, dw, dh);
+      pintadoAgujero = quiero;
+    };
+    const secuencia = new SecuenciaFotogramas(
+      FOTOGRAMAS,
+      (i) => `${AGUJERO}f${String(i).padStart(3, "0")}.jpg`,
+      (i) => {
+        if (pintadoAgujero < 0 || Math.abs(i - pedido) <= 2) pintarAgujero(pedido);
+      },
+      8,
+      (i) => `${AGUJERO_MINI}f${String(i).padStart(3, "0")}.jpg`,
+    );
+    // Se empieza a cargar cuando el lector va por la mitad: no compite con el
+    // túnel ni con la portada.
+    const vigiaAgujero = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return;
+        vigiaAgujero.disconnect();
+        secuencia.empezar();
+      },
+      { rootMargin: "0px 0px 100% 0px" },
+    );
+    if (sondaAgujero) vigiaAgujero.observe(sondaAgujero);
 
     // Velocidad del túnel (0 a 1): sube de golpe al bajar rápido y se
     // apaga sola en unos cientos de ms cuando el scroll se detiene.
@@ -145,6 +217,7 @@ export function Herramientas() {
       // la cola (--cola): la última pantalla, que Proyectos cubre al llegar.
       const tunel = sonda?.offsetTop ?? 0;
       const cola = sonda?.offsetHeight ?? 0;
+      const agujero = sondaAgujero?.offsetHeight ?? 0;
       // Cubierta: de 0 cuando Proyectos asoma por abajo a 1 cuando tapa la
       // pantalla; la sección se hunde un poco y se oscurece por debajo.
       const cubre = limitar((alto + cola - caja.bottom) / Math.max(1, cola));
@@ -168,7 +241,7 @@ export function Herramientas() {
       raiz.style.setProperty("--asienta", suave(limitar((pt - 0.8) / 0.12)).toFixed(4));
       raiz.style.setProperty("--llegada", suave(limitar((pt - 0.9) / 0.08)).toFixed(4));
       // Después, el lector recorre las categorías con el resto del scroll.
-      const largo = caja.height - alto - tunel - cola;
+      const largo = caja.height - alto - tunel - cola - agujero;
       const avance = largo > 0 ? limitar((-caja.top - tunel) / largo) : 0;
       const tramo = Math.min(
         1,
@@ -176,13 +249,19 @@ export function Herramientas() {
       );
       const p = conReposo(tramo * (total - 1));
       raiz.style.setProperty("--p", p.toFixed(4));
-      // Al final del lector, la consola se pone en negro, teclea la orden
-      // siguiente (--apaga) y la cámara hace zoom hacia ella hasta que su
-      // pantalla llena la de verdad (--crece): ese negro ya es Proyectos, que
-      // llega por encima sin borde.
-      const apaga = limitar((avance - 0.82) / 0.18);
-      raiz.style.setProperty("--apaga", apaga.toFixed(4));
-      raiz.style.setProperty("--crece", suave(limitar((apaga - 0.35) / 0.65)).toFixed(4));
+      // Tras el lector, una pantalla más (--agujero) en la que un agujero
+      // negro se traga la sección: el contenido cae hacia el centro y la
+      // secuencia avanza hasta el negro, que ya es el fondo de Proyectos.
+      const traga = limitar((-caja.top - tunel - largo) / Math.max(1, agujero));
+      if (traga > 0 && !medidas) medirSuccion();
+      raiz.style.setProperty("--traga", traga.toFixed(4));
+      raiz.toggleAttribute("data-traga", traga > 0);
+      const cuadro = Math.round(traga * (FOTOGRAMAS - 1));
+      if (cuadro !== pedido) {
+        pedido = cuadro;
+        secuencia.pedir(pedido);
+      }
+      if (traga > 0 || pintadoAgujero >= 0) pintarAgujero(pedido);
       const nuevo = Math.round(p);
       if (nuevo > 0) movido = true;
       if (pt < 1) movido = false;
@@ -205,6 +284,7 @@ export function Herramientas() {
     };
     const alRedimensionar = () => {
       colocarDestino();
+      medidas = false;
       alScroll();
     };
     colocarDestino();
@@ -218,6 +298,8 @@ export function Herramientas() {
     window.addEventListener("resize", alRedimensionar);
     return () => {
       dejarDeVigilar();
+      vigiaAgujero.disconnect();
+      secuencia.detener();
       cancelAnimationFrame(rafVel);
       window.removeEventListener("scroll", alScroll);
       window.removeEventListener("resize", alRedimensionar);
@@ -233,8 +315,11 @@ export function Herramientas() {
       style={{ "--n": stack.length } as CSSProperties}
     >
       <span className="herr-sonda" aria-hidden="true" />
+      <span className="herr-sonda-agujero" aria-hidden="true" />
       <div className="herr-fijo">
         <Tunel />
+        {/* El agujero negro crece detrás del contenido, que cae dentro. */}
+        <canvas className="herr-agujero" aria-hidden="true" />
         <span className="herr-destino" aria-hidden="true">
           {stack[0].palabra ?? stack[0].titulo}
         </span>
@@ -311,10 +396,7 @@ export function Herramientas() {
           ))}
         </div>
       </div>
-      {/* La pantalla negra que nace de la consola y crece hasta llenar la
-          pantalla, y la orden que se teclea en ella (aparte, para que no se
-          deforme con el zoom). */}
-      <div className="herr-velo" aria-hidden="true" />
+      {/* Sobre el negro ya total, la orden, donde irá el rótulo de Proyectos. */}
       <div className="herr-final" aria-hidden="true">
         <p className="herr-final-orden">
           <span className="herr-prompt">~ $</span>

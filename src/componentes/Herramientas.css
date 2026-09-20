@@ -10,14 +10,10 @@
   --asienta: 0;
   --llegada: 0;
   --cubre: 0;
-  --apaga: 0;
-  --crece: 0;
-  /* Recuadro de la consola respecto a la pantalla fija (lo mide
-     Herramientas.tsx): de ahí nace la pantalla negra de Proyectos. */
-  --vx: 60vw;
-  --vy: 70vh;
-  --vw: 0.3;
-  --vh: 0.1;
+  /* Cuánto se ha tragado el agujero negro la sección (0 a 1). */
+  --traga: 0;
+  /* Una pantalla más al final para el agujero negro. */
+  --agujero: 90svh;
   /* Tramo fijo del túnel antes del lector (la sonda lo mide en px). */
   --tunel: 150svh;
   /* Cola: una pantalla más al final, en la que Proyectos se desliza por
@@ -32,7 +28,8 @@
   overflow: clip visible;
   --por-categoria: 55svh;
   height: calc(
-    100svh + var(--tunel) + var(--n) * var(--por-categoria) + var(--cola)
+    100svh + var(--tunel) + var(--n) * var(--por-categoria) + var(--agujero) +
+      var(--cola)
   );
   background: #fdfdfe;
   color: var(--ink);
@@ -52,68 +49,105 @@
   align-items: center;
   column-gap: clamp(32px, 4vw, 72px);
   padding-inline: max(var(--aire), (100% - var(--ancho)) / 2);
-  /* Zoom de cámara hacia la consola al final: todo se agranda alrededor
-     de ella mientras su pantalla crece hasta llenar la de verdad. */
-  transform-origin: calc(var(--vx) + var(--vw) * 50%) calc(var(--vy) + var(--vh) * 50%);
-  transform: scale(calc(1 + var(--crece) * 0.5));
 }
-/* La pantalla negra de Proyectos nace en el recuadro de la consola (se
-   enciende en negro, --apaga) y crece con el zoom (--crece) hasta llenar la
-   pantalla; Proyectos llega por encima con ese mismo fondo: no hay borde que
-   ver. Es otra capa fija sobre la misma pantalla; solo cambia su transform. */
-.herr-velo {
-  position: sticky;
-  z-index: 1;
-  top: 0;
-  height: 100svh;
-  margin-top: -100svh;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.018) 0 1px,
-      transparent 1px 4px
-    ),
-    #0f1113;
-  transform-origin: 0 0;
-  transform: translate(
-      calc(var(--vx) * (1 - var(--crece))),
-      calc(var(--vy) * (1 - var(--crece)))
+/* --- Succión ---------------------------------------------------------------------
+   El agujero se come la sección: cada pieza cae hacia el centro de la
+   pantalla (su vector --ax, --ay lo mide Herramientas.tsx), girando y
+   encogiéndose hasta desaparecer dentro. Arrancan escalonadas (--ar), así
+   caen en desorden. */
+.herramientas[data-traga] .herr-cabecera,
+.herramientas[data-traga] .herr-marca,
+.herramientas[data-traga] .herr-riel,
+.herramientas[data-traga] .herr-palabras li,
+.herramientas[data-traga] .herr-grupo[data-estado="activo"] .herr-placa,
+.herramientas[data-traga] .herr-grupo[data-estado="activo"] .herr-consola {
+  --s0: clamp(0, (var(--traga) - var(--ar, 0)) / 0.62, 1);
+  /* Acelera al acercarse, como una caída. */
+  --s: calc(var(--s0) * var(--s0) * var(--s0));
+  transform: translate3d(
+      calc(var(--ax, 0px) * var(--s)),
+      calc(var(--ay, 0px) * var(--s)),
+      0
     )
-    scale(
-      calc(var(--vw) + (1 - var(--vw)) * var(--crece)),
-      calc(var(--vh) + (1 - var(--vh)) * var(--crece))
-    );
-  /* Al nacer tiene la forma de la consola (chaflanes y filete lima), medidos
-     en el espacio ya escalado; se enderezan al crecer. */
-  --cx: calc(12px / var(--vw) * (1 - var(--crece)));
-  --cy: calc(12px / var(--vh) * (1 - var(--crece)));
-  clip-path: polygon(
-    0 0,
-    calc(100% - var(--cx)) 0,
-    100% var(--cy),
-    100% 100%,
-    var(--cx) 100%,
-    0 calc(100% - var(--cy))
-  );
-  box-shadow: inset calc(3px / var(--vw) * (1 - var(--crece))) 0 0 var(--accent);
-  opacity: clamp(0, var(--apaga) * 6, 1);
-  will-change: transform;
-  pointer-events: none;
+    scale(calc(1 - var(--s) * 0.92))
+    rotate(calc(var(--s) * var(--ag, 20deg)));
+  opacity: calc(1 - clamp(0, (var(--s0) - 0.55) / 0.35, 1));
+  transition: none;
 }
-/* La orden que se teclea en la pantalla negra, en el sitio de la consola;
-   va aparte para que el zoom no la deforme. */
+/* La palabra encendida ya llevaba su propio desplazamiento. */
+.herramientas[data-traga] .herr-palabras li {
+  transform: translate3d(
+      calc(var(--luz) * 10px + var(--ax, 0px) * var(--s)),
+      calc(var(--ay, 0px) * var(--s)),
+      0
+    )
+    scale(calc(1 - var(--s) * 0.92))
+    rotate(calc(var(--s) * var(--ag, 20deg)));
+}
+/* Las piezas de tinta oscura se vuelven claras al entrar en el agujero: si
+   no, se perderían contra el negro justo cuando son más visibles. */
+.herramientas[data-traga] .herr-cabecera h2,
+.herramientas[data-traga] .herr-grupo[data-estado="activo"] .herr-consola p {
+  color: color-mix(in srgb, #eef0f2 calc(var(--s, 0) * 100%), var(--tinta));
+}
+.herramientas[data-traga] .herr-rotulo,
+.herramientas[data-traga] .herr-grupo[data-estado="activo"] .herr-salida {
+  color: color-mix(in srgb, #eef0f2 calc(var(--s, 0) * 100%), rgba(23, 24, 21, 0.6));
+}
+.herramientas[data-traga] .herr-palabras li {
+  -webkit-text-stroke-color: color-mix(
+    in srgb,
+    rgba(238, 240, 242, 0.8) calc(var(--s) * 100%),
+    rgba(29, 31, 34, 0.24)
+  );
+}
+.herramientas[data-traga] .herr-palabras li::after {
+  color: color-mix(in srgb, #eef0f2 calc(var(--s) * 100%), var(--tinta));
+  -webkit-text-stroke-color: color-mix(
+    in srgb,
+    #eef0f2 calc(var(--s) * 100%),
+    var(--tinta)
+  );
+}
+/* La consola pierde su cuadro claro al caer. */
+.herramientas[data-traga] .herr-grupo[data-estado="activo"] .herr-consola {
+  background: rgb(23 24 21 / calc(0.035 * (1 - var(--s, 0))));
+  box-shadow:
+    inset 3px 0 0 var(--accent),
+    inset 0 0 0 1px rgb(23 24 21 / calc(0.08 * (1 - var(--s, 0))));
+}
+/* La rejilla del plano se apaga sin más: no es una pieza. */
+.herramientas[data-traga] .herr-fijo::before {
+  opacity: calc(1 - clamp(0, var(--traga) / 0.4, 1));
+}
+/* --- El agujero negro -----------------------------------------------------------
+   Capa fija sobre la pantalla de herramientas. La secuencia (`video6.mp4`)
+   empieza en el blanco de esta sección y acaba en el negro de Proyectos, que
+   llega por encima con ese mismo fondo: no hay borde que ver. El lienzo solo
+   aparece cuando el agujero está en juego. */
 .herr-final {
   position: sticky;
-  z-index: 2;
+  z-index: 3;
   top: 0;
   height: 100svh;
   margin-top: -100svh;
   pointer-events: none;
 }
+.herr-agujero {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: clamp(0, var(--traga) * 40, 1);
+}
+/* La orden se teclea sobre el negro, ya en el sitio del rótulo de Proyectos,
+   y se queda hasta que ese rótulo la releva. */
 .herr-final-orden {
   position: absolute;
-  left: calc(var(--vx) + 20px);
-  top: calc(var(--vy) + 16px);
+  left: var(--ox, 50%);
+  top: var(--oy, 96px);
   display: flex;
   white-space: nowrap;
   font-family: "JetBrains Mono", ui-monospace, monospace;
@@ -121,13 +155,10 @@
   font-size: clamp(13px, 1vw, 15px);
   line-height: 1.7;
   color: rgba(238, 240, 242, 0.7);
-  /* Se queda hasta que el rótulo de Proyectos la releva en ese mismo sitio. */
   opacity: calc(
-    clamp(0, (var(--apaga) - 0.12) * 12, 1) * (1 - clamp(0, (var(--cubre) - 0.96) / 0.04, 1))
+    clamp(0, (var(--traga) - 0.88) / 0.08, 1) *
+      (1 - clamp(0, (var(--cubre) - 0.96) / 0.04, 1))
   );
-  /* Con el zoom viaja hasta el sitio del rótulo de Proyectos (--lx, --ly). */
-  transform: translate(calc(var(--lx, 0px) * var(--crece)), calc(var(--ly, 0px) * var(--crece)));
-  will-change: transform;
 }
 .herr-final-orden .herr-prompt {
   margin-right: 0.8ch;
@@ -135,7 +166,7 @@
   color: var(--accent);
 }
 .herr-final-tecleo {
-  --t: clamp(0, (var(--apaga) - 0.16) / 0.4, 1);
+  --t: clamp(0, (var(--traga) - 0.9) / 0.09, 1);
   display: inline-block;
   overflow: hidden;
   width: calc(var(--t) * 14ch);
@@ -149,6 +180,7 @@
   background: var(--accent);
   animation: herr-cursor 1s steps(2, jump-none) infinite;
 }
+
 /* Lo propio de la sección emerge desde el fondo al final del túnel, en la
    misma pantalla: parece que llega, no que se baja hasta ella. */
 .herr-cabecera,
@@ -158,13 +190,20 @@
 .herr-fijo::before {
   opacity: var(--llegada);
 }
-.herr-sonda {
+.herr-sonda,
+.herr-sonda-agujero {
   position: absolute;
   top: var(--tunel);
   width: 1px;
   height: var(--cola);
   visibility: hidden;
   pointer-events: none;
+}
+/* La sonda del agujero va al final, justo antes de la cola. */
+.herr-sonda-agujero {
+  top: auto;
+  bottom: var(--cola);
+  height: var(--agujero);
 }
 /* «LENGUAJES» al fondo del túnel: nace diminuto en el punto de fuga, crece
    con el acercamiento (--acerca, curva cuadrática, como una perspectiva) y
@@ -196,6 +235,7 @@
 .herr-fijo::before {
   content: "";
   position: absolute;
+  z-index: 1;
   inset: 0;
   pointer-events: none;
   background:
@@ -244,6 +284,7 @@
    encendida en el centro, en contorno a una fila, apagándose más lejos. */
 .herr-lector {
   position: relative;
+  z-index: 1;
   height: 100%;
   font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
   font-weight: 700;
@@ -329,6 +370,7 @@
    consola abajo. */
 .herr-bandeja {
   position: relative;
+  z-index: 1;
   height: 100%;
   display: grid;
 }
@@ -513,6 +555,7 @@
 /* --- Riel de progreso: una muesca por categoría, la actual en lima. -------- */
 .herr-riel {
   position: absolute;
+  z-index: 1;
   right: max(var(--aire), (100% - var(--ancho)) / 2);
   top: 50%;
   translate: 0 -50%;
@@ -538,6 +581,7 @@
   .herramientas {
     --por-categoria: 42svh;
     --tunel: 120svh;
+    --agujero: 75svh;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -545,8 +589,12 @@
     --tunel: 0svh;
     --llegada: 1 !important;
   }
-  .herr-destino {
+  .herr-destino,
+  .herr-final {
     display: none;
+  }
+  .herramientas {
+    --agujero: 0svh;
   }
   .herramientas[data-fase="tunel"] .herr-grupo:first-child .herr-placa {
     opacity: 1;

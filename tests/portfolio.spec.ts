@@ -469,6 +469,8 @@ test("en escritorio el scroll con la rueda se desliza y el túnel reacciona a la
 });
 
 test("las secciones se solapan y se funden sin borde", async ({ page }) => {
+  // Con movimiento reducido no hay agujero negro y la sección mide menos.
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
   // Con las tipografías cargadas: la página encoge unos px al llegar.
   await page.evaluate(() => document.fonts.ready);
@@ -489,10 +491,12 @@ test("las secciones se solapan y se funden sin borde", async ({ page }) => {
   expect(Math.abs(proyFin - cierreInicio - alto * 0.65)).toBeLessThan(3);
   const v = (sel: string, n: string) =>
     page.locator(sel).evaluate((s, n) => Number(s.style.getPropertyValue(n)), n);
-  // Cuando Proyectos asoma, Herramientas ya está apagada a su mismo negro.
+  // Cuando Proyectos asoma, el agujero negro ya se ha tragado Herramientas
+  // y ha dejado la pantalla en ese mismo negro.
   await page.evaluate((y) => window.scrollTo(0, y), proyInicio - alto);
-  await expect.poll(() => v("#herramientas", "--apaga")).toBe(1);
-  await expect(page.locator(".herr-velo")).toHaveCSS("opacity", "1");
+  await expect.poll(() => v("#herramientas", "--traga")).toBe(1);
+  await expect(page.locator(".herr-agujero")).toHaveCSS("opacity", "1");
+  await expect(page.locator(".herr-final-tecleo")).toHaveText("ls ./proyectos");
   await expect.poll(() => v("#proyectos", "--cubre")).toBeLessThan(0.02);
   // A media cubierta, las estelas se van encendiendo con la sección.
   await page.evaluate((y) => window.scrollTo(0, y), proyInicio - alto / 2);
