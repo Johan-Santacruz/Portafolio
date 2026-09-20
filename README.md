@@ -151,10 +151,11 @@ sección en `requestAnimationFrame`) y todo se anula con `prefers-reduced-motion
 - De la portada a las herramientas se pasa por un túnel en 3D (`Tunel.tsx`);
   las placas de los lenguajes que viajan por él aterrizan en su casilla de la
   sección, que las releva en el mismo píxel.
-- Las secciones no se empujan: cada una se desliza por encima de la anterior
-  (margen negativo de una pantalla), con una costura lima por la que corre un
-  destello y se teclea una orden (`Borde.tsx`); la pantalla cubierta se hunde y
-  se oscurece.
+- No hay bordes entre secciones: las placas del túnel cruzan el borde de la
+  sección mientras entra (recorte solo horizontal), las herramientas se apagan
+  al negro de Proyectos antes de que este llegue por encima (margen negativo de
+  una pantalla) y Proyectos se funde al blanco de Cierre antes de que este haga
+  lo mismo.
 - El cierre saca la figura de la niebla con el scroll.
 
 Cada sección solo mide su posición mientras está a la vista (`cercania.ts`):

@@ -6,10 +6,10 @@
   --texto: #eef0f2;
   --apagado: #2e3237;
   --cubre: 0;
-  --borde-p: var(--cubre);
+  --fin: 0;
   /* Solape: la sección se desliza por encima de la última pantalla de
-     Herramientas (que le deja esa cola) y deja al final una pantalla más
-     para que Cierre haga lo mismo con ella. */
+     Herramientas (que le deja esa cola, ya apagada a este mismo negro) y
+     deja al final una pantalla más para que Cierre haga lo mismo con ella. */
   --solape: 100svh;
   position: relative;
   z-index: 2;
@@ -23,7 +23,7 @@
     #0f1113;
   color: var(--texto);
   padding: clamp(80px, 14svh, 160px) max(var(--aire), (100% - var(--ancho)) / 2)
-    calc(32svh + var(--solape));
+    var(--solape);
   font-family: "Chakra Petch", var(--display);
   overflow: clip;
 }
@@ -42,7 +42,22 @@
   object-fit: cover;
   /* Sin modo de mezcla: el vídeo ya es negro con luz, y sobre el fondo casi
      negro basta la opacidad (mezclar la pantalla entera cuesta mucho). */
-  opacity: 0.55;
+  /* Se encienden con la sección: en el borde con Herramientas todavía no
+     hay estelas, solo el mismo negro. */
+  opacity: calc(0.55 * var(--cubre));
+}
+/* Velo blanco al final: una pantalla en el flujo, que sube tras la última
+   fila como un banco de bruma (borde degradado) y se queda pegada arriba,
+   ya sólida, cuando Cierre llega por encima con el mismo blanco. */
+.proy-velo {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 100svh;
+  margin-top: 32svh;
+  background: linear-gradient(to bottom, rgb(253 253 254 / var(--fin)), #fdfdfe 50%);
+  opacity: clamp(0, var(--fin) * 2, 1);
+  pointer-events: none;
 }
 .proy-cabecera,
 .proy-lista {

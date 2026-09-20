@@ -4,7 +4,6 @@ import { perfil } from "../datos/perfil";
 import { Icono } from "./Icono";
 import { SecuenciaFotogramas } from "../retrato/secuencia";
 import { vigilarCercania } from "../retrato/cercania";
-import { Borde } from "./Borde";
 import "./Cierre.css";
 
 const CIERRE = `${import.meta.env.BASE_URL}imagenes/cierre/`;
@@ -213,8 +212,6 @@ export function Cierre() {
       aria-labelledby="titulo-cierre"
     >
       <div className="cierre-fijo" ref={fijo}>
-        {/* Costura con Proyectos: la sección llega por encima. */}
-        <Borde orden="open ./contacto" />
         <canvas ref={lienzo} className="cierre-video" aria-hidden="true" />
         {/* Niebla: un velo que se retira y bancos de bruma que se disipan. */}
         <div className="cierre-niebla" aria-hidden="true">

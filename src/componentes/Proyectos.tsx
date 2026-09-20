@@ -4,7 +4,6 @@ import { trabajos } from "../datos/trabajos";
 import type { Trabajo } from "../datos/trabajos";
 import { iconos } from "../datos/stack";
 import { Icono } from "./Icono";
-import { Borde } from "./Borde";
 import { vigilarCercania } from "../retrato/cercania";
 import "./Proyectos.css";
 
@@ -50,10 +49,15 @@ export function Proyectos() {
       pendiente = false;
       const alto = window.innerHeight;
       const centro = alto / 2;
+      const caja = raiz.getBoundingClientRect();
+      const limitar = (v: number) => Math.min(1, Math.max(0, v));
       // Cubierta: la sección se desliza sobre la anterior; de 0 al asomar por
-      // abajo a 1 al llenar la pantalla (la costura lee --borde-p).
-      const cubre = Math.min(1, Math.max(0, 1 - raiz.getBoundingClientRect().top / alto));
-      raiz.style.setProperty("--cubre", cubre.toFixed(4));
+      // abajo a 1 al llenar la pantalla (las estelas se encienden con ella).
+      raiz.style.setProperty("--cubre", limitar(1 - caja.top / alto).toFixed(4));
+      // Fin: antes de que Cierre llegue por encima, la sección se funde al
+      // blanco de Cierre (el velo mide una pantalla y la cola, otra).
+      const cola = raiz.querySelector<HTMLElement>(".proy-velo")?.offsetHeight ?? alto;
+      raiz.style.setProperty("--fin", limitar((2 * alto + cola - caja.bottom) / alto).toFixed(4));
       // Alcance: a qué distancia del centro una fila ya está apagada del todo.
       const alcance = alto * 0.22;
       for (const fila of filas) {
@@ -124,8 +128,6 @@ export function Proyectos() {
       id="proyectos"
       aria-labelledby="titulo-proyectos"
     >
-      {/* Costura con Herramientas: la sección llega por encima. */}
-      <Borde orden="ls ./proyectos" tono="oscuro" />
       {/* Estelas de luz lentas detrás de todo (de video5, aisladas sobre
           negro); se queda fija mientras se recorre la sección. */}
       <div className="proy-fondo" aria-hidden="true">
@@ -262,6 +264,9 @@ export function Proyectos() {
           </div>
         </dialog>
       )}
+    {/* Al final, la sección se funde al blanco antes de que Cierre llegue
+          por encima con ese mismo blanco. */}
+      <div className="proy-velo" aria-hidden="true" />
     </section>
   );
 }

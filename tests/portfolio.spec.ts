@@ -358,10 +358,25 @@ test("el túnel lleva a las herramientas sin salir de la pantalla", async ({
   }));
   const v = (n: string) =>
     seccion.evaluate((s, n) => Number(s.style.getPropertyValue(n)), n);
-  // Asomando: el túnel ya avanza y las herramientas aún no están.
+  // Asomando: el túnel ya avanza y las herramientas aún no están; las placas
+  // que salen por arriba cruzan el borde de la sección, sobre la portada.
   await page.evaluate((y) => window.scrollTo(0, y), inicio - alto * 0.5);
   await expect.poll(() => v("--pt")).toBeGreaterThan(0.05);
   expect(await v("--llegada")).toBe(0);
+  // En algún punto de la entrada hay placas asomando por encima del borde.
+  let cruzan = 0;
+  for (const f of [0.75, 0.6, 0.45, 0.3, 0.15]) {
+    await page.evaluate((y) => window.scrollTo(0, y), inicio - alto * f);
+    await page.waitForTimeout(150);
+    cruzan += await page.locator(".tunel-placa").evaluateAll((placas) => {
+      const borde = document.querySelector("#herramientas")!.getBoundingClientRect().top;
+      return placas.filter((p) => {
+        const r = p.getBoundingClientRect();
+        return Number(getComputedStyle(p).opacity) > 0.3 && r.top < borde - 10 && r.bottom > 0;
+      }).length;
+    });
+  }
+  expect(cruzan).toBeGreaterThan(0);
   // Justo antes de acabar, las placas de lenguajes del túnel ya están
   // encima de las casillas donde van las reales (que siguen ocultas).
   await page.evaluate((y) => window.scrollTo(0, y), inicio + tunel - 4);
@@ -445,10 +460,10 @@ test("en escritorio el scroll con la rueda se desliza y el túnel reacciona a la
   await expect.poll(vel, { timeout: 4000 }).toBe(0);
 });
 
-test("las secciones se solapan y la costura recorre la pantalla al cubrir", async ({
-  page,
-}) => {
+test("las secciones se solapan y se funden sin borde", async ({ page }) => {
   await page.goto("/");
+  // Con las tipografías cargadas: la página encoge unos px al llegar.
+  await page.evaluate(() => document.fonts.ready);
   const { herrFin, proyInicio, proyFin, cierreInicio, alto } = await page.evaluate(() => {
     const h = document.querySelector<HTMLElement>("#herramientas")!;
     const p = document.querySelector<HTMLElement>("#proyectos")!;
@@ -466,18 +481,17 @@ test("las secciones se solapan y la costura recorre la pantalla al cubrir", asyn
   expect(Math.abs(proyFin - cierreInicio - alto)).toBeLessThan(3);
   const v = (sel: string, n: string) =>
     page.locator(sel).evaluate((s, n) => Number(s.style.getPropertyValue(n)), n);
-  // A media cubierta, Herramientas sigue en pantalla, oscurecida, con la
-  // costura de Proyectos en el centro.
+  // Cuando Proyectos asoma, Herramientas ya está apagada a su mismo negro.
+  await page.evaluate((y) => window.scrollTo(0, y), proyInicio - alto);
+  await expect.poll(() => v("#herramientas", "--apaga")).toBe(1);
+  await expect(page.locator(".herr-velo")).toHaveCSS("opacity", "1");
+  await expect.poll(() => v("#proyectos", "--cubre")).toBeLessThan(0.02);
+  // A media cubierta, las estelas se van encendiendo con la sección.
   await page.evaluate((y) => window.scrollTo(0, y), proyInicio - alto / 2);
-  await expect.poll(() => v("#herramientas", "--cubre")).toBeCloseTo(0.5, 1);
   await expect.poll(() => v("#proyectos", "--cubre")).toBeCloseTo(0.5, 1);
-  const costura = await page.locator("#proyectos .borde").boundingBox();
-  expect(Math.abs(costura!.y - alto / 2)).toBeLessThan(3);
-  await expect(page.locator("#proyectos .borde-tecleo")).toHaveText("ls ./proyectos");
-  // Cubierta del todo: la costura se apaga.
-  await page.evaluate((y) => window.scrollTo(0, y), proyInicio);
-  await expect.poll(() => v("#herramientas", "--cubre")).toBe(1);
-  await expect
-    .poll(() => page.locator("#proyectos .borde").evaluate((e) => Number(getComputedStyle(e).opacity)))
-    .toBeLessThan(0.001);
+  // Cuando Cierre asoma, Proyectos ya se ha fundido a blanco.
+  await page.evaluate((y) => window.scrollTo(0, y), cierreInicio - alto);
+  await expect.poll(() => v("#proyectos", "--fin")).toBe(1);
+  await expect(page.locator(".proy-velo")).toHaveCSS("opacity", "1");
+  await expect.poll(() => v("#contacto", "--llegada")).toBeLessThan(0.02);
 });

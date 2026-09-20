@@ -8,7 +8,9 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  overflow: clip;
+  /* Sin recorte vertical: las placas cruzan el borde de la sección (ver
+     .herr-fijo en Herramientas.css). */
+  overflow: clip visible;
   perspective: 700px;
   pointer-events: none;
 }
@@ -44,9 +46,11 @@
 }
 .tunel-placa {
   --zn: calc(var(--z0) + var(--pt) * var(--viaje));
-  /* Amplitud del túnel: cuánto se abren las placas hacia los lados. */
+  /* Amplitud del túnel: cuánto se abren las placas hacia los lados. En
+     vertical algo más: así más placas salen por arriba y cruzan el borde de
+     la sección mientras entra. */
   --ex: 50vw;
-  --ey: 50vh;
+  --ey: 64vh;
   position: absolute;
   left: 50%;
   top: 50%;
@@ -71,10 +75,12 @@
       calc(var(--zn) * 1px)
     )
     scale(calc(1 + var(--vel) * 0.35), calc(1 - var(--vel) * 0.12));
-  /* Aparece desde la niebla del fondo y se va al pasar junto a la cámara. */
+  /* Aparece desde la niebla del fondo y solo se apaga al pasar junto a la
+     cámara, cuando ya ha salido por los bordes de la pantalla (así se ve
+     salir en 3D, también por encima de la portada). */
   opacity: min(
     clamp(0, (var(--zn) + 3000) / 1500, 1),
-    clamp(0, (560 - var(--zn)) / 220, 1)
+    clamp(0, (620 - var(--zn)) / 120, 1)
   );
   will-change: transform, opacity;
 }
@@ -162,7 +168,7 @@
 @media (max-width: 760px) {
   .tunel-placa {
     --ex: 62vw;
-    --ey: 42vh;
+    --ey: 50vh;
     font-size: 14px;
     padding: 9px 14px 8px 12px;
   }

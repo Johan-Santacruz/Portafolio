@@ -10,6 +10,7 @@
   --asienta: 0;
   --llegada: 0;
   --cubre: 0;
+  --apaga: 0;
   /* Tramo fijo del túnel antes del lector (la sonda lo mide en px). */
   --tunel: 150svh;
   /* Cola: una pantalla más al final, en la que Proyectos se desliza por
@@ -31,26 +32,34 @@
   position: sticky;
   top: 0;
   height: 100svh;
-  overflow: clip;
+  /* Recorte solo en horizontal: las placas del túnel que salen por arriba
+     mientras la sección entra siguen volando por encima de la portada, en
+     vez de cortarse en el borde; las que salen por los lados sí se recortan,
+     que si no ensancharían la página. */
+  overflow: clip visible;
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
   align-items: center;
   column-gap: clamp(32px, 4vw, 72px);
   padding-inline: max(var(--aire), (100% - var(--ancho)) / 2);
-  /* Al ser cubierta por Proyectos se hunde un poco hacia el fondo. */
-  transform: scale(calc(1 - var(--cubre) * 0.06));
 }
-/* …y se oscurece por debajo de la sección que llega. El velo es otra capa
-   fija sobre la misma pantalla (no va dentro de .herr-fijo, que al encogerse
-   dejaría sin oscurecer el borde que descubre). */
+/* Al acabar el lector la pantalla se apaga al negro de Proyectos, que llega
+   por encima con ese mismo fondo: no hay borde que ver. Es otra capa fija
+   sobre la misma pantalla. */
 .herr-velo {
   position: sticky;
   z-index: 1;
   top: 0;
   height: 100svh;
   margin-top: -100svh;
-  background: #0f1113;
-  opacity: calc(var(--cubre) * 0.6);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.018) 0 1px,
+      transparent 1px 4px
+    ),
+    #0f1113;
+  opacity: var(--apaga);
   pointer-events: none;
 }
 /* Lo propio de la sección emerge desde el fondo al final del túnel, en la

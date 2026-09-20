@@ -156,6 +156,9 @@ export function Herramientas() {
       );
       const p = conReposo(tramo * (total - 1));
       raiz.style.setProperty("--p", p.toFixed(4));
+      // Al final del lector la pantalla se apaga a negro: así Proyectos, que
+      // llega por encima con el mismo negro, entra sin borde.
+      raiz.style.setProperty("--apaga", suave(limitar((avance - 0.86) / 0.14)).toFixed(4));
       const nuevo = Math.round(p);
       if (nuevo > 0) movido = true;
       if (pt < 1) movido = false;
