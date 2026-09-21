@@ -218,7 +218,8 @@ sección en `requestAnimationFrame`) y todo se anula con `prefers-reduced-motion
   un agujero negro se las traga (cada pieza cae al centro girando y volviéndose
   clara) hasta dejar la pantalla en negro, que ya es el fondo de Proyectos, y
   ahí se teclea `ls ./proyectos`, que es su rótulo y de donde emergen los
-  proyectos; Trayectoria sigue con ese mismo fondo, sin borde; y al final una
+  proyectos, en un tramo corto (`--solape`) para que el título se lea nada
+  más salir del negro; Trayectoria sigue con ese mismo fondo, sin borde; y al final una
   niebla sube y se lo lleva todo hasta dejar el blanco de Cierre, que llega
   por encima igual.
 - El cierre saca la figura de la niebla con el scroll.

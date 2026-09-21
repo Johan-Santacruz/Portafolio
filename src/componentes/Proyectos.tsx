@@ -56,9 +56,18 @@ export function Proyectos() {
       // abajo a 1 al llenar la pantalla (las estelas se encienden con ella).
       const cubre = limitar(1 - caja.top / alto);
       raiz.style.setProperty("--cubre", cubre.toFixed(4));
+      // Lo que la sección se solapa con Herramientas: el tramo en que emerge
+      // del negro que deja el agujero.
+      const solape = parseFloat(getComputedStyle(raiz).marginTop) || -alto;
+      const tramo = Math.max(1, -solape);
+      const emerge = limitar((tramo - caja.top) / tramo);
+      raiz.style.setProperty("--emerge", emerge.toFixed(4));
+      // El contenido termina de llegar en los primeros dos tercios: lo que
+      // queda es solo la sección acabando de colocarse, sin pantalla muerta.
+      raiz.style.setProperty("--surge", limitar(emerge / 0.62).toFixed(4));
       // Mientras entra, el contenido se queda quieto en la pantalla y crece
       // desde el centro: parece que sale del fondo del agujero negro.
-      raiz.toggleAttribute("data-emerge", cubre > 0 && cubre < 0.999);
+      raiz.toggleAttribute("data-emerge", emerge > 0 && emerge < 0.999);
       // Alcance: a qué distancia del centro una fila ya está apagada del todo.
       const alcance = alto * 0.22;
       for (const fila of filas) {
