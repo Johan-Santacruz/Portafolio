@@ -48,7 +48,9 @@ export function Tunel() {
   // Dos vueltas de todas las herramientas, repartidas en espiral por el túnel.
   const placas = useMemo(() => {
     const azar = azarConSemilla(7);
-    const lista = [...herramientas, ...herramientas];
+    // Vuelta y media: con dos el túnel iba igual de lleno y costaba un tercio
+    // más de placas en 3D.
+    const lista = [...herramientas, ...herramientas.slice(0, 16)];
     return lista.map((nombre, i) => {
       const angulo = i * 2.39996 + azar() * 0.4; // ángulo áureo: sin huecos
       const radio = 0.62 + azar() * 0.5;

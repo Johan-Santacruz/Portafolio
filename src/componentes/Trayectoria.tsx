@@ -151,6 +151,9 @@ export function Trayectoria() {
       // que el contacto llena la pantalla.
       const fin = limitar((alto + cola + niebla - caja.bottom) / niebla);
       raiz.style.setProperty("--fin", fin.toFixed(4));
+      // La capa lleva «screen»: dejarla puesta obliga a recomponer la
+      // pantalla entera aunque no se vea, incluso desde otras secciones.
+      raiz.toggleAttribute("data-niebla", fin > 0);
       raiz.style.setProperty(
         "--velo",
         (1 - limitar((alto + cola - caja.bottom) / (alto * 0.5))).toFixed(4),
@@ -160,7 +163,7 @@ export function Trayectoria() {
         pedido = cuadro;
         secuencia.pedir(pedido);
       }
-      if (fin > 0 || pintado >= 0) pintarNiebla(pedido);
+      if (fin > 0 && pedido !== pintado) pintarNiebla(pedido);
     };
 
     let cerca = true;

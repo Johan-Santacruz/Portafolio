@@ -25,8 +25,98 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&amp;family=Saira+Extra+Condensed:wght@700&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap"
     />
+    <style>
+      /* Pantalla de carga: va en el HTML para que se vea antes de que llegue
+         nada más. La retira `retrato/carga.ts` cuando la portada está lista. */
+      #carga {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-content: center;
+        justify-items: center;
+        gap: 26px;
+        background: #fdfdfe;
+        color: #1d1f22;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        transition: opacity 0.45s ease;
+      }
+      #carga[data-listo] {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .carga-marca {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 18px 13px 16px;
+        color: #eef0f2;
+        background: linear-gradient(135deg, #2a2e34, #16181c);
+        box-shadow: inset 3px 0 0 #c7ff4a;
+        clip-path: polygon(
+          0 0,
+          calc(100% - 12px) 0,
+          100% 12px,
+          100% 100%,
+          12px 100%,
+          0 calc(100% - 12px)
+        );
+      }
+      .carga-jb {
+        font-weight: 700;
+        font-size: 30px;
+        letter-spacing: -0.02em;
+      }
+      .carga-cursor {
+        width: 10px;
+        height: 24px;
+        background: #c7ff4a;
+        animation: carga-late 1s steps(2, jump-none) infinite;
+      }
+      @keyframes carga-late {
+        50% {
+          opacity: 0;
+        }
+      }
+      .carga-linea {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        color: rgba(23, 24, 21, 0.62);
+      }
+      .carga-linea b {
+        color: #6a8f00;
+        font-weight: 700;
+      }
+      .carga-pista {
+        width: min(260px, 60vw);
+        height: 3px;
+        background: rgba(23, 24, 21, 0.14);
+      }
+      .carga-pista span {
+        display: block;
+        width: 0%;
+        height: 100%;
+        background: #c7ff4a;
+        transition: width 0.2s ease;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .carga-cursor {
+          animation: none;
+        }
+      }
+    </style>
   </head>
   <body>
+    <div id="carga" aria-hidden="true">
+      <div class="carga-marca">
+        <span class="carga-jb">JB</span><span class="carga-cursor"></span>
+      </div>
+      <p class="carga-linea"><b>~ $</b> cargando <span id="carga-num">0</span>%</p>
+      <div class="carga-pista"><span id="carga-barra"></span></div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

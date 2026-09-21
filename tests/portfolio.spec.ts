@@ -1,6 +1,11 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
+/** La pantalla de carga tapa y bloquea el scroll hasta que la portada está
+ *  lista: los tests que se mueven por la página esperan a que se retire. */
+const sinCarga = (page) =>
+  page.waitForSelector("#carga", { state: "detached", timeout: 20000 });
+
 const pintado = (page) =>
   page.locator(".retrato-alter").evaluate((canvas: HTMLCanvasElement) => {
     const ctx = canvas.getContext("2d")!;
@@ -67,6 +72,7 @@ test("en táctil, mantener pulsado revela sin desplazar la página", async ({
   });
   const page = await contexto.newPage();
   await page.goto("/");
+  await sinCarga(page);
   await expect(page.locator(".retrato")).toHaveAttribute("data-listo", "true");
   const cdp = await contexto.newCDPSession(page);
   await cdp.send("Input.dispatchTouchEvent", {
@@ -90,6 +96,7 @@ test("la página cumple la auditoría automatizada de accesibilidad", async ({
   page,
 }) => {
   await page.goto("/");
+  await sinCarga(page);
   const audit = async () => {
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
@@ -606,30 +613,33 @@ test("las animaciones largas se reproducen solas al pedir bajar", async ({
 }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
+  await sinCarga(page);
   await page.evaluate(() => document.fonts.ready);
-  await expect(page.locator(".retrato")).toHaveAttribute("data-listo", "true");
   const seccion = page.locator("#herramientas");
   const v = (n: string) =>
     seccion.evaluate((s, n) => Number(s.style.getPropertyValue(n)), n);
-  const y = () => page.evaluate(() => Math.round(scrollY));
   await page.mouse.move(720, 450);
 
-  // Se baja con la rueda hasta que la animación despega; a partir de ahí no
-  // se toca nada más y tiene que terminar sola.
-  const comprobar = async (prop: string) => {
-    let arranque = -1;
-    for (let i = 0; i < 200; i++) {
-      await page.mouse.wheel(0, 200);
-      await page.waitForTimeout(40);
-      if ((await v(prop)) > 0.001) {
-        arranque = await y();
-        break;
-      }
+  // Cuánto mide cada tramo en píxeles de scroll.
+  const tramos = await seccion.evaluate((s) => ({
+    "--corte": (s.querySelector(".herr-sonda-corte") as HTMLElement).offsetHeight,
+    "--traga": (s.querySelector(".herr-sonda-agujero") as HTMLElement).offsetHeight,
+  }));
+
+  // Se baja a golpes cortos hasta entrar en el tramo y ahí se deja de tocar:
+  // la animación tiene que terminar sola. Arrastrándola haría falta el tramo
+  // entero, y el tramo mide bastante más que el golpe que la lanzó.
+  const comprobar = async (prop: "--corte" | "--traga") => {
+    for (let i = 0; i < 500; i++) {
+      if ((await v(prop)) > 0.001) break;
+      await page.mouse.wheel(0, 60);
+      await page.waitForTimeout(35);
     }
-    expect(arranque, `${prop} no llegó a arrancar`).toBeGreaterThan(0);
+    expect(await v(prop), `${prop} no llegó a arrancar`).toBeGreaterThan(0.001);
+    expect(tramos[prop]).toBeGreaterThan(200);
+    // Sin tocar nada más.
     await page.waitForTimeout(2400);
-    expect(await y()).toBeGreaterThan(arranque + 100);
-    expect(await v(prop)).toBeGreaterThan(0.98);
+    expect(await v(prop), `${prop} no terminó solo`).toBeGreaterThan(0.98);
   };
 
   await comprobar("--corte");

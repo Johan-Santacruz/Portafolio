@@ -184,6 +184,20 @@ Los dos reproducen con autoplay, muted, loop y playsinline, y se pausan fuera de
 su sección, con la pestaña oculta o con movimiento reducido. Si el navegador
 rechaza el autoplay (Safari en ahorro de energía), se reintenta al primer gesto.
 
+## Pantalla de carga
+
+`index.html` lleva el marcado y el CSS de la pantalla de carga, para que se
+vea antes de que llegue el JavaScript; `retrato/carga.ts` precarga y la
+retira. No se precarga la página entera (son varios megas de secuencias):
+solo las dos capas del retrato, nueve fotogramas repartidos del vídeo de la
+portada y las tipografías, que no bloquean. Con red buena dura poco más de un
+segundo; con 1,6 Mb/s, unos cuatro. Hay tope de tres segundos para que una
+red mala no secuestre la página, y suelo de cuatro décimas para que no
+parpadee si todo estaba en caché.
+
+El monograma de la pantalla es el mismo de `public/favicon.svg`: acero
+achaflanado con filete lima y el cursor del terminal.
+
 ## Movimiento
 
 Todo es función pura de la posición del scroll (variables CSS que escribe cada
@@ -196,6 +210,9 @@ sección en `requestAnimationFrame`) y todo se anula con `prefers-reduced-motion
   sección, que las releva en el mismo píxel.
 - Trayectoria recorre sus apartados en horizontal mientras se baja, con el
   mismo fondo que los proyectos.
+- El corte entre lo técnico y las habilidades blandas tiene su propio tramo
+  de scroll (`--corte-tramo`), no comparte el del lector: así no se pasa de
+  largo al bajar deprisa.
 - No hay bordes entre secciones: las placas del túnel cruzan el borde de la
   sección mientras entra (recorte solo horizontal); al acabar las herramientas
   un agujero negro se las traga (cada pieza cae al centro girando y volviéndose

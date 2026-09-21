@@ -4,6 +4,7 @@ import "./estilos/global.css";
 import { App } from "./App";
 import { activarScrollSuave } from "./retrato/suave";
 import { activarDiagnostico } from "./retrato/diag";
+import { pantallaDeCarga } from "./retrato/carga";
 
 const contenedor = document.getElementById("root");
 if (!contenedor) throw new Error("Falta el elemento #root en index.html");
@@ -14,5 +15,6 @@ createRoot(contenedor).render(
   </StrictMode>,
 );
 
+pantallaDeCarga();
 activarScrollSuave();
 activarDiagnostico();

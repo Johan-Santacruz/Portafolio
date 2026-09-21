@@ -62,6 +62,7 @@ export function Herramientas() {
     // Mide --tunel en px (svh no se puede leer desde CSS).
     const sonda = raiz.querySelector<HTMLElement>(".herr-sonda");
     const sondaAgujero = raiz.querySelector<HTMLElement>(".herr-sonda-agujero");
+    const sondaCorte = raiz.querySelector<HTMLElement>(".herr-sonda-corte");
     const lienzo = raiz.querySelector<HTMLCanvasElement>(".herr-agujero");
     const lienzoCorte = raiz.querySelector<HTMLCanvasElement>(".herr-corte");
     const fijo = raiz.querySelector<HTMLElement>(".herr-fijo");
@@ -146,6 +147,15 @@ export function Herramientas() {
       if (nueva === fase) return;
       fase = nueva;
       raiz.setAttribute("data-fase", nueva);
+    };
+
+    // Escribir una variable CSS invalida el estilo de toda la sección, así
+    // que solo se escribe cuando el valor cambia de verdad.
+    const ultimos = new Map<string, string>();
+    const poner = (nombre: string, valor: string) => {
+      if (ultimos.get(nombre) === valor) return;
+      ultimos.set(nombre, valor);
+      raiz.style.setProperty(nombre, valor);
     };
 
     const limitar = (v: number) => Math.min(1, Math.max(0, v));
@@ -315,9 +325,9 @@ export function Herramientas() {
       // Cubierta: de 0 cuando Proyectos asoma por abajo a 1 cuando tapa la
       // pantalla; la sección se hunde un poco y se oscurece por debajo.
       const cubre = limitar((alto + cola - caja.bottom) / Math.max(1, cola));
-      raiz.style.setProperty("--cubre", cubre.toFixed(4));
+      poner("--cubre", cubre.toFixed(4));
       const pt = limitar((alto - caja.top) / (alto + tunel));
-      raiz.style.setProperty("--pt", pt.toFixed(4));
+      poner("--pt", pt.toFixed(4));
       const ahora = performance.now();
       const dt = Math.max(16, ahora - ultimoT);
       // Solo cuenta mientras el túnel está en juego.
@@ -326,7 +336,7 @@ export function Herramientas() {
         vel = Math.max(vel, limitar(inst / 0.9));
         if (!rafVel) rafVel = requestAnimationFrame(apagarVel);
       }
-      raiz.style.setProperty("--vel", vel.toFixed(3));
+      poner("--vel", vel.toFixed(3));
       // El túnel es el tramo más largo de todos: en cuanto se pide bajar se
       // recorre entero solo.
       if (pt > 0.02 && pt < 0.9) {
@@ -340,36 +350,61 @@ export function Herramientas() {
       ultimoT = ahora;
       // Al fondo del túnel, «LENGUAJES» crece desde el punto de fuga y se
       // desliza a su sitio; entonces aparece el resto de la sección.
-      raiz.style.setProperty("--acerca", limitar((pt - 0.42) / 0.4).toFixed(4));
-      raiz.style.setProperty("--asienta", suave(limitar((pt - 0.8) / 0.12)).toFixed(4));
-      raiz.style.setProperty("--llegada", suave(limitar((pt - 0.9) / 0.08)).toFixed(4));
-      // Después, el lector recorre las categorías con el resto del scroll.
+      poner("--acerca", limitar((pt - 0.42) / 0.4).toFixed(4));
+      poner("--asienta", suave(limitar((pt - 0.8) / 0.12)).toFixed(4));
+      poner("--llegada", suave(limitar((pt - 0.9) / 0.08)).toFixed(4));
+      // Después, el lector recorre las categorías con el resto del scroll,
+      // menos el tramo que se reserva para el corte: así el corte no comparte
+      // sitio con el paso de una categoría a otra y no se puede pasar de
+      // largo por bajar deprisa.
       const largo = caja.height - alto - tunel - cola - agujero;
-      const avance = largo > 0 ? limitar((-caja.top - tunel) / largo) : 0;
+      const anchoCorte = sondaCorte?.offsetHeight ?? 0;
+      const largoLector = Math.max(1, largo - anchoCorte);
+      const s = -caja.top - tunel;
+      // Dónde queda el lector al llegar a la penúltima categoría: ahí se
+      // abre el hueco del corte.
+      const avanceCorte =
+        PAUSA_INICIO +
+        ((total - 2) / (total - 1)) * (1 - PAUSA_INICIO - PAUSA_FINAL);
+      const sCorte = avanceCorte * largoLector;
+      let avance: number;
+      let corte: number;
+      if (s < sCorte) {
+        avance = limitar(s / largoLector);
+        corte = 0;
+      } else if (s < sCorte + anchoCorte) {
+        avance = avanceCorte;
+        corte = anchoCorte > 0 ? limitar((s - sCorte) / anchoCorte) : 1;
+      } else {
+        avance = limitar((s - anchoCorte) / largoLector);
+        corte = 1;
+      }
       const tramo = Math.min(
         1,
         Math.max(0, (avance - PAUSA_INICIO) / (1 - PAUSA_INICIO - PAUSA_FINAL)),
       );
       const p = conReposo(tramo * (total - 1));
-      raiz.style.setProperty("--p", p.toFixed(4));
-      // El corte ocurre al pasar de la penúltima categoría a la última.
-      const corte = limitar(p - (total - 2));
+      poner("--p", p.toFixed(4));
       // Al asomar, se reproduce solo hasta el final de su tramo.
       if (corte > 0.002 && corte < 0.9) {
-        const avanceFin = PAUSA_INICIO + (1 - PAUSA_INICIO - PAUSA_FINAL);
         cortePuesto = lanzar(
-          raiz.offsetTop + tunel + avanceFin * largo,
+          raiz.offsetTop + tunel + sCorte + anchoCorte,
           DURACION_CORTE,
           cortePuesto,
         );
       } else if (corte <= 0.002) cortePuesto = false;
-      raiz.style.setProperty("--corte", corte.toFixed(4));
+      poner("--corte", corte.toFixed(4));
+      // El criterio es el capítulo de después del corte.
+      raiz.toggleAttribute("data-criterio", corte > 0.5);
       const cuadroCorte = Math.round(corte * (CORTES - 1));
       if (cuadroCorte !== pedidoCorte) {
         pedidoCorte = cuadroCorte;
         secuenciaCorte.pedir(pedidoCorte);
       }
-      if ((corte > 0 && corte < 1) || pintadoCorte >= 0) pintarCorte(pedidoCorte);
+      // Solo se repinta si el fotograma cambia: dibujar el mismo en cada
+      // fotograma de scroll cuesta y no se ve.
+      if (corte > 0 && corte < 1 && pedidoCorte !== pintadoCorte)
+        pintarCorte(pedidoCorte);
       // Tras el lector, una pantalla más (--agujero) en la que un agujero
       // negro se traga la sección: el contenido cae hacia el centro y la
       // secuencia avanza hasta el negro, que ya es el fondo de Proyectos.
@@ -382,14 +417,14 @@ export function Herramientas() {
           agujeroPuesto,
         );
       } else if (traga <= 0.002) agujeroPuesto = false;
-      raiz.style.setProperty("--traga", traga.toFixed(4));
+      poner("--traga", traga.toFixed(4));
       raiz.toggleAttribute("data-traga", traga > 0);
       const cuadro = Math.round(traga * (FOTOGRAMAS - 1));
       if (cuadro !== pedido) {
         pedido = cuadro;
         secuencia.pedir(pedido);
       }
-      if (traga > 0 || pintadoAgujero >= 0) pintarAgujero(pedido);
+      if (traga > 0 && pedido !== pintadoAgujero) pintarAgujero(pedido);
       ultimoY = window.scrollY;
       const nuevo = Math.round(p);
       if (nuevo > 0) movido = true;
@@ -403,12 +438,7 @@ export function Herramientas() {
           i < activo ? "antes" : i > activo ? "despues" : "activo",
         ),
       );
-      // En la categoría del criterio la pantalla cambia de composición: el
-      // lector se aparta y las habilidades ocupan el ancho entero.
-      raiz.toggleAttribute(
-        "data-criterio",
-        !!grupos[activo]?.querySelector(".herr-criterio"),
-      );
+
     };
     // Solo se mide con la sección a la vista (ver cercania.ts).
     let cerca = true;
@@ -455,6 +485,7 @@ export function Herramientas() {
       style={{ "--n": stack.length } as CSSProperties}
     >
       <span className="herr-sonda" aria-hidden="true" />
+      <span className="herr-sonda-corte" aria-hidden="true" />
       <span className="herr-sonda-agujero" aria-hidden="true" />
       <div className="herr-fijo">
         <Tunel />
