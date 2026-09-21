@@ -517,9 +517,8 @@ test("las secciones se solapan y se funden sin borde", async ({ page }) => {
       alto: innerHeight,
     };
   });
-  // Cada sección empieza antes de que acabe la anterior; Proyectos emerge
-  // del negro del agujero en un tramo corto, no en una pantalla entera.
-  expect(Math.abs(herrFin - proyInicio - alto * 0.62)).toBeLessThan(3);
+  // Cada sección empieza una pantalla antes de que acabe la anterior.
+  expect(Math.abs(herrFin - proyInicio - alto)).toBeLessThan(3);
   expect(Math.abs(trayFin - cierreInicio - alto * 0.65)).toBeLessThan(3);
   const v = (sel: string, n: string) =>
     page.locator(sel).evaluate((s, n) => Number(s.style.getPropertyValue(n)), n);

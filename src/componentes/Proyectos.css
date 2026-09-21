@@ -6,21 +6,18 @@
   --texto: #eef0f2;
   --apagado: #2e3237;
   --cubre: 0;
-  --emerge: 0;
-  --surge: 0;
   /* Fondo propio: la sección entra transparente sobre el terminal negro de
      Herramientas (así la orden tecleada allí se queda fija y solo sube el
      contenido, como su salida) y toma el fondo justo al llenar la pantalla. */
   --fondo: max(
-    clamp(0, (var(--emerge) - 0.9) / 0.1, 1),
+    clamp(0, (var(--cubre) - 0.96) / 0.04, 1),
     /* Antes de asomar, opaco (no se ve, pero así el texto siempre tiene su
        fondo, también para la auditoría de contraste). */
     1 - clamp(0, var(--cubre) * 10000, 1)
   );
-  /* Solape: la sección se desliza por encima de la cola que le deja
-     Herramientas, ya en negro. Corto: lo que dura es pantalla oscura, y ahí
-     no hay nada que leer todavía. */
-  --solape: 62svh;
+  /* Solape: la sección se desliza por encima de la última pantalla de
+     Herramientas, que le deja esa cola ya apagada a este mismo negro. */
+  --solape: 100svh;
   position: relative;
   z-index: 2;
   margin-top: calc(-1 * var(--solape));
@@ -74,12 +71,9 @@
   transform-origin: 50% 50svh;
 }
 .proyectos[data-emerge] .proy-emerge {
-  /* El desplazamiento compensa exactamente lo que sube la sección (--emerge),
-     así el contenido se queda quieto; lo que crece y aparece va con --surge,
-     que termina antes: nada más salir del agujero ya se lee el título. */
-  transform: translate3d(0, calc((var(--emerge) - 1) * var(--solape)), 0)
-    scale(calc(0.52 + var(--surge) * 0.48));
-  opacity: clamp(0, (var(--surge) - 0.03) / 0.22, 1);
+  transform: translate3d(0, calc((var(--cubre) - 1) * 100svh), 0)
+    scale(calc(0.42 + var(--cubre) * 0.58));
+  opacity: clamp(0, (var(--cubre) - 0.04) / 0.3, 1);
   will-change: transform, opacity;
 }
 /* El aire lateral va en el contenido, no en la sección. */
@@ -101,9 +95,8 @@
   font-size: clamp(13px, 1vw, 15px);
   line-height: 1.7;
   color: rgba(238, 240, 242, 0.7);
-  /* Releva a la orden tecleada en Herramientas: aparece con el resto del
-     contenido, no al final. */
-  opacity: var(--surge);
+  /* Releva a la orden tecleada en Herramientas cuando ya está en su sitio. */
+  opacity: var(--fondo);
 }
 .proy-rotulo span {
   font-weight: 700;
