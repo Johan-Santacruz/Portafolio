@@ -35,48 +35,48 @@ const suave = (v: number) => v * v * (3 - 2 * v);
 let enCurso = false;
 
 /**
- * Lleva la página hasta `y` en `ms`, sin que el gesto de quien lee la
- * interrumpa: las animaciones largas (el corte, el agujero negro) se
- * reproducen enteras en cuanto se pide bajar, en vez de avanzar a tirones
- * según cuánto se arrastre.
+ * Lleva la página hasta `y` en `ms`: las animaciones largas (el túnel, el
+ * corte, el agujero negro) se terminan solas en cuanto se pide bajar, en vez
+ * de avanzar a tirones según cuánto se arrastre.
  *
- * Con Lenis lo hace Lenis (`lock`). Sin él —táctil, o con `?suave=0`— se
- * anima a mano y se bloquean rueda y dedo mientras dura. Devuelve `false` si
- * ya había un deslizamiento en curso.
+ * No bloquea a quien lee: si sigue moviendo la rueda o el dedo, manda él y el
+ * deslizamiento se cancela. Solo empuja cuando se suelta. Devuelve `false` si
+ * ya había uno en curso.
  */
 export function deslizarHasta(y: number, ms: number) {
   if (enCurso) return false;
   enCurso = true;
-  const acabar = () => {
+  let vivo = true;
+  const soltar = () => {
+    if (!vivo) return;
+    vivo = false;
     enCurso = false;
+    window.removeEventListener("wheel", cortar);
+    window.removeEventListener("touchstart", cortar);
   };
+  const cortar = () => {
+    if (lenis) lenis.stop();
+    soltar();
+    if (lenis) lenis.start();
+  };
+  window.addEventListener("wheel", cortar, { passive: true });
+  window.addEventListener("touchstart", cortar, { passive: true });
 
   if (lenis) {
-    lenis.scrollTo(y, {
-      duration: ms / 1000,
-      lock: true,
-      easing: suave,
-      onComplete: acabar,
-    });
+    lenis.scrollTo(y, { duration: ms / 1000, easing: suave, onComplete: soltar });
     // Red de seguridad: si Lenis no avisa, se suelta igual.
-    window.setTimeout(acabar, ms + 400);
+    window.setTimeout(soltar, ms + 400);
     return true;
   }
 
   const desde = window.scrollY;
   const t0 = performance.now();
-  const frenar = (ev: Event) => ev.preventDefault();
-  window.addEventListener("wheel", frenar, { passive: false });
-  window.addEventListener("touchmove", frenar, { passive: false });
   const paso = (t: number) => {
+    if (!vivo) return;
     const k = Math.min(1, (t - t0) / ms);
     window.scrollTo(0, desde + (y - desde) * suave(k));
     if (k < 1) requestAnimationFrame(paso);
-    else {
-      window.removeEventListener("wheel", frenar);
-      window.removeEventListener("touchmove", frenar);
-      acabar();
-    }
+    else soltar();
   };
   requestAnimationFrame(paso);
   return true;

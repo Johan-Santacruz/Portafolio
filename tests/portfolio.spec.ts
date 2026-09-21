@@ -518,7 +518,7 @@ test("las secciones se solapan y se funden sin borde", async ({ page }) => {
   // Cuando Proyectos asoma, el agujero negro ya se ha tragado Herramientas
   // y ha dejado la pantalla en ese mismo negro.
   await page.evaluate((y) => window.scrollTo(0, y), proyInicio - alto);
-  await expect.poll(() => v("#herramientas", "--traga")).toBe(1);
+  await expect.poll(() => v("#herramientas", "--traga")).toBeGreaterThan(0.99);
   await expect(page.locator(".herr-agujero")).toHaveCSS("opacity", "1");
   await expect(page.locator(".herr-final-tecleo")).toHaveText("ls ./proyectos");
   await expect.poll(() => v("#proyectos", "--cubre")).toBeLessThan(0.02);

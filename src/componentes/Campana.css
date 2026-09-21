@@ -9,7 +9,7 @@
   position: relative;
   /* 100svh a la vista + el recorrido con el contenido fijo (más corto en
      pantallas táctiles, ver abajo). */
-  --recorrido: 250svh;
+  --recorrido: 190svh;
   height: calc(100svh + var(--recorrido));
   background: var(--hero-fondo);
   color: var(--ink);
@@ -144,6 +144,6 @@
 }
 @media (pointer: coarse) {
   .campana-hero {
-    --recorrido: 190svh;
+    --recorrido: 150svh;
   }
 }

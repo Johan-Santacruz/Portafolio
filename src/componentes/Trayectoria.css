@@ -9,7 +9,7 @@
   --fin: 0;
   --pases: 5;
   /* Lo que se baja por cada pase, y la salida hacia el contacto. */
-  --por-pase: 66svh;
+  --por-pase: 40svh;
   --niebla: 70svh;
   --cola: 65svh;
   position: relative;
@@ -342,7 +342,7 @@
 /* --- Pantallas estrechas: el pase arriba y la ficha debajo. -------------------- */
 @media (max-width: 860px) {
   .trayectoria {
-    --por-pase: 56svh;
+    --por-pase: 34svh;
     --niebla: 60svh;
   }
   .tray-fijo {

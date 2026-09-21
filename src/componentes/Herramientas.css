@@ -13,9 +13,9 @@
   /* Cuánto se ha tragado el agujero negro la sección (0 a 1). */
   --traga: 0;
   /* Una pantalla más al final para el agujero negro. */
-  --agujero: 90svh;
+  --agujero: 70svh;
   /* Tramo fijo del túnel antes del lector (la sonda lo mide en px). */
-  --tunel: 150svh;
+  --tunel: 105svh;
   /* Cola: una pantalla más al final, en la que Proyectos se desliza por
      encima de esta (se solapa con margen negativo, ver Proyectos.css). */
   --cola: 100svh;
@@ -26,7 +26,7 @@
   /* Recorte solo horizontal: el zoom final agranda la pantalla fija, y las
      placas del túnel cruzan el borde de arriba mientras la sección entra. */
   overflow: clip visible;
-  --por-categoria: 55svh;
+  --por-categoria: 38svh;
   height: calc(
     100svh + var(--tunel) + var(--n) * var(--por-categoria) + var(--agujero) +
       var(--cola)
@@ -613,9 +613,9 @@
 
 @media (pointer: coarse) {
   .herramientas {
-    --por-categoria: 42svh;
-    --tunel: 120svh;
-    --agujero: 75svh;
+    --por-categoria: 32svh;
+    --tunel: 90svh;
+    --agujero: 60svh;
   }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -206,12 +206,18 @@ sección en `requestAnimationFrame`) y todo se anula con `prefers-reduced-motion
   por encima igual.
 - El cierre saca la figura de la niebla con el scroll.
 
-Las dos animaciones largas —el corte y el agujero negro— no se arrastran: en
-cuanto se pide bajar con un gesto de verdad (rueda, dedo o tecla), se
-reproducen enteras solas y la página se desliza hasta el final del tramo
-(`deslizarHasta` en `suave.ts`, que con Lenis usa su `lock` y sin él anima a
-mano bloqueando rueda y dedo). Un salto programático —un enlace de la
-cabecera, una prueba— no las dispara, y con `prefers-reduced-motion` tampoco.
+Las tres animaciones largas —el túnel, el corte y el agujero negro— no hay
+que arrastrarlas: en cuanto se pide bajar con un gesto de verdad (rueda, dedo
+o tecla), la página se desliza sola hasta el final del tramo y se ven enteras
+(`deslizarHasta` en `suave.ts`). No bloquean: si se sigue moviendo la rueda o
+el dedo, manda quien lee y el deslizamiento se cancela; solo empuja cuando se
+suelta. Un salto programático —un enlace de la cabecera, una prueba— no las
+dispara, y con `prefers-reduced-motion` tampoco.
+
+Los tramos están medidos para que la página no se haga larga: unas 15
+pantallas de principio a fin en escritorio y 14 en móvil. Si añades una
+categoría o un pase, mira que no se dispare (`--por-categoria`, `--por-pase`,
+`--tunel`, `--agujero`).
 
 Cada sección solo mide su posición mientras está a la vista (`cercania.ts`):
 medir las lejanas fuerza recálculos de estilo que se notaban como tirones. En

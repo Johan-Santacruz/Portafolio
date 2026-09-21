@@ -34,8 +34,9 @@ const CORTES = 32;
  */
 
 /** Lo que tardan en reproducirse solas las animaciones largas, en ms. */
-const DURACION_CORTE = 1100;
-const DURACION_AGUJERO = 1600;
+const DURACION_TUNEL = 1100;
+const DURACION_CORTE = 800;
+const DURACION_AGUJERO = 1200;
 
 /** Tramos del recorrido que la lista se queda quieta al empezar y al acabar. */
 const PAUSA_INICIO = 0.06;
@@ -158,6 +159,7 @@ export function Herramientas() {
     // prueba— no cuenta) y una vez por pasada.
     const reducidoMedia = window.matchMedia("(prefers-reduced-motion: reduce)");
     let ultimoY = window.scrollY;
+    let tunelPuesto = false;
     let cortePuesto = false;
     let agujeroPuesto = false;
     // Solo cuenta como «quiero bajar» un gesto de verdad: rueda, dedo o
@@ -325,6 +327,15 @@ export function Herramientas() {
         if (!rafVel) rafVel = requestAnimationFrame(apagarVel);
       }
       raiz.style.setProperty("--vel", vel.toFixed(3));
+      // El túnel es el tramo más largo de todos: en cuanto se pide bajar se
+      // recorre entero solo.
+      if (pt > 0.02 && pt < 0.9) {
+        tunelPuesto = lanzar(
+          raiz.offsetTop + tunel,
+          DURACION_TUNEL,
+          tunelPuesto,
+        );
+      } else if (pt <= 0.02) tunelPuesto = false;
       ultimoPt = pt;
       ultimoT = ahora;
       // Al fondo del túnel, «LENGUAJES» crece desde el punto de fuga y se
