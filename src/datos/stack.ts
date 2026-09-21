@@ -80,11 +80,14 @@ export const stack: GrupoStack[] = [
   {
     titulo: "Cómo trabajo",
     items: [],
-    consola: ["$ cat ~/.criterio", "5 hábitos cargados"],
+    consola: ["$ cat ~/.criterio", "8 hábitos cargados"],
     criterio: [
       { titulo: "Resolver", texto: "Parto el problema hasta que se puede comprobar" },
+      { titulo: "Responder", texto: "Lo que prometo para una fecha, sale en esa fecha" },
       { titulo: "Equipo", texto: "Me entiendo con gente de otras carreras" },
+      { titulo: "Adaptarme", texto: "Cambian los requisitos y el plan cambia con ellos" },
       { titulo: "Aprender", texto: "Por lo que hay que entregar, no por el tutorial" },
+      { titulo: "Ordenar", texto: "Dejo el código donde el siguiente lo encuentre" },
       { titulo: "Explicar", texto: "Sustento lo que construyo ante quien sea" },
       { titulo: "Investigar", texto: "Publico con revisión por pares" },
     ],

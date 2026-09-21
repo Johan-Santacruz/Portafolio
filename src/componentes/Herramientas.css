@@ -770,7 +770,7 @@
   grid-template-columns: auto minmax(0, 1fr) minmax(0, 0.92fr);
   align-items: baseline;
   column-gap: clamp(12px, 1.6vw, 28px);
-  padding: clamp(6px, 1.2svh, 14px) 0;
+  padding: clamp(4px, 0.8svh, 10px) 0;
   /* Entran desde la izquierda, una tras otra. */
   opacity: 0;
   transform: translate3d(-36px, 0, 0);
@@ -800,7 +800,7 @@
   margin: 0;
   font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
   font-weight: 700;
-  font-size: clamp(28px, min(4vw, 7.6svh), 58px);
+  font-size: clamp(22px, min(3.1vw, 5.6svh), 44px);
   line-height: 0.95;
   letter-spacing: 0.005em;
   text-transform: uppercase;
@@ -849,7 +849,9 @@
      dejarle sitio a las habilidades. */
   .herramientas[data-criterio] .herr-lector {
     transform: translate3d(-8%, 0, 0);
-    opacity: 0.1;
+    /* Apagado del todo: si se transparenta, la categoría anterior se sigue
+       leyendo detrás de «Cómo trabajo». */
+    opacity: 0;
   }
   .herramientas[data-criterio] .herr-fijo {
     grid-template-rows: 30svh auto;
@@ -860,20 +862,24 @@
   .herr-grupo .herr-criterio {
     padding-right: 0;
   }
+  .herr-grupo .herr-criterio {
+    gap: 0;
+  }
   .herr-grupo .herr-criterio > li {
     grid-template-columns: auto minmax(0, 1fr);
     column-gap: 12px;
-    padding: 6px 0;
+    padding: clamp(2px, 0.5svh, 6px) 0;
   }
   .herr-criterio p {
     grid-column: 2;
-    margin-top: 3px;
+    margin-top: 2px;
     text-align: left;
   }
   .herr-criterio h4 {
-    font-size: clamp(26px, 8.5vw, 40px);
+    font-size: clamp(17px, 5.4vw, 26px);
   }
   .herr-criterio p {
-    font-size: 12.5px;
+    font-size: 12px;
+    line-height: 1.3;
   }
 }

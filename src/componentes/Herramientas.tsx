@@ -426,7 +426,10 @@ export function Herramientas() {
       }
       if (traga > 0 && pedido !== pintadoAgujero) pintarAgujero(pedido);
       ultimoY = window.scrollY;
-      const nuevo = Math.round(p);
+      // Durante el corte el lector se queda en la penúltima categoría, pero
+      // lo que hay detrás ya tiene que ser el criterio: si no, al aclararse
+      // el barrido se ven todavía las placas de la anterior.
+      const nuevo = corte > 0.5 ? total - 1 : Math.round(p);
       if (nuevo > 0) movido = true;
       if (pt < 1) movido = false;
       ponerFase(reducido ? "lector" : pt < 1 ? "tunel" : movido ? "lector" : "aterrizado");

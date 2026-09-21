@@ -237,7 +237,7 @@ test("las herramientas pasan por el lector una categoría cada vez", async ({
   expect(placas).toBeGreaterThan(20);
   await expect(page.locator(".herr-placa .herr-logo")).toHaveCount(placas);
   // La última categoría no son herramientas: el criterio se presenta aparte.
-  await expect(page.locator(".herr-criterio > li")).toHaveCount(5);
+  await expect(page.locator(".herr-criterio > li")).toHaveCount(8);
   await expect(page.locator(".herr-criterio")).toHaveCount(1);
 
   const { inicio, largo } = await seccion.evaluate((s) => ({
