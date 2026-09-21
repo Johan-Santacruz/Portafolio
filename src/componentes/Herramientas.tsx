@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import { iconos, stack } from "../datos/stack";
 import { vigilarCercania } from "../retrato/cercania";
+import { deslizando, deslizarHasta } from "../retrato/suave";
 import { SecuenciaFotogramas } from "../retrato/secuencia";
 import { Tunel } from "./Tunel";
 import "./Herramientas.css";
@@ -31,6 +32,10 @@ const CORTES = 32;
  * `data-estado` en cada grupo, que escribe este componente con el scroll.
  * Los datos salen de `datos/stack.ts`.
  */
+
+/** Lo que tardan en reproducirse solas las animaciones largas, en ms. */
+const DURACION_CORTE = 1100;
+const DURACION_AGUJERO = 1600;
 
 /** Tramos del recorrido que la lista se queda quieta al empezar y al acabar. */
 const PAUSA_INICIO = 0.06;
@@ -145,6 +150,38 @@ export function Herramientas() {
     const limitar = (v: number) => Math.min(1, Math.max(0, v));
     // Curva suave (arranca y frena despacio).
     const suave = (v: number) => v * v * (3 - 2 * v);
+
+    // --- Animaciones que se reproducen solas ---------------------------------
+    // El corte y el agujero son largos: en vez de avanzar a tirones según
+    // cuánto se arrastre, en cuanto se pide bajar se reproducen enteros. Solo
+    // se disparan con un gesto normal (un salto grande —un enlace, una
+    // prueba— no cuenta) y una vez por pasada.
+    const reducidoMedia = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let ultimoY = window.scrollY;
+    let cortePuesto = false;
+    let agujeroPuesto = false;
+    // Solo cuenta como «quiero bajar» un gesto de verdad: rueda, dedo o
+    // tecla. Un salto programático (un enlace, volver atrás) no dispara nada.
+    // La ventana es ancha porque el dedo suelta y la página sigue por
+    // inercia: el tramo puede empezar bastante después del último toque.
+    let ultimoGesto = -1e9;
+    const marcarGesto = () => {
+      ultimoGesto = performance.now();
+    };
+    const alTeclado = (ev: KeyboardEvent) => {
+      if (["ArrowDown", "PageDown", "Down", " ", "Spacebar"].includes(ev.key))
+        marcarGesto();
+    };
+    window.addEventListener("wheel", marcarGesto, { passive: true });
+    window.addEventListener("touchmove", marcarGesto, { passive: true });
+    window.addEventListener("keydown", alTeclado);
+    const lanzar = (hasta: number, ms: number, ya: boolean) => {
+      if (ya || reducidoMedia.matches || deslizando()) return ya;
+      if (performance.now() - ultimoGesto > 1200) return ya;
+      const salto = window.scrollY - ultimoY;
+      if (salto < 0 || salto > window.innerHeight * 0.5) return ya;
+      return deslizarHasta(hasta, ms);
+    };
 
     // --- El agujero negro: secuencia de fotogramas, como la portada -------
     const ctx = lienzo?.getContext("2d") ?? null;
@@ -306,6 +343,15 @@ export function Herramientas() {
       raiz.style.setProperty("--p", p.toFixed(4));
       // El corte ocurre al pasar de la penúltima categoría a la última.
       const corte = limitar(p - (total - 2));
+      // Al asomar, se reproduce solo hasta el final de su tramo.
+      if (corte > 0.002 && corte < 0.9) {
+        const avanceFin = PAUSA_INICIO + (1 - PAUSA_INICIO - PAUSA_FINAL);
+        cortePuesto = lanzar(
+          raiz.offsetTop + tunel + avanceFin * largo,
+          DURACION_CORTE,
+          cortePuesto,
+        );
+      } else if (corte <= 0.002) cortePuesto = false;
       raiz.style.setProperty("--corte", corte.toFixed(4));
       const cuadroCorte = Math.round(corte * (CORTES - 1));
       if (cuadroCorte !== pedidoCorte) {
@@ -318,6 +364,13 @@ export function Herramientas() {
       // secuencia avanza hasta el negro, que ya es el fondo de Proyectos.
       const traga = limitar((-caja.top - tunel - largo) / Math.max(1, agujero));
       if (traga > 0 && !medidas) medirSuccion();
+      if (traga > 0.002 && traga < 0.9) {
+        agujeroPuesto = lanzar(
+          raiz.offsetTop + tunel + largo + agujero,
+          DURACION_AGUJERO,
+          agujeroPuesto,
+        );
+      } else if (traga <= 0.002) agujeroPuesto = false;
       raiz.style.setProperty("--traga", traga.toFixed(4));
       raiz.toggleAttribute("data-traga", traga > 0);
       const cuadro = Math.round(traga * (FOTOGRAMAS - 1));
@@ -326,6 +379,7 @@ export function Herramientas() {
         secuencia.pedir(pedido);
       }
       if (traga > 0 || pintadoAgujero >= 0) pintarAgujero(pedido);
+      ultimoY = window.scrollY;
       const nuevo = Math.round(p);
       if (nuevo > 0) movido = true;
       if (pt < 1) movido = false;
@@ -367,6 +421,9 @@ export function Herramientas() {
     window.addEventListener("scroll", alScroll, { passive: true });
     window.addEventListener("resize", alRedimensionar);
     return () => {
+      window.removeEventListener("wheel", marcarGesto);
+      window.removeEventListener("touchmove", marcarGesto);
+      window.removeEventListener("keydown", alTeclado);
       dejarDeVigilar();
       vigiaAgujero.disconnect();
       vigiaCorte.disconnect();

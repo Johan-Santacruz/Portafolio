@@ -600,3 +600,38 @@ test("la trayectoria pasa las credenciales y abre la hoja de vida", async ({
   await expect(ventana).not.toBeVisible();
   await expect(abridor).toBeFocused();
 });
+
+test("las animaciones largas se reproducen solas al pedir bajar", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+  await page.evaluate(() => document.fonts.ready);
+  await expect(page.locator(".retrato")).toHaveAttribute("data-listo", "true");
+  const seccion = page.locator("#herramientas");
+  const v = (n: string) =>
+    seccion.evaluate((s, n) => Number(s.style.getPropertyValue(n)), n);
+  const y = () => page.evaluate(() => Math.round(scrollY));
+  await page.mouse.move(720, 450);
+
+  // Se baja con la rueda hasta que la animación despega; a partir de ahí no
+  // se toca nada más y tiene que terminar sola.
+  const comprobar = async (prop: string) => {
+    let arranque = -1;
+    for (let i = 0; i < 200; i++) {
+      await page.mouse.wheel(0, 200);
+      await page.waitForTimeout(40);
+      if ((await v(prop)) > 0.001) {
+        arranque = await y();
+        break;
+      }
+    }
+    expect(arranque, `${prop} no llegó a arrancar`).toBeGreaterThan(0);
+    await page.waitForTimeout(2400);
+    expect(await y()).toBeGreaterThan(arranque + 100);
+    expect(await v(prop)).toBeGreaterThan(0.98);
+  };
+
+  await comprobar("--corte");
+  await comprobar("--traga");
+});

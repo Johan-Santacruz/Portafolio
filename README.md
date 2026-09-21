@@ -206,6 +206,13 @@ sección en `requestAnimationFrame`) y todo se anula con `prefers-reduced-motion
   por encima igual.
 - El cierre saca la figura de la niebla con el scroll.
 
+Las dos animaciones largas —el corte y el agujero negro— no se arrastran: en
+cuanto se pide bajar con un gesto de verdad (rueda, dedo o tecla), se
+reproducen enteras solas y la página se desliza hasta el final del tramo
+(`deslizarHasta` en `suave.ts`, que con Lenis usa su `lock` y sin él anima a
+mano bloqueando rueda y dedo). Un salto programático —un enlace de la
+cabecera, una prueba— no las dispara, y con `prefers-reduced-motion` tampoco.
+
 Cada sección solo mide su posición mientras está a la vista (`cercania.ts`):
 medir las lejanas fuerza recálculos de estilo que se notaban como tirones. En
 escritorio, Lenis suaviza la rueda (`suave.ts`).
