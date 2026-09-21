@@ -67,6 +67,43 @@
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+/* El interruptor de idioma: en la misma píldora, tras un filo que lo separa
+   de los apartados. Lima al pasar, como los enlaces. */
+.cabecera-idioma {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  min-height: 42px;
+  margin-left: 6px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: rgba(238, 240, 242, 0.62);
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+.cabecera-idioma::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 11px;
+  bottom: 11px;
+  width: 1px;
+  background: rgba(238, 240, 242, 0.16);
+}
+.cabecera-idioma:hover {
+  color: var(--accent);
+}
+.cabecera-idioma:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 @keyframes cabecera-entrar {
   from {
     opacity: 0;
@@ -108,6 +145,12 @@
   .cab-corto {
     display: inline;
   }
+  .cabecera-idioma {
+    min-height: 38px;
+    padding: 0 10px;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+  }
 }
 @media (max-width: 560px) {
   .cabecera a {
@@ -116,11 +159,21 @@
     font-size: 10.5px;
     letter-spacing: 0.02em;
   }
+  .cabecera-idioma {
+    min-height: 36px;
+    padding: 0 8px;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+  }
 }
 @media (max-width: 380px) {
   .cabecera a {
     padding: 0 7px;
     font-size: 10px;
+    letter-spacing: 0;
+  }
+  .cabecera-idioma {
+    padding: 0 7px;
     letter-spacing: 0;
   }
 }

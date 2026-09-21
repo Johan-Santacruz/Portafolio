@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import type { CSSProperties } from "react";
 import { iconos, stack } from "../datos/stack";
+import { useIdioma } from "../idioma/idioma";
+import { textos } from "../idioma/textos";
 import "./Tunel.css";
 
 const ICONOS = `${import.meta.env.BASE_URL}iconos/`;
@@ -45,6 +47,7 @@ const aterrizan = stack[0].items;
  * relevan en el mismo sitio.
  */
 export function Tunel() {
+  const { di } = useIdioma();
   // Dos vueltas de todas las herramientas, repartidas en espiral por el túnel.
   const placas = useMemo(() => {
     const azar = azarConSemilla(7);
@@ -126,7 +129,7 @@ export function Tunel() {
       <div className="tunel-centro">
         <p className="tunel-orden">
           <span className="tunel-prompt">~ $</span>
-          <span className="tunel-tecleo">ls ./herramientas</span>
+          <span className="tunel-tecleo">{di(textos.ordenHerramientas)}</span>
         </p>
       </div>
     </div>

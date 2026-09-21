@@ -3,6 +3,9 @@ import { MotorRetrato } from "../retrato/motor";
 import { SecuenciaFotogramas } from "../retrato/secuencia";
 import { vigilarCercania } from "../retrato/cercania";
 import { trabajos } from "../datos/trabajos";
+import { useIdioma } from "../idioma/idioma";
+import type { Decible } from "../idioma/idioma";
+import { textos } from "../idioma/textos";
 import "./Retrato.css";
 
 const RETRATO = `${import.meta.env.BASE_URL}imagenes/retrato/`;
@@ -28,7 +31,7 @@ const fotograma = (i: number) =>
  */
 const MOSTRAR_HUD = false;
 const hackathones = trabajos.filter((t) =>
-  /hackathon/i.test(t.contexto),
+  /hackat(h)?on/i.test(t.contexto.es),
 ).length;
 /**
  * Datos escondidos en la capa del alter ego: solo se ven bajo la máscara del
@@ -39,16 +42,22 @@ const HUD: {
   x: number;
   y: number;
   lado: "izq" | "der";
-  etiqueta: string;
-  valor: string;
+  etiqueta: Decible;
+  valor: Decible;
   grande?: boolean;
 }[] = [
-  { x: 8, y: 20, lado: "der", etiqueta: "Identidad", valor: "Johan Santacruz" },
+  {
+    x: 8,
+    y: 20,
+    lado: "der",
+    etiqueta: textos.hud.identidad,
+    valor: "Johan Santacruz",
+  },
   {
     x: 72,
     y: 22,
     lado: "izq",
-    etiqueta: "Hackathones",
+    etiqueta: textos.hud.hackathones,
     valor: String(hackathones).padStart(2, "0"),
     grande: true,
   },
@@ -56,28 +65,26 @@ const HUD: {
     x: 8,
     y: 40,
     lado: "der",
-    etiqueta: "Formación",
-    valor: "Estudiante de Ingeniería de Sistemas",
+    etiqueta: textos.hud.formacion,
+    valor: textos.hud.formacionValor,
   },
   {
     x: 72,
     y: 42,
     lado: "izq",
-    etiqueta: "Proyectos",
+    etiqueta: textos.hud.proyectos,
     valor: String(trabajos.length).padStart(2, "0"),
     grande: true,
   },
-  { x: 8, y: 60, lado: "der", etiqueta: "Base", valor: "Cali, Colombia" },
+  { x: 8, y: 60, lado: "der", etiqueta: textos.hud.base, valor: "Cali, Colombia" },
   {
     x: 72,
     y: 62,
     lado: "izq",
-    etiqueta: "Estado",
-    valor: "Disponible para prácticas y proyectos",
+    etiqueta: textos.hud.estado,
+    valor: textos.hud.estadoValor,
   },
 ];
-const FRASE =
-  "Aprendo construyendo: cada proyecto empieza con un problema real y termina en algo que funciona.";
 
 /** Parte del recorrido dedicada a revelar el alter ego; el resto, al vídeo. */
 const TRAMO_REVELADO = 0.3;
@@ -100,6 +107,7 @@ const TRAMO_FUNDIDO = 0.04;
  * fotogramas; al final se queda en el último.
  */
 export function Retrato() {
+  const { di } = useIdioma();
   const marco = useRef<HTMLDivElement>(null);
   const lienzo = useRef<HTMLCanvasElement>(null);
   const lienzoSecuencia = useRef<HTMLCanvasElement>(null);
@@ -412,7 +420,7 @@ export function Retrato() {
       data-fase={fase}
       tabIndex={0}
       role="img"
-      aria-label="Retrato de Johan Santacruz. Al pasar el cursor, mantener pulsado o enfocar con el teclado se revela su versión tecnológica; al bajar, la versión tecnológica aparece entera y gira de perfil."
+      aria-label={di(textos.retratoAria)}
     >
       <img
         className="retrato-normal"
@@ -426,17 +434,17 @@ export function Retrato() {
       {/* HUD: datos que solo aparecen bajo la máscara del cursor. */}
       {MOSTRAR_HUD && (
         <div className="retrato-hud">
-          {HUD.map((d) => (
+          {HUD.map((d, i) => (
             <p
-              key={d.etiqueta}
+              key={i}
               className={`hud-dato hud-${d.lado}${d.grande ? " hud-grande" : ""}`}
               style={{ left: `${d.x}%`, top: `${d.y}%` }}
             >
-              <span className="hud-etiqueta">{d.etiqueta}</span>
-              <span className="hud-valor">{d.valor}</span>
+              <span className="hud-etiqueta">{di(d.etiqueta)}</span>
+              <span className="hud-valor">{di(d.valor)}</span>
             </p>
           ))}
-          <p className="hud-frase">{FRASE}</p>
+          <p className="hud-frase">{di(textos.frase)}</p>
         </div>
       )}
       <canvas

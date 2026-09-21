@@ -3,6 +3,8 @@ import type { CSSProperties } from "react";
 import { trabajos } from "../datos/trabajos";
 import type { Trabajo } from "../datos/trabajos";
 import { iconos } from "../datos/stack";
+import { useIdioma } from "../idioma/idioma";
+import { textos } from "../idioma/textos";
 import { Icono } from "./Icono";
 import { vigilarCercania } from "../retrato/cercania";
 import "./Proyectos.css";
@@ -34,6 +36,7 @@ const logo = (tecnologia: string) =>
  * ficha del proyecto en una ventana nativa. Los datos, de `datos/trabajos.ts`.
  */
 export function Proyectos() {
+  const { di } = useIdioma();
   const seccion = useRef<HTMLElement>(null);
   const fondo = useRef<HTMLVideoElement>(null);
   const dialogo = useRef<HTMLDialogElement>(null);
@@ -148,9 +151,10 @@ export function Proyectos() {
       <div className="proy-emerge">
         <header className="proy-cabecera">
           <p className="proy-rotulo">
-            <span aria-hidden="true">~ $ </span>ls ./proyectos
+            <span aria-hidden="true">~ $ </span>
+            {di(textos.ordenProyectos)}
           </p>
-          <h2 id="titulo-proyectos">Lo que he construido</h2>
+          <h2 id="titulo-proyectos">{di(textos.proyectosTitulo)}</h2>
         </header>
 
         <ol className="proy-lista">
@@ -169,10 +173,10 @@ export function Proyectos() {
                 decoding="async"
               />
             )}
-            <span className="proy-lado proy-contexto">{t.contexto}</span>
+            <span className="proy-lado proy-contexto">{di(t.contexto)}</span>
             <button className="proy-nombre" onClick={() => abrir(t)}>
               {t.nombre}
-              <span className="proy-oculto">: ver el proyecto</span>
+              <span className="proy-oculto">{di(textos.verProyecto)}</span>
             </button>
             <span className="proy-lado proy-periodo">{t.periodo}</span>
           </li>
@@ -205,13 +209,13 @@ export function Proyectos() {
           <div className="proy-ventana-barra">
             <div>
               <span>
-                {abierto.contexto} / {abierto.periodo}
+                {di(abierto.contexto)} / {abierto.periodo}
               </span>
               <h2 id="titulo-ventana-proyecto">{abierto.nombre}</h2>
             </div>
             <button
               className="proy-cerrar"
-              aria-label="Cerrar"
+              aria-label={di(textos.cerrar)}
               onClick={cerrar}
               autoFocus
             >
@@ -220,15 +224,15 @@ export function Proyectos() {
           </div>
           <div className="proy-ventana-cuerpo">
             <div className="proy-ficha">
-              <p className="proy-resumen">{abierto.resumen}</p>
-              <p className="proy-descripcion">{abierto.descripcion}</p>
-              {!/por confirmar/i.test(abierto.rol) && (
+              <p className="proy-resumen">{di(abierto.resumen)}</p>
+              <p className="proy-descripcion">{di(abierto.descripcion)}</p>
+              {!abierto.rolPorConfirmar && (
                 <p className="proy-rol">
-                  <span>Rol</span>
-                  {abierto.rol}
+                  <span>{di(textos.rol)}</span>
+                  {di(abierto.rol)}
                 </p>
               )}
-              <ul className="proy-stack" aria-label="Tecnologías">
+              <ul className="proy-stack" aria-label={di(textos.tecnologias)}>
                 {abierto.stack.map((tecnologia) => {
                   const archivo = logo(tecnologia);
                   return (
@@ -257,15 +261,15 @@ export function Proyectos() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Ver el código
-                  <span className="proy-oculto"> en GitHub</span>
+                  {di(textos.verCodigo)}
+                  <span className="proy-oculto">{di(textos.enGitHub)}</span>
                   <Icono nombre="diagonal" />
                 </a>
               )}
             </div>
             {abierto.landing && (
               <figure className="proy-landing">
-                <img src={abierto.landing.src} alt={abierto.landing.alt} />
+                <img src={abierto.landing.src} alt={di(abierto.landing.alt)} />
               </figure>
             )}
           </div>

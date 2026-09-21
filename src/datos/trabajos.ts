@@ -3,43 +3,54 @@
  * El primero se presenta en grande, con capturas reales; los demás van como
  * filas. Para añadir uno nuevo basta con escribirlo aquí.
  */
+import type { Par } from "../idioma/idioma";
 
 export interface Captura {
   src: string;
-  alt: string;
+  alt: Par;
 }
 
 export interface Landing {
   src: string;
-  alt: string;
-  etiqueta: string;
+  alt: Par;
+  etiqueta: Par;
 }
 
 export interface Trabajo {
   id: string;
+  /** Nombre propio: no se traduce. */
   nombre: string;
-  resumen: string;
-  contexto: string;
+  resumen: Par;
+  contexto: Par;
+  /** Fechas: iguales en los dos idiomas salvo el guion. */
   periodo: string;
-  rol: string;
-  descripcion: string;
+  rol: Par;
+  descripcion: Par;
+  /** Tecnologías: nombres propios. */
   stack: string[];
   repositorio?: string;
   capturas?: Captura[];
   /** La página de entrada completa, para verla de arriba abajo. */
   landing?: Landing;
+  /** Cuando el rol aún no está cerrado, la ficha no lo muestra. */
+  rolPorConfirmar?: boolean;
 }
 
 export const trabajos: Trabajo[] = [
   {
     id: "senda",
     nombre: "SENDA",
-    resumen: "Un testimonio en video convertido en una ruta de atención",
-    contexto: "Trabajo de grado",
+    resumen: {
+      es: "Un testimonio en video convertido en una ruta de atención",
+      en: "A video testimony turned into a route to institutional support",
+    },
+    contexto: { es: "Trabajo de grado", en: "Final degree project" },
     periodo: "2025 — 2026",
-    rol: "Diseño y desarrollo completo",
-    descripcion:
-      "Una persona desplazada cuenta su historia en video. SENDA la organiza en fragmentos, extrae los hechos, los contrasta con fuentes oficiales y propone rutas institucionales verificables. Nada se publica sin que una persona lo confirme: la ruta no se muestra mientras queden señales críticas sin revisar. Todo el material sensible se cifra por registro.",
+    rol: { es: "Diseño y desarrollo completo", en: "Design and full development" },
+    descripcion: {
+      es: "Una persona desplazada cuenta su historia en video. SENDA la organiza en fragmentos, extrae los hechos, los contrasta con fuentes oficiales y propone rutas institucionales verificables. Nada se publica sin que una persona lo confirme: la ruta no se muestra mientras queden señales críticas sin revisar. Todo el material sensible se cifra por registro.",
+      en: "A displaced person tells their story on video. SENDA breaks it into fragments, extracts the facts, checks them against official sources and proposes verifiable institutional routes. Nothing is published until a person confirms it: the route stays hidden while any critical flag is unreviewed. All sensitive material is encrypted record by record.",
+    },
     stack: [
       "FastAPI",
       "React + TypeScript",
@@ -51,59 +62,94 @@ export const trabajos: Trabajo[] = [
     capturas: [
       {
         src: "/imagenes/trabajos/senda-libro.jpg",
-        alt: "Portada de SENDA: un libro abierto que introduce el contexto del desplazamiento en Colombia",
+        alt: {
+          es: "Portada de SENDA: un libro abierto que introduce el contexto del desplazamiento en Colombia",
+          en: "SENDA's cover: an open book introducing the context of displacement in Colombia",
+        },
       },
       {
         src: "/imagenes/trabajos/senda-senales.jpg",
-        alt: "Pantalla de señales: el sistema pide confirmar la clasificación antes de continuar",
+        alt: {
+          es: "Pantalla de señales: el sistema pide confirmar la clasificación antes de continuar",
+          en: "Flags screen: the system asks for the classification to be confirmed before going on",
+        },
       },
       {
         src: "/imagenes/trabajos/senda-ruta.jpg",
-        alt: "Pantalla de rutas institucionales, bloqueada mientras haya señales críticas sin confirmar",
+        alt: {
+          es: "Pantalla de rutas institucionales, bloqueada mientras haya señales críticas sin confirmar",
+          en: "Institutional routes screen, locked while critical flags remain unconfirmed",
+        },
       },
     ],
     landing: {
       src: "/imagenes/landings/senda.jpg",
-      alt: "Recorrido completo de entrada de SENDA: el libro, una doble página interior, la pantalla de señales y el cierre",
-      etiqueta: "Ver el recorrido completo",
+      alt: {
+        es: "Recorrido completo de entrada de SENDA: el libro, una doble página interior, la pantalla de señales y el cierre",
+        en: "SENDA's full landing page: the book, an inner spread, the flags screen and the closing section",
+      },
+      etiqueta: { es: "Ver el recorrido completo", en: "See the full walkthrough" },
     },
   },
   {
     id: "gobla",
     nombre: "Oculus Auditor",
-    resumen: "Detección de opacidad en contratos públicos del SECOP II",
-    contexto: "Hackathon · Bogotá",
+    resumen: {
+      es: "Detección de opacidad en contratos públicos del SECOP II",
+      en: "Spotting opacity in public contracts on Colombia's SECOP II",
+    },
+    contexto: { es: "Hackathon · Bogotá", en: "Hackathon · Bogotá" },
     periodo: "2026",
-    rol: "Backend e integración de IA",
-    descripcion:
-      "Un agente revisa la contratación pública publicada en el SECOP II, puntúa señales de opacidad y levanta alertas con su evidencia. Los hallazgos salen como reporte y llegan por Telegram.",
+    rol: { es: "Backend e integración de IA", en: "Backend and AI integration" },
+    descripcion: {
+      es: "Un agente revisa la contratación pública publicada en el SECOP II, puntúa señales de opacidad y levanta alertas con su evidencia. Los hallazgos salen como reporte y llegan por Telegram.",
+      en: "An agent reviews the public procurement published on SECOP II, scores signals of opacity and raises alerts with their evidence. Findings come out as a report and arrive over Telegram.",
+    },
     stack: ["FastAPI", "React", "SQLite", "OpenAI", "Telegram"],
     repositorio: "https://github.com/Johan-Santacruz/BogotaHackColombia5.0",
     capturas: [
       {
         src: "/imagenes/trabajos/oculus-inicio.jpg",
-        alt: "Portada de Oculus Auditor: «La corrupción en contratos públicos no debería ser invisible»",
+        alt: {
+          es: "Portada de Oculus Auditor: «La corrupción en contratos públicos no debería ser invisible»",
+          en: "Oculus Auditor's cover: \"Corruption in public contracts should not be invisible\"",
+        },
       },
       {
         src: "/imagenes/trabajos/oculus-mapa.jpg",
-        alt: "Mapa de riesgo nacional por departamento dentro del panel de Oculus Auditor",
+        alt: {
+          es: "Mapa de riesgo nacional por departamento dentro del panel de Oculus Auditor",
+          en: "National risk map by department inside the Oculus Auditor dashboard",
+        },
       },
     ],
     landing: {
       src: "/imagenes/landings/oculus.jpg",
-      alt: "Landing completa de Oculus Auditor, de la portada al cierre",
-      etiqueta: "Ver la landing completa",
+      alt: {
+        es: "Landing completa de Oculus Auditor, de la portada al cierre",
+        en: "Oculus Auditor's full landing page, from the cover to the closing section",
+      },
+      etiqueta: { es: "Ver la landing completa", en: "See the full landing page" },
     },
   },
   {
     id: "nimbus",
     nombre: "Nimbus",
-    resumen: "Alerta temprana de lluvia para San Cristóbal, Galápagos",
-    contexto: "SALA Hackathon · Galapagos Science Center",
+    resumen: {
+      es: "Alerta temprana de lluvia para San Cristóbal, Galápagos",
+      en: "Early rain warning for San Cristóbal, Galápagos",
+    },
+    contexto: {
+      es: "SALA Hackathon · Galapagos Science Center",
+      en: "SALA Hackathon · Galapagos Science Center",
+    },
     periodo: "2026",
-    rol: "Por confirmar",
-    descripcion:
-      "Once años de registros de cuatro estaciones meteorológicas convertidos en pronósticos de precipitación a +1, +3 y +6 horas. La misma predicción se presenta de tres maneras según quién mira: métricas de modelo para el equipo de ML, datos en tiempo real para meteorología y alertas simples por Telegram para la comunidad.",
+    rol: { es: "Por confirmar", en: "To be confirmed" },
+    rolPorConfirmar: true,
+    descripcion: {
+      es: "Once años de registros de cuatro estaciones meteorológicas convertidos en pronósticos de precipitación a +1, +3 y +6 horas. La misma predicción se presenta de tres maneras según quién mira: métricas de modelo para el equipo de ML, datos en tiempo real para meteorología y alertas simples por Telegram para la comunidad.",
+      en: "Eleven years of records from four weather stations turned into rainfall forecasts at +1, +3 and +6 hours. The same prediction is shown three ways depending on who is looking: model metrics for the ML team, live data for meteorologists and plain Telegram alerts for the community.",
+    },
     stack: [
       "PyTorch",
       "Python",
@@ -116,44 +162,67 @@ export const trabajos: Trabajo[] = [
     capturas: [
       {
         src: "/imagenes/trabajos/nimbus-inicio.jpg",
-        alt: "Portada de Nimbus: «Transform data into predictions that save», con el conteo de estaciones y años de datos",
+        alt: {
+          es: "Portada de Nimbus: «Transform data into predictions that save», con el conteo de estaciones y años de datos",
+          en: "Nimbus's cover: \"Transform data into predictions that save\", with the count of stations and years of data",
+        },
       },
       {
         src: "/imagenes/trabajos/nimbus-roles.jpg",
-        alt: "Las tres interfaces de Nimbus: experto en ML, meteorólogo y comunidad de Galápagos",
+        alt: {
+          es: "Las tres interfaces de Nimbus: experto en ML, meteorólogo y comunidad de Galápagos",
+          en: "Nimbus's three interfaces: ML expert, meteorologist and the Galápagos community",
+        },
       },
     ],
     landing: {
       src: "/imagenes/landings/nimbus.jpg",
-      alt: "Landing completa de Nimbus, de la portada al pie",
-      etiqueta: "Ver la landing completa",
+      alt: {
+        es: "Landing completa de Nimbus, de la portada al pie",
+        en: "Nimbus's full landing page, from the cover to the footer",
+      },
+      etiqueta: { es: "Ver la landing completa", en: "See the full landing page" },
     },
   },
   {
     id: "agenx",
     nombre: "AgentX",
-    resumen: "Recepción y clasificación automática de incidentes",
-    contexto: "Hackathon",
+    resumen: {
+      es: "Recepción y clasificación automática de incidentes",
+      en: "Automatic intake and triage of incidents",
+    },
+    contexto: { es: "Hackathon", en: "Hackathon" },
     periodo: "2026",
-    rol: "Backend e integraciones",
-    descripcion:
-      "Los incidentes entran por varios canales, se clasifican y enriquecen con IA, y salen convertidos en tickets de Jira con las personas correctas notificadas.",
+    rol: { es: "Backend e integraciones", en: "Backend and integrations" },
+    descripcion: {
+      es: "Los incidentes entran por varios canales, se clasifican y enriquecen con IA, y salen convertidos en tickets de Jira con las personas correctas notificadas.",
+      en: "Incidents come in through several channels, get classified and enriched with AI, and come out as Jira tickets with the right people notified.",
+    },
     stack: ["React + Vite", "Node.js", "Express", "SQLite", "Jira", "OpenAI"],
     repositorio: "https://github.com/Johan-Santacruz/AgenX-Hackathon",
     capturas: [
       {
         src: "/imagenes/trabajos/agentx-inicio.jpg",
-        alt: "Portada de AgentX: «The agent that resolves incidents»",
+        alt: {
+          es: "Portada de AgentX: «The agent that resolves incidents»",
+          en: "AgentX's cover: \"The agent that resolves incidents\"",
+        },
       },
       {
         src: "/imagenes/trabajos/agentx-integraciones.jpg",
-        alt: "Integraciones de AgentX con Saleor, Jira, Gmail y una API REST",
+        alt: {
+          es: "Integraciones de AgentX con Saleor, Jira, Gmail y una API REST",
+          en: "AgentX's integrations with Saleor, Jira, Gmail and a REST API",
+        },
       },
     ],
     landing: {
       src: "/imagenes/landings/agentx.jpg",
-      alt: "Landing completa de AgentX, de la portada a las integraciones",
-      etiqueta: "Ver la landing completa",
+      alt: {
+        es: "Landing completa de AgentX, de la portada a las integraciones",
+        en: "AgentX's full landing page, from the cover to the integrations",
+      },
+      etiqueta: { es: "Ver la landing completa", en: "See the full landing page" },
     },
   },
 ];

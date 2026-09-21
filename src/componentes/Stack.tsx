@@ -1,7 +1,9 @@
 import type { CSSProperties } from "react";
 import { stack } from "../datos/stack";
+import { useIdioma } from "../idioma/idioma";
 import "./Stack.css";
 export function Stack() {
+  const { di } = useIdioma();
   return (
     <section className="seccion" id="stack" aria-labelledby="titulo-stack">
       <div className="etiqueta-seccion mono" data-revelar="">
@@ -19,14 +21,14 @@ export function Stack() {
         {stack.map((grupo, i) => (
           <div
             className="grupo-stack"
-            key={grupo.titulo}
+            key={grupo.id}
             data-revelar=""
             style={{ "--retraso": `${i * 100}ms` } as CSSProperties}
           >
             <span className="stack-indice mono" aria-hidden="true">
               0{i + 1}
             </span>
-            <h3>{grupo.titulo}</h3>
+            <h3>{di(grupo.titulo)}</h3>
             <ul>
               {grupo.items.map((item) => (
                 <li key={item}>{item}</li>

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { perfil } from "../datos/perfil";
+import { useIdioma } from "../idioma/idioma";
+import { textos } from "../idioma/textos";
 import { Icono } from "./Icono";
 import { SecuenciaFotogramas } from "../retrato/secuencia";
 import { vigilarCercania } from "../retrato/cercania";
@@ -28,6 +30,7 @@ const HOJA_PAGINAS = [1, 2];
  * Los fotogramas se empiezan a cargar cuando la sección se acerca, no antes.
  */
 export function Cierre() {
+  const { di } = useIdioma();
   const seccion = useRef<HTMLElement>(null);
   const lienzo = useRef<HTMLCanvasElement>(null);
   const [copiado, setCopiado] = useState(false);
@@ -175,21 +178,22 @@ export function Cierre() {
           <span />
         </div>
         <div className="cierre-texto">
-          <p className="cierre-rotulo">Contacto</p>
+          <p className="cierre-rotulo">{di(textos.contactoRotulo)}</p>
           <h2 id="titulo-cierre">
-            <span style={{ "--linea": 0 } as CSSProperties}>¿Construimos</span>
-            <span style={{ "--linea": 1 } as CSSProperties}>lo que sigue?</span>
+            <span style={{ "--linea": 0 } as CSSProperties}>
+              {di(textos.cierreLinea1)}
+            </span>
+            <span style={{ "--linea": 1 } as CSSProperties}>
+              {di(textos.cierreLinea2)}
+            </span>
           </h2>
-          <p className="cierre-copy">
-            Cuéntame tu idea: una web, un sistema con IA o un proceso que quieras
-            automatizar. Te respondo el mismo día.
-          </p>
+          <p className="cierre-copy">{di(textos.cierreCopia)}</p>
           <div className="cierre-acciones">
             <a className="cierre-correo" href={`mailto:${perfil.correo}`}>
-              Escríbeme <Icono nombre="diagonal" />
+              {di(textos.escribeme)} <Icono nombre="diagonal" />
             </a>
             <button className="cierre-copiar" onClick={copiar}>
-              {copiado ? "Copiado" : perfil.correo}
+              {copiado ? di(textos.copiado) : perfil.correo}
             </button>
           </div>
           <div className="cierre-enlaces">
@@ -198,7 +202,7 @@ export function Cierre() {
               ref={abridorHoja}
               onClick={() => setHoja(true)}
             >
-              Hoja de vida <Icono nombre="diagonal" />
+              {di(textos.hojaDeVida)} <Icono nombre="diagonal" />
             </button>
             <a
               className="cierre-enlace"
@@ -222,14 +226,14 @@ export function Cierre() {
             }}
           >
             <div className="hoja-barra">
-              <h2 id="titulo-hoja">Hoja de vida</h2>
+              <h2 id="titulo-hoja">{di(textos.hojaDeVida)}</h2>
               <div className="hoja-acciones">
                 <a className="hoja-descargar" href={HOJA_PDF} download>
-                  Descargar PDF <Icono nombre="diagonal" />
+                  {di(textos.descargarPdf)} <Icono nombre="diagonal" />
                 </a>
                 <button
                   className="hoja-cerrar"
-                  aria-label="Cerrar"
+                  aria-label={di(textos.cerrar)}
                   onClick={() => ventanaHoja.current?.close()}
                   autoFocus
                 >
@@ -242,7 +246,7 @@ export function Cierre() {
                 <img
                   key={n}
                   src={`${HOJA}hoja-de-vida-${n}.jpg`}
-                  alt={`Hoja de vida de Johan Balanta, página ${n} de ${HOJA_PAGINAS.length}`}
+                  alt={`${di(textos.hojaPagina)} ${n} ${di(textos.hojaDe)} ${HOJA_PAGINAS.length}`}
                   loading={n === 1 ? "eager" : "lazy"}
                   decoding="async"
                 />

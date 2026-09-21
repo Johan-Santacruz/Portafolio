@@ -1,23 +1,27 @@
 /** Herramientas, agrupadas por capa. */
+import type { Par } from "../idioma/idioma";
 
 export interface GrupoStack {
-  titulo: string;
+  /** Estable y sin traducir: es la clave de React y del túnel. */
+  id: string;
+  titulo: Par;
   /** Versión corta para la palabra gigante, si el título no cabe. */
-  palabra?: string;
+  palabra?: Par;
   items: string[];
   /** Consola de la categoría: la orden y lo que responde. */
-  consola: [string, string];
+  consola: [Par, Par];
   /**
    * Habilidades blandas. El grupo que las lleva no se pinta con placas: la
    * pantalla cambia de composición y las presenta en grande, una por línea.
    * Una palabra y una frase corta cada una; si hay que explicar más, sobra.
    */
-  criterio?: { titulo: string; texto: string }[];
+  criterio?: { id: string; titulo: Par; texto: Par }[];
 }
 
 export const stack: GrupoStack[] = [
   {
-    titulo: "Lenguajes",
+    id: "lenguajes",
+    titulo: { es: "Lenguajes", en: "Languages" },
     items: [
       "Python",
       "Java",
@@ -28,10 +32,14 @@ export const stack: GrupoStack[] = [
       "Go",
       "PHP",
     ],
-    consola: ['$ python -c "print(\'hola, mundo\')"', "hola, mundo"],
+    consola: [
+      { es: '$ python -c "print(\'hola, mundo\')"', en: '$ python -c "print(\'hello, world\')"' },
+      { es: "hola, mundo", en: "hello, world" },
+    ],
   },
   {
-    titulo: "Desarrollo web",
+    id: "web",
+    titulo: { es: "Desarrollo web", en: "Web development" },
     items: [
       "HTML",
       "CSS",
@@ -44,11 +52,15 @@ export const stack: GrupoStack[] = [
       "Flask",
       "Django",
     ],
-    consola: ["$ npm run dev", "➜  Local:   http://localhost:5173/"],
+    consola: [
+      { es: "$ npm run dev", en: "$ npm run dev" },
+      { es: "➜  Local:   http://localhost:5173/", en: "➜  Local:   http://localhost:5173/" },
+    ],
   },
   {
-    titulo: "Inteligencia artificial y datos",
-    palabra: "IA y datos",
+    id: "ia",
+    titulo: { es: "Inteligencia artificial y datos", en: "Artificial intelligence and data" },
+    palabra: { es: "IA y datos", en: "AI and data" },
     items: [
       "TensorFlow",
       "PyTorch",
@@ -60,36 +72,111 @@ export const stack: GrupoStack[] = [
       "Seaborn",
       "Jupyter",
     ],
-    consola: [">>> modelo.fit(X_train, y_train, epochs=20)", "Epoch 20/20 ━━━━━━━━━━━━━━ listo"],
+    consola: [
+      { es: ">>> modelo.fit(X_train, y_train, epochs=20)", en: ">>> model.fit(X_train, y_train, epochs=20)" },
+      { es: "Epoch 20/20 ━━━━━━━━━━━━━━ listo", en: "Epoch 20/20 ━━━━━━━━━━━━━━ done" },
+    ],
   },
   {
-    titulo: "Bases de datos",
+    id: "datos",
+    titulo: { es: "Bases de datos", en: "Databases" },
     items: ["SQL", "PostgreSQL", "SQLite", "MongoDB"],
-    consola: ["SELECT nombre FROM proyectos;", "SENDA · Oculus Auditor · Nimbus · AgentX"],
+    consola: [
+      { es: "SELECT nombre FROM proyectos;", en: "SELECT name FROM projects;" },
+      { es: "SENDA · Oculus Auditor · Nimbus · AgentX", en: "SENDA · Oculus Auditor · Nimbus · AgentX" },
+    ],
   },
   {
-    titulo: "Automatización",
+    id: "automatizacion",
+    titulo: { es: "Automatización", en: "Automation" },
     items: ["n8n", "Rocketbot"],
-    consola: ["› n8n: ejecutar flujo", "✓ flujo completado"],
+    consola: [
+      { es: "› n8n: ejecutar flujo", en: "› n8n: run workflow" },
+      { es: "✓ flujo completado", en: "✓ workflow completed" },
+    ],
   },
   {
-    titulo: "Control de versiones",
+    id: "versiones",
+    titulo: { es: "Control de versiones", en: "Version control" },
     items: ["Git"],
-    consola: ["$ git log --oneline -1", "57c1cdd Portafolio: landing con video"],
+    consola: [
+      { es: "$ git log --oneline -1", en: "$ git log --oneline -1" },
+      { es: "57c1cdd Portafolio: landing con video", en: "57c1cdd Portfolio: landing with video" },
+    ],
   },
   {
-    titulo: "Cómo trabajo",
+    id: "criterio",
+    titulo: { es: "Cómo trabajo", en: "How I work" },
     items: [],
-    consola: ["$ cat ~/.criterio", "8 hábitos cargados"],
+    consola: [
+      { es: "$ cat ~/.criterio", en: "$ cat ~/.criterio" },
+      { es: "8 hábitos cargados", en: "8 habits loaded" },
+    ],
     criterio: [
-      { titulo: "Resolutivo", texto: "Parto el problema hasta que se puede comprobar" },
-      { titulo: "Responsable", texto: "Lo que prometo para una fecha, sale en esa fecha" },
-      { titulo: "Adaptativo", texto: "Si cambian los requisitos, cambia el plan" },
-      { titulo: "Colaborativo", texto: "Me entiendo con gente de otras carreras" },
-      { titulo: "Autodidacta", texto: "Aprendo lo que el proyecto pide, no el tutorial" },
-      { titulo: "Ordenado", texto: "Dejo el código donde el siguiente lo encuentre" },
-      { titulo: "Comunicativo", texto: "Sustento lo que construyo ante quien sea" },
-      { titulo: "Riguroso", texto: "Publico con revisión por pares" },
+      {
+        id: "resolutivo",
+        titulo: { es: "Resolutivo", en: "Resourceful" },
+        texto: {
+          es: "Parto el problema hasta que se puede comprobar",
+          en: "I split the problem until it can be verified",
+        },
+      },
+      {
+        id: "responsable",
+        titulo: { es: "Responsable", en: "Reliable" },
+        texto: {
+          es: "Lo que prometo para una fecha, sale en esa fecha",
+          en: "What I promise for a date ships on that date",
+        },
+      },
+      {
+        id: "adaptativo",
+        titulo: { es: "Adaptativo", en: "Adaptable" },
+        texto: {
+          es: "Si cambian los requisitos, cambia el plan",
+          en: "If the requirements change, the plan changes",
+        },
+      },
+      {
+        id: "colaborativo",
+        titulo: { es: "Colaborativo", en: "Collaborative" },
+        texto: {
+          es: "Me entiendo con gente de otras carreras",
+          en: "I work well with people from other fields",
+        },
+      },
+      {
+        id: "autodidacta",
+        titulo: { es: "Autodidacta", en: "Self-taught" },
+        texto: {
+          es: "Aprendo lo que el proyecto pide, no el tutorial",
+          en: "I learn what the project needs, not the tutorial",
+        },
+      },
+      {
+        id: "ordenado",
+        titulo: { es: "Ordenado", en: "Organised" },
+        texto: {
+          es: "Dejo el código donde el siguiente lo encuentre",
+          en: "I leave the code where the next person finds it",
+        },
+      },
+      {
+        id: "comunicativo",
+        titulo: { es: "Comunicativo", en: "Articulate" },
+        texto: {
+          es: "Sustento lo que construyo ante quien sea",
+          en: "I can defend what I build to anyone",
+        },
+      },
+      {
+        id: "riguroso",
+        titulo: { es: "Riguroso", en: "Rigorous" },
+        texto: {
+          es: "Publico con revisión por pares",
+          en: "I publish with peer review",
+        },
+      },
     ],
   },
 ];

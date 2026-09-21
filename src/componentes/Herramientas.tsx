@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import { iconos, stack } from "../datos/stack";
+import { useIdioma } from "../idioma/idioma";
+import { textos } from "../idioma/textos";
 import { vigilarCercania } from "../retrato/cercania";
 import { deslizando, deslizarHasta } from "../retrato/suave";
 import { SecuenciaFotogramas } from "../retrato/secuencia";
@@ -53,6 +55,7 @@ function conReposo(x: number) {
 }
 
 export function Herramientas() {
+  const { di } = useIdioma();
   const seccion = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -497,22 +500,22 @@ export function Herramientas() {
         {/* El corte entre lo técnico y el criterio, por delante de todo. */}
         <canvas className="herr-corte" aria-hidden="true" />
         <span className="herr-destino" aria-hidden="true">
-          {stack[0].palabra ?? stack[0].titulo}
+          {di(stack[0].palabra ?? stack[0].titulo)}
         </span>
         {/* El criterio es otro capítulo: al pasar el corte, la cabecera
             cambia de nombre. El cambio ocurre con la pantalla en negro, así
             que no se ve el relevo. */}
         <header className="herr-cabecera">
           <p className="herr-rotulo">
-            <span className="herr-r1">Herramientas</span>
+            <span className="herr-r1">{di(textos.herramientasRotulo)}</span>
             <span className="herr-r2" aria-hidden="true">
-              Habilidades blandas
+              {di(textos.criterioRotulo)}
             </span>
           </p>
           <h2 id="titulo-herramientas">
-            <span className="herr-r1">Con qué construyo</span>
+            <span className="herr-r1">{di(textos.herramientasTitulo)}</span>
             <span className="herr-r2" aria-hidden="true">
-              Cómo trabajo
+              {di(textos.criterioTitulo)}
             </span>
           </h2>
         </header>
@@ -523,11 +526,11 @@ export function Herramientas() {
           <ul className="herr-palabras">
             {stack.map((grupo, i) => (
               <li
-                key={grupo.titulo}
+                key={grupo.id}
                 style={{ "--i": i } as CSSProperties}
-                data-texto={grupo.palabra ?? grupo.titulo}
+                data-texto={di(grupo.palabra ?? grupo.titulo)}
               >
-                {grupo.palabra ?? grupo.titulo}
+                {di(grupo.palabra ?? grupo.titulo)}
               </li>
             ))}
           </ul>
@@ -537,21 +540,21 @@ export function Herramientas() {
           {stack.map((grupo, g) => (
             <div
               className="herr-grupo"
-              key={grupo.titulo}
+              key={grupo.id}
               data-estado={g === 0 ? "activo" : "despues"}
             >
-              <h3 className="herr-titulo">{grupo.titulo}</h3>
+              <h3 className="herr-titulo">{di(grupo.titulo)}</h3>
               {/* El criterio no son herramientas: en vez de placas, un
                   circuito que sale de un bus común. */}
               {grupo.criterio ? (
                 <ul className="herr-criterio">
                   {grupo.criterio.map((c, i) => (
-                    <li key={c.titulo} style={{ "--i": i } as CSSProperties}>
+                    <li key={c.id} style={{ "--i": i } as CSSProperties}>
                       <span className="herr-indice" aria-hidden="true">
                         {String(i + 1).padStart(2, "0")}
                       </span>
-                      <h4>{c.titulo}</h4>
-                      <p>{c.texto}</p>
+                      <h4>{di(c.titulo)}</h4>
+                      <p>{di(c.texto)}</p>
                       <span className="herr-filo" aria-hidden="true" />
                     </li>
                   ))}
@@ -581,15 +584,18 @@ export function Herramientas() {
               )}
               {/* Consola: la orden se teclea al activarse la categoría. */}
               <div className="herr-consola" aria-hidden="true">
-                {grupo.consola.map((linea, l) => (
-                  <p
-                    key={l}
-                    className={l === 0 ? "herr-orden" : "herr-salida"}
-                    style={{ "--largo": [...linea].length } as CSSProperties}
-                  >
-                    <span>{linea}</span>
-                  </p>
-                ))}
+                {grupo.consola.map((par, l) => {
+                  const linea = di(par);
+                  return (
+                    <p
+                      key={l}
+                      className={l === 0 ? "herr-orden" : "herr-salida"}
+                      style={{ "--largo": [...linea].length } as CSSProperties}
+                    >
+                      <span>{linea}</span>
+                    </p>
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -598,7 +604,7 @@ export function Herramientas() {
         {/* Riel de progreso: una muesca por categoría. */}
         <div className="herr-riel" aria-hidden="true">
           {stack.map((grupo, i) => (
-            <span key={grupo.titulo} style={{ "--i": i } as CSSProperties} />
+            <span key={grupo.id} style={{ "--i": i } as CSSProperties} />
           ))}
         </div>
       </div>
@@ -606,7 +612,7 @@ export function Herramientas() {
       <div className="herr-final" aria-hidden="true">
         <p className="herr-final-orden">
           <span className="herr-prompt">~ $</span>
-          <span className="herr-final-tecleo">ls ./proyectos</span>
+          <span className="herr-final-tecleo">{di(textos.ordenProyectos)}</span>
         </p>
       </div>
     </section>

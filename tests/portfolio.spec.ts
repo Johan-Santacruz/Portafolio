@@ -6,6 +6,64 @@ import AxeBuilder from "@axe-core/playwright";
 const sinCarga = (page) =>
   page.waitForSelector("#carga", { state: "detached", timeout: 20000 });
 
+/**
+ * Deja la pantalla en las habilidades blandas, ya puestas: recorre la sección
+ * de herramientas hasta el primer punto en que el corte ha terminado y el
+ * grupo del criterio es el activo. Buscarlo desde el final no vale: al volver
+ * atrás se pasa de largo y se acaba midiendo la composición de dos columnas,
+ * donde las palabras todavía no ocupan el ancho entero.
+ */
+async function irAlCriterio(page) {
+  const caja = await page.locator("#herramientas").evaluate((s: HTMLElement) => ({
+    top: s.offsetTop,
+    alto: s.offsetHeight,
+  }));
+  for (let y = caja.top; y < caja.top + caja.alto; y += 30) {
+    await page.evaluate((v) => window.scrollTo(0, v), y);
+    await page.waitForTimeout(16);
+    const puesto = await page.locator("#herramientas").evaluate((s: HTMLElement) => {
+      const corte = Number(getComputedStyle(s).getPropertyValue("--corte")) || 0;
+      return (
+        corte >= 1 &&
+        !!s.querySelector('.herr-grupo[data-estado="activo"] .herr-criterio')
+      );
+    });
+    if (puesto) {
+      await page.waitForTimeout(150);
+      return;
+    }
+  }
+  throw new Error("no se llegó a las habilidades blandas");
+}
+
+/** Lo que hay que mirar de la cuadrícula: que cuadre y que quepa. */
+async function medirCriterio(page, columnas: number) {
+  return page.evaluate((columnas) => {
+    const celdas = [...document.querySelectorAll<HTMLElement>(".herr-criterio > li")];
+    const cajas = celdas.map((c) => c.getBoundingClientRect());
+    const filas = new Map<number, number[]>();
+    celdas.forEach((celda, i) => {
+      const y = Math.round(cajas[i].top);
+      filas.set(y, [
+        ...(filas.get(y) ?? []),
+        Math.round(celda.querySelector("h4")!.getBoundingClientRect().top),
+      ]);
+    });
+    return {
+      columnas: new Set(cajas.map((c) => Math.round(c.left))).size,
+      filas: filas.size,
+      // Cuántas filas tienen sus palabras a distinta altura.
+      torcidas: [...filas.values()].filter((t) => new Set(t).size > 1).length,
+      arriba: Math.min(...cajas.map((c) => c.top)),
+      abajo: Math.max(...cajas.map((c) => c.bottom)),
+      derecha: Math.max(...cajas.map((c) => c.right)),
+      ancho: window.innerWidth,
+      alto: window.innerHeight,
+      esperadas: columnas,
+    };
+  }, columnas);
+}
+
 const pintado = (page) =>
   page.locator(".retrato-alter").evaluate((canvas: HTMLCanvasElement) => {
     const ctx = canvas.getContext("2d")!;
@@ -274,40 +332,10 @@ test("las herramientas pasan por el lector una categoría cada vez", async ({
   expect(anchos.bandeja).toBeGreaterThan(anchos.fijo * 0.85);
   await expect(page.locator(".herr-criterio > li").first()).toBeVisible();
   // Las ocho van en cuadrícula y llenan la pantalla: en renglones, la palabra
-  // quedaba a un borde y la frase al otro, con el centro vacío. Se mide antes
-  // de que el agujero empiece a llevarse las casillas, que las desplaza.
-  let quieto = inicio + largo;
-  for (let i = 0; i < 40; i += 1) {
-    const traga = await seccion.evaluate(
-      (s) => Number((s as HTMLElement).style.getPropertyValue("--traga")) || 0,
-    );
-    if (traga <= 0) break;
-    quieto -= 60;
-    await page.evaluate((y) => window.scrollTo(0, y), quieto);
-    await page.waitForTimeout(30);
-  }
+  // quedaba a un borde y la frase al otro, con el centro vacío.
+  await irAlCriterio(page);
   await expect(seccion).toHaveAttribute("data-criterio", "");
-  const rejilla = await page.evaluate(() => {
-    const celdas = [...document.querySelectorAll<HTMLElement>(".herr-criterio > li")];
-    const cajas = celdas.map((c) => c.getBoundingClientRect());
-    const filas = new Map<number, number[]>();
-    celdas.forEach((celda, i) => {
-      const y = Math.round(cajas[i].top);
-      const titulo = celda.querySelector("h4")!.getBoundingClientRect().top;
-      filas.set(y, [...(filas.get(y) ?? []), Math.round(titulo)]);
-    });
-    return {
-      columnas: new Set(cajas.map((c) => Math.round(c.left))).size,
-      filas: filas.size,
-      // Cuántas filas tienen sus palabras a distinta altura.
-      torcidas: [...filas.values()].filter((t) => new Set(t).size > 1).length,
-      arriba: Math.min(...cajas.map((c) => c.top)),
-      abajo: Math.max(...cajas.map((c) => c.bottom)),
-      derecha: Math.max(...cajas.map((c) => c.right)),
-      ancho: innerWidth,
-      alto: innerHeight,
-    };
-  });
+  const rejilla = await medirCriterio(page, 4);
   expect(rejilla.columnas).toBe(4);
   expect(rejilla.filas).toBe(2);
   expect(rejilla.torcidas).toBe(0);
@@ -316,6 +344,7 @@ test("las herramientas pasan por el lector una categoría cada vez", async ({
   expect(rejilla.abajo - rejilla.arriba).toBeGreaterThan(
     (rejilla.alto - rejilla.arriba) * 0.8,
   );
+
   // Y subir vuelve atrás: no hay estado.
   await page.evaluate((y) => window.scrollTo(0, y), inicio);
   await expect.poll(activos).toEqual(["Lenguajes"]);
@@ -687,4 +716,64 @@ test("las animaciones largas se reproducen solas al pedir bajar", async ({
 
   await comprobar("--corte");
   await comprobar("--traga");
+});
+
+test("el botón de la cabecera pasa la página a inglés y lo recuerda", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await sinCarga(page);
+  const boton = page.locator(".cabecera-idioma");
+
+  // Nace en español: el botón dice a qué idioma lleva, no en cuál estás.
+  await expect(page.locator("html")).toHaveAttribute("lang", "es");
+  await expect(boton).toHaveText("EN");
+  await expect(page.locator(".cabecera")).toContainText("Herramientas");
+  await expect(page.locator("#titulo-proyectos")).toHaveText("Lo que he construido");
+  expect(await page.title()).toContain("Ideas que toman forma");
+
+  await boton.click();
+
+  // Y todo cambia a la vez: la página, la pestaña y el propio botón.
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(boton).toHaveText("ES");
+  await expect(page.locator(".cabecera")).toContainText("Tools");
+  await expect(page.locator("#titulo-proyectos")).toHaveText("What I've built");
+  await expect(page.locator(".cierre-copy")).toContainText("Tell me your idea");
+  expect(await page.title()).toContain("Ideas that take shape");
+  expect(
+    await page
+      .locator('meta[name="description"]')
+      .getAttribute("content"),
+  ).toContain("software engineer");
+
+  // La elección sobrevive a recargar, y ya desde la pantalla de carga.
+  await page.reload();
+  await expect(page.locator("#carga-texto")).toHaveText("loading");
+  await sinCarga(page);
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(page.locator(".cabecera-idioma")).toHaveText("ES");
+
+  // Y se puede volver.
+  await page.locator(".cabecera-idioma").click();
+  await expect(page.locator("html")).toHaveAttribute("lang", "es");
+  await expect(page.locator(".cabecera")).toContainText("Herramientas");
+});
+
+test("el criterio también cuadra en inglés", async ({ page }) => {
+  await page.goto("/");
+  await sinCarga(page);
+  await page.locator(".cabecera-idioma").click();
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await page.evaluate(() => document.fonts.ready);
+
+  await irAlCriterio(page);
+  await expect(page.locator(".herr-criterio > li")).toHaveCount(8);
+  await expect(page.locator(".herr-criterio h4").first()).toHaveText("Resourceful");
+  // Las palabras inglesas miden otra cosa: que la fila siga cuadrando.
+  const rejilla = await medirCriterio(page, 4);
+  expect(rejilla.columnas).toBe(4);
+  expect(rejilla.torcidas).toBe(0);
+  expect(rejilla.derecha).toBeLessThanOrEqual(rejilla.ancho);
+  expect(rejilla.abajo).toBeLessThanOrEqual(rejilla.alto);
 });

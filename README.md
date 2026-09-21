@@ -30,7 +30,7 @@ npm test
 Las pruebas cubren apertura y cierre de ventanas con teclado, restauración de
 foco, el revelado del retrato (ratón, táctil, teclado y movimiento reducido),
 pausa y reproducción del video según visibilidad, revelados al desplazarse,
-ausencia de desbordamiento y auditoría axe.
+ausencia de desbordamiento, el cambio de idioma y auditoría axe.
 
 Para ver la fluidez en un equipo concreto, abre la página con `?diag=1`: un
 rótulo abajo a la izquierda muestra los fotogramas por segundo y cuenta los
@@ -45,6 +45,10 @@ scroll suave de escritorio, para comparar con el nativo.
   tipografías Instrument Sans / Newsreader y revelados de 0,75 segundos.
 - `src/ganchos/useCampana.ts`: revelados y ciclo de reproducción del video.
 - `src/datos/perfil.ts`: identidad, presentación, correo y disponibilidad.
+
+Casi todo el texto que se lee está en `src/datos/` y en `src/idioma/textos.ts`,
+escrito dos veces (`{ es, en }`). Al añadir o cambiar algo hay que poner las
+dos versiones; ver «Dos idiomas».
 
 Los componentes de la versión anterior y sus datos se conservan en `src/`,
 pero la landing actual solo monta `Campana`. No hay selector de tema: la
@@ -195,8 +199,36 @@ segundo; con 1,6 Mb/s, unos cuatro. Hay tope de tres segundos para que una
 red mala no secuestre la página, y suelo de cuatro décimas para que no
 parpadee si todo estaba en caché.
 
-El monograma de la pantalla es el mismo de `public/favicon.svg`: acero
-achaflanado con filete lima y el cursor del terminal.
+La marca de la pantalla es `public/logo.png`, el mismo monograma JB que va en
+la pestaña (`public/icono-64.png` y `public/icono-180.png`). Los tres salen del
+logo original con `scripts/logo.mjs`, que lo recorta y lo aplana a tres tintas
+(el papel de la página, el azul del logo y el lima de la casa): así el PNG pesa
+14 kB en vez de 170 y aparece de inmediato.
+
+## Dos idiomas
+
+La página nace en español y el botón de la cabecera (`EN` / `ES`) la pasa a
+inglés. La elección se guarda en `localStorage` con la llave
+`portafolio:idioma` y la aplica un guion de cuatro líneas dentro de
+`index.html`, antes de que llegue React: así la pantalla de carga y el título
+de la pestaña ya salen en el idioma correcto, sin parpadeo.
+
+Todo lo que se lee está escrito dos veces, como un `Par` (`{ es, en }`):
+
+- `src/idioma/idioma.tsx` — el contexto, la memoria y `di(...)`, que resuelve
+  un `Par` al idioma activo y deja pasar los `string` tal cual.
+- `src/idioma/textos.ts` — los rótulos, los botones y las etiquetas que
+  escriben los componentes.
+- `src/datos/` — el contenido: el stack, los trabajos, la trayectoria y el
+  perfil.
+
+Lo que no se traduce son los nombres propios: las tecnologías, los nombres de
+los proyectos y los de las instituciones. Las claves de React tampoco: cada
+grupo del stack y cada habilidad llevan un `id` estable, porque si la clave
+cambiara al cambiar de idioma React reharía los nodos y las animaciones, que
+los guardan desde el primer render, se quedarían apuntando a nodos muertos.
+
+La hoja de vida en PDF sigue siendo solo en español.
 
 ## Movimiento
 

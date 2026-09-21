@@ -1,4 +1,6 @@
 import type { CSSProperties } from "react";
+import { useIdioma } from "../idioma/idioma";
+import { textos } from "../idioma/textos";
 import { Retrato } from "./Retrato";
 import { Cabecera } from "./Cabecera";
 import { Herramientas } from "./Herramientas";
@@ -8,10 +10,11 @@ import { Cierre } from "./Cierre";
 import "./Campana.css";
 
 export function Campana() {
+  const { di } = useIdioma();
   return (
     <>
       <a className="saltar" href="#contenido">
-        Saltar al contenido
+        {di(textos.saltar)}
       </a>
       <Cabecera />
       <main id="contenido" tabIndex={-1}>
@@ -42,10 +45,10 @@ export function Campana() {
               </h1>
               <p className="cli-rol">
                 <span aria-hidden="true">// </span>
-                Ingeniero de Sistemas
+                {di(textos.rol1)}
                 <br />
                 <span aria-hidden="true">// </span>
-                Full-Stack · IA Engineer · Automatización
+                {di(textos.rol2)}
               </p>
             </div>
           </div>

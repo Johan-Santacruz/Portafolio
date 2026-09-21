@@ -1,15 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { useIdioma } from "../idioma/idioma";
+import { textos } from "../idioma/textos";
 import "./Cabecera.css";
 
 /** `corto` es lo que se lee en pantallas estrechas, donde no caben cinco
  *  nombres largos; el nombre completo sigue siendo el accesible. */
-const APARTADOS = [
-  { id: "top", nombre: "Inicio", corto: "Inicio" },
-  { id: "herramientas", nombre: "Herramientas", corto: "Stack" },
-  { id: "proyectos", nombre: "Proyectos", corto: "Obra" },
-  { id: "trayectoria", nombre: "Trayectoria", corto: "Perfil" },
-  { id: "contacto", nombre: "Contacto", corto: "Contacto" },
-];
+const APARTADOS = textos.navegacion;
 
 /**
  * Cabecera flotante: una píldora de acero con los apartados. El activo lleva
@@ -17,6 +13,7 @@ const APARTADOS = [
  * último apartado cuyo borde superior ha pasado el 40 % de la pantalla).
  */
 export function Cabecera() {
+  const { idioma, cambiar, di } = useIdioma();
   const [activo, setActivo] = useState(0);
   const enlaces = useRef<(HTMLAnchorElement | null)[]>([]);
   const [marca, setMarca] = useState({ x: 0, ancho: 0 });
@@ -57,11 +54,12 @@ export function Cabecera() {
     document.fonts?.ready.then(colocar);
     window.addEventListener("resize", colocar);
     return () => window.removeEventListener("resize", colocar);
-  }, [activo]);
+    // El idioma cambia el ancho de los nombres: hay que volver a medir.
+  }, [activo, idioma]);
 
   return (
     <header className="cabecera">
-      <nav aria-label="Apartados">
+      <nav aria-label={di(textos.apartados)}>
         <span
           className="cabecera-marca"
           aria-hidden="true"
@@ -74,17 +72,28 @@ export function Cabecera() {
               enlaces.current[i] = el;
             }}
             href={`#${a.id}`}
-            aria-label={a.nombre}
+            aria-label={di(a.largo)}
             aria-current={i === activo ? "location" : undefined}
           >
             <span className="cab-largo" aria-hidden="true">
-              {a.nombre}
+              {di(a.largo)}
             </span>
             <span className="cab-corto" aria-hidden="true">
-              {a.corto}
+              {di(a.corto)}
             </span>
           </a>
         ))}
+        {/* Al final de la píldora y tras un filo: no es un apartado más, es
+            un interruptor. Dice a qué idioma lleva, no en cuál estás. */}
+        <button
+          className="cabecera-idioma"
+          type="button"
+          lang={idioma === "es" ? "en" : "es"}
+          aria-label={di(textos.cambiarIdioma)}
+          onClick={() => cambiar(idioma === "es" ? "en" : "es")}
+        >
+          {idioma === "es" ? "EN" : "ES"}
+        </button>
       </nav>
     </header>
   );

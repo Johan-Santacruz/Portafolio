@@ -1,4 +1,5 @@
 import { perfil } from "../datos/perfil";
+import { useIdioma } from "../idioma/idioma";
 import { Icono } from "./Icono";
 import "./Portada.css";
 
@@ -8,6 +9,7 @@ import "./Portada.css";
  * Cada bloque entra escalonado al cargar (ver `aparecer` en el CSS).
  */
 export function Portada() {
+  const { di } = useIdioma();
   return (
     <section className="portada" id="top" aria-labelledby="titulo-portada">
       <p className="portada-estado mono">
@@ -16,9 +18,9 @@ export function Portada() {
         </span>
         <span>{perfil.ubicacion}</span>
       </p>
-      <h1 id="titulo-portada">{perfil.titular}</h1>
+      <h1 id="titulo-portada">{di(perfil.titular)}</h1>
       <div className="portada-inferior">
-        <p className="tesis">{perfil.tesis}</p>
+        <p className="tesis">{di(perfil.tesis)}</p>
         <div className="portada-acciones">
           <a className="boton boton-primario" href="#proyectos">
             Ver proyectos <Icono nombre="flecha" />

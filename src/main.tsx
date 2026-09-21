@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./estilos/global.css";
 import { App } from "./App";
+import { ProveedorIdioma } from "./idioma/idioma";
 import { activarScrollSuave } from "./retrato/suave";
 import { activarDiagnostico } from "./retrato/diag";
 import { pantallaDeCarga } from "./retrato/carga";
@@ -11,7 +12,9 @@ if (!contenedor) throw new Error("Falta el elemento #root en index.html");
 
 createRoot(contenedor).render(
   <StrictMode>
-    <App />
+    <ProveedorIdioma>
+      <App />
+    </ProveedorIdioma>
   </StrictMode>,
 );
 

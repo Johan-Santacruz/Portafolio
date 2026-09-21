@@ -1,9 +1,11 @@
 import { perfil } from "../datos/perfil";
+import { useIdioma } from "../idioma/idioma";
 import { Icono } from "./Icono";
 import "./Contacto.css";
 export function Contacto() {
+  const { di } = useIdioma();
   const enlaces = perfil.enlaces.filter(
-    (enlace) => enlace.url !== "#" && !enlace.etiqueta.includes("[pendiente]"),
+    (enlace) => enlace.url !== "#" && !enlace.etiqueta.es.includes("[pendiente]"),
   );
   return (
     <section
@@ -19,8 +21,8 @@ export function Contacto() {
       </div>
       <div className="contacto-rejilla" data-revelar="">
         <div>
-          <h2 id="titulo-contacto">{perfil.invitacion.titulo}</h2>
-          <p>{perfil.invitacion.texto}</p>
+          <h2 id="titulo-contacto">{di(perfil.invitacion.titulo)}</h2>
+          <p>{di(perfil.invitacion.texto)}</p>
         </div>
       </div>
       <div className="contacto-inferior" data-revelar="">
@@ -31,12 +33,12 @@ export function Contacto() {
         <div className="perfiles">
           {enlaces.map((enlace) => (
             <a
-              key={enlace.etiqueta}
+              key={enlace.etiqueta.es}
               href={enlace.url}
               target="_blank"
               rel="noreferrer"
             >
-              {enlace.etiqueta}
+              {di(enlace.etiqueta)}
               <Icono nombre="diagonal" />
             </a>
           ))}

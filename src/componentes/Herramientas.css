@@ -844,9 +844,11 @@
   font-family: var(--display);
   font-size: clamp(12px, 0.92vw, 14.5px);
   line-height: 1.45;
-  /* Dos líneas reservadas siempre: si no, las de una sola suben la palabra
-     de su casilla y la fila deja de leerse como una fila. */
-  min-height: 2.9em;
+  /* Tres líneas reservadas siempre. Si cada frase ocupa lo que quiere, las
+     palabras de una fila arrancan a alturas distintas y la fila deja de
+     leerse como una fila. Tres es lo que llega a ocupar la más larga en la
+     casilla más estrecha, en cualquiera de los dos idiomas. */
+  min-height: 4.35em;
   text-wrap: pretty;
   color: rgba(23, 24, 21, 0.55);
 }

@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import { idiomas, pases } from "../datos/trayectoria";
+import { useIdioma } from "../idioma/idioma";
+import { textos } from "../idioma/textos";
 import { vigilarCercania } from "../retrato/cercania";
 import { SecuenciaFotogramas } from "../retrato/secuencia";
 import "./Trayectoria.css";
@@ -43,15 +45,16 @@ function conReposo(x: number) {
  * distancia al pase activo (--d), que se calcula en CSS.
  */
 function Credencial({ n, pase }: { n: number; pase: (typeof pases)[number] }) {
+  const { di } = useIdioma();
   return (
     <li className="tray-pase" style={{ "--n": n } as CSSProperties}>
       <span className="tray-troquel" aria-hidden="true" />
       <p className="tray-tipo">
-        <span>{pase.tipo}</span>
-        {pase.sello && <b className="tray-sello">{pase.sello}</b>}
+        <span>{di(pase.tipo)}</span>
+        {pase.sello && <b className="tray-sello">{di(pase.sello)}</b>}
       </p>
       <h3 className="tray-donde">{pase.donde}</h3>
-      <p className="tray-rol">{pase.rol}</p>
+      <p className="tray-rol">{di(pase.rol)}</p>
       <p className="tray-codigo" aria-hidden="true">
         {pase.codigo}
         <span className="tray-barras" />
@@ -61,6 +64,7 @@ function Credencial({ n, pase }: { n: number; pase: (typeof pases)[number] }) {
 }
 
 export function Trayectoria() {
+  const { di } = useIdioma();
   const seccion = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -204,8 +208,8 @@ export function Trayectoria() {
 
       <div className="tray-fijo">
         <header className="tray-cabecera">
-          <p className="tray-rotulo">Trayectoria</p>
-          <h2 id="titulo-trayectoria">Dónde he estado</h2>
+          <p className="tray-rotulo">{di(textos.trayectoriaRotulo)}</p>
+          <h2 id="titulo-trayectoria">{di(textos.trayectoriaTitulo)}</h2>
         </header>
 
         {/* La ficha del pase activo: el año en grande y lo que se hizo. */}
@@ -216,11 +220,11 @@ export function Trayectoria() {
               className="tray-detalle"
               style={{ "--n": i } as CSSProperties}
             >
-              <p className="tray-anio">{pase.año}</p>
-              <p className="tray-lugar">{pase.lugar}</p>
+              <p className="tray-anio">{di(pase.año)}</p>
+              <p className="tray-lugar">{di(pase.lugar)}</p>
               <ul>
-                {pase.notas.map((nota) => (
-                  <li key={nota}>{nota}</li>
+                {pase.notas.map((nota, n) => (
+                  <li key={n}>{di(nota)}</li>
                 ))}
               </ul>
             </article>
@@ -236,8 +240,8 @@ export function Trayectoria() {
 
         <p className="tray-idiomas">
           {idiomas.map((l) => (
-            <span key={l.lengua}>
-              {l.lengua} <b>{l.nivel}</b>
+            <span key={l.lengua.es}>
+              {di(l.lengua)} <b>{di(l.nivel)}</b>
             </span>
           ))}
         </p>

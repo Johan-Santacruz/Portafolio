@@ -10,7 +10,9 @@
     />
     <meta name="color-scheme" content="light" />
     <meta name="theme-color" content="#16110d" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/icono-64.png" />
+    <link rel="apple-touch-icon" href="/icono-180.png" />
+    <link rel="preload" as="image" href="/logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -45,31 +47,21 @@
         opacity: 0;
         pointer-events: none;
       }
+      /* La marca: el logo tal cual, con el cursor al lado. Sin placa
+         detrás, que el logo ya trae sus propias tintas. */
       .carga-marca {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 14px 18px 13px 16px;
-        color: #eef0f2;
-        background: linear-gradient(135deg, #2a2e34, #16181c);
-        box-shadow: inset 3px 0 0 #c7ff4a;
-        clip-path: polygon(
-          0 0,
-          calc(100% - 12px) 0,
-          100% 12px,
-          100% 100%,
-          12px 100%,
-          0 calc(100% - 12px)
-        );
+        gap: 14px;
       }
-      .carga-jb {
-        font-weight: 700;
-        font-size: 30px;
-        letter-spacing: -0.02em;
+      .carga-logo {
+        display: block;
+        width: clamp(120px, 26vw, 168px);
+        height: auto;
       }
       .carga-cursor {
         width: 10px;
-        height: 24px;
+        height: 30px;
         background: #c7ff4a;
         animation: carga-late 1s steps(2, jump-none) infinite;
       }
@@ -112,11 +104,50 @@
   <body>
     <div id="carga" aria-hidden="true">
       <div class="carga-marca">
-        <span class="carga-jb">JB</span><span class="carga-cursor"></span>
+        <img
+          class="carga-logo"
+          src="/logo.png"
+          alt=""
+          width="360"
+          height="225"
+          decoding="sync"
+        />
+        <span class="carga-cursor"></span>
       </div>
-      <p class="carga-linea"><b>~ $</b> cargando <span id="carga-num">0</span>%</p>
+      <p class="carga-linea">
+        <b>~ $</b
+        ><span
+          ><span id="carga-texto">cargando</span>
+          <span id="carga-num">0</span>%</span
+        >
+      </p>
       <div class="carga-pista"><span id="carga-barra"></span></div>
     </div>
+    <script>
+      /* El idioma elegido se recuerda entre visitas. Se aplica antes de que
+         llegue React para que la pantalla de carga y la pestaña no salgan
+         primero en español y cambien después. */
+      (function () {
+        var i = "es";
+        try {
+          var v = localStorage.getItem("portafolio:idioma");
+          if (v === "es" || v === "en") i = v;
+        } catch (e) {
+          /* sin almacenamiento: español */
+        }
+        document.documentElement.lang = i;
+        if (i !== "en") return;
+        document.title = "Johan Balanta \u2014 Ideas that take shape";
+        var d = document.querySelector('meta[name="description"]');
+        if (d)
+          d.setAttribute(
+            "content",
+            "Johan Balanta, software engineer in Cali, Colombia. Digital experiences, custom software and automation built with intent.",
+          );
+        var t = document.getElementById("carga-texto");
+        if (t) t.textContent = "loading";
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
