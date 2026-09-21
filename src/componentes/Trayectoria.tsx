@@ -200,9 +200,10 @@ export function Trayectoria() {
       </div>
 
       <div className="tray-fijo">
-        <h2 id="titulo-trayectoria" className="tray-titulo">
-          Trayectoria
-        </h2>
+        <header className="tray-cabecera">
+          <p className="tray-rotulo">Trayectoria</p>
+          <h2 id="titulo-trayectoria">Dónde he estado</h2>
+        </header>
 
         {/* La ficha del pase activo: el año en grande y lo que se hizo. */}
         <div className="tray-ficha">

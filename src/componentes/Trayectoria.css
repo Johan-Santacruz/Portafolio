@@ -70,9 +70,9 @@
   height: 100svh;
   overflow: clip;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.78fr);
   align-items: center;
-  column-gap: clamp(24px, 3vw, 52px);
+  column-gap: clamp(20px, 2vw, 34px);
   padding-inline: max(var(--aire), (100% - var(--ancho)) / 2);
   /* Lo que queda se apaga dentro de la niebla. */
   opacity: calc(1 - clamp(0, (var(--fin) - 0.3) / 0.4, 1));
@@ -90,25 +90,37 @@
   mask-image: radial-gradient(ellipse 75% 70% at 50% 50%, #000 15%, transparent 78%);
 }
 
-.tray-titulo {
+/* Cabecera del capítulo, como en las demás secciones: rótulo pequeño y
+   título. Así se ve que esto es otra sección y no la cola de los proyectos. */
+.tray-cabecera {
   position: absolute;
   z-index: 3;
   top: clamp(72px, 11svh, 104px);
   left: max(var(--aire), (100% - var(--ancho)) / 2);
+}
+.tray-rotulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
   font-weight: 600;
   font-size: 13px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: rgba(238, 240, 242, 0.6);
-  display: flex;
-  align-items: center;
-  gap: 12px;
 }
-.tray-titulo::before {
+.tray-rotulo::before {
   content: "";
   width: 22px;
   height: 3px;
   background: var(--accent);
+}
+.tray-cabecera h2 {
+  margin-top: 8px;
+  font-weight: 700;
+  font-size: clamp(18px, 1.6vw, 24px);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--texto);
 }
 
 /* --- La ficha: el año en grande y lo que se hizo. ------------------------------
@@ -166,19 +178,18 @@
   background: var(--accent);
 }
 
-/* --- La pila de pases ----------------------------------------------------------
-   Todos en la misma celda, con perspectiva: el activo al frente y los
-   siguientes detrás, más pequeños y desplazados. Al pasar, el de delante cae
-   hacia abajo girando. */
+/* --- Los pases -----------------------------------------------------------------
+   Uno a la vez, en la misma celda: el que se va sube y se desvanece, el que
+   llega entra desde abajo. Nada se superpone: apilarlos con perspectiva los
+   dejaba ilegibles. */
 .tray-pila {
   position: relative;
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  justify-items: center;
+  justify-items: start;
   align-items: center;
-  perspective: 1100px;
   height: min(62svh, 460px);
 }
 .tray-pase {
@@ -194,13 +205,14 @@
   background:
     repeating-linear-gradient(
       0deg,
-      rgba(255, 255, 255, 0.035) 0 1px,
+      rgba(255, 255, 255, 0.045) 0 1px,
       transparent 1px 4px
     ),
-    linear-gradient(150deg, #262b31, #14161a 70%);
+    linear-gradient(150deg, #343a42, #1b1e23 75%);
   box-shadow:
     inset 3px 0 0 var(--accent),
-    0 30px 60px -30px rgba(0, 0, 0, 0.9);
+    inset 0 0 0 1px rgba(238, 240, 242, 0.08),
+    0 34px 70px -34px rgba(0, 0, 0, 0.95);
   clip-path: polygon(
     0 0,
     calc(100% - 20px) 0,
@@ -209,19 +221,15 @@
     20px 100%,
     0 calc(100% - 20px)
   );
-  /* CSS no tiene condicionales: --ido vale 1 cuando el pase ya quedó atrás
-     (--d negativo) y 0 cuando está por venir. */
-  --ido: clamp(0, (0 - var(--d)) * 1000, 1);
-  /* Los que vienen se apilan detrás, más pequeños y un poco más arriba; el
-     que ya pasó se va por arriba girando y se desvanece enseguida. */
-  transform: translate3d(
-      calc(var(--ido) * 24%),
-      calc(var(--d) * -5% + var(--ido) * -38%),
-      calc(var(--d) * -115px)
-    )
-    rotate(calc(var(--ido) * 9deg + var(--d) * 1.6deg));
-  opacity: clamp(0, 1 - var(--ad) * 0.26 - var(--ido) * 0.9, 1);
-  z-index: calc(20 - var(--ad) * 10);
+  /* El que viene sube desde abajo y el que se va sale por arriba: el
+     desplazamiento es el mismo signo que --d, así que basta una línea. */
+  transform: translate3d(0, calc(var(--d) * 34%), 0)
+    rotate(calc(var(--d) * 2.5deg))
+    scale(calc(1 - var(--ad) * 0.1));
+  /* Solo se ve el de en medio; los demás desaparecen deprisa para que nunca
+     se lean dos a la vez. */
+  opacity: clamp(0, 1 - var(--ad) * 2.6, 1);
+  z-index: 1;
 }
 /* El troquel del gafete, arriba al centro. */
 .tray-troquel {
@@ -355,6 +363,7 @@
   .tray-pila {
     order: -1;
     height: min(40svh, 300px);
+    justify-items: center;
   }
   .tray-pase {
     width: min(230px, 72vw);
