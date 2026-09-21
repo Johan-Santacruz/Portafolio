@@ -273,6 +273,49 @@ test("las herramientas pasan por el lector una categoría cada vez", async ({
   }));
   expect(anchos.bandeja).toBeGreaterThan(anchos.fijo * 0.85);
   await expect(page.locator(".herr-criterio > li").first()).toBeVisible();
+  // Las ocho van en cuadrícula y llenan la pantalla: en renglones, la palabra
+  // quedaba a un borde y la frase al otro, con el centro vacío. Se mide antes
+  // de que el agujero empiece a llevarse las casillas, que las desplaza.
+  let quieto = inicio + largo;
+  for (let i = 0; i < 40; i += 1) {
+    const traga = await seccion.evaluate(
+      (s) => Number((s as HTMLElement).style.getPropertyValue("--traga")) || 0,
+    );
+    if (traga <= 0) break;
+    quieto -= 60;
+    await page.evaluate((y) => window.scrollTo(0, y), quieto);
+    await page.waitForTimeout(30);
+  }
+  await expect(seccion).toHaveAttribute("data-criterio", "");
+  const rejilla = await page.evaluate(() => {
+    const celdas = [...document.querySelectorAll<HTMLElement>(".herr-criterio > li")];
+    const cajas = celdas.map((c) => c.getBoundingClientRect());
+    const filas = new Map<number, number[]>();
+    celdas.forEach((celda, i) => {
+      const y = Math.round(cajas[i].top);
+      const titulo = celda.querySelector("h4")!.getBoundingClientRect().top;
+      filas.set(y, [...(filas.get(y) ?? []), Math.round(titulo)]);
+    });
+    return {
+      columnas: new Set(cajas.map((c) => Math.round(c.left))).size,
+      filas: filas.size,
+      // Cuántas filas tienen sus palabras a distinta altura.
+      torcidas: [...filas.values()].filter((t) => new Set(t).size > 1).length,
+      arriba: Math.min(...cajas.map((c) => c.top)),
+      abajo: Math.max(...cajas.map((c) => c.bottom)),
+      derecha: Math.max(...cajas.map((c) => c.right)),
+      ancho: innerWidth,
+      alto: innerHeight,
+    };
+  });
+  expect(rejilla.columnas).toBe(4);
+  expect(rejilla.filas).toBe(2);
+  expect(rejilla.torcidas).toBe(0);
+  expect(rejilla.derecha).toBeLessThanOrEqual(rejilla.ancho);
+  expect(rejilla.abajo).toBeLessThanOrEqual(rejilla.alto);
+  expect(rejilla.abajo - rejilla.arriba).toBeGreaterThan(
+    (rejilla.alto - rejilla.arriba) * 0.8,
+  );
   // Y subir vuelve atrás: no hay estado.
   await page.evaluate((y) => window.scrollTo(0, y), inicio);
   await expect.poll(activos).toEqual(["Lenguajes"]);

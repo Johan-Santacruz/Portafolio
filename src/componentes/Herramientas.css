@@ -740,53 +740,85 @@
     transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1),
     opacity 0.45s ease;
 }
+/* Una sola celda, de pantalla entera. Sin acotar la pista, el lector la
+   estira con su palabra más larga: la cuadrícula se salía por la derecha en
+   móvil y se quedaba corta por abajo. */
+.herramientas[data-criterio] .herr-fijo {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+/* Y lo mismo dentro: los grupos que no se ven (placas y consola) estiran la
+   pista de la bandeja con su ancho mínimo. */
 .herramientas[data-criterio] .herr-bandeja {
+  grid-template-columns: minmax(0, 1fr);
+}
+.herramientas[data-criterio] .herr-lector,
+.herramientas[data-criterio] .herr-bandeja {
+  /* Las dos en la misma celda. El lector está apagado, pero si conserva su
+     fila propia empuja la cuadrícula media pantalla hacia abajo. Sin filas
+     explícitas en el contenedor, «1 / -1» no abarca nada: hay que meterlas
+     las dos en la fila 1. */
+  grid-row: 1;
   grid-column: 1 / -1;
 }
-/* La consola sobra aquí: las cinco palabras ya lo dicen todo, y su sitio lo
+/* La consola sobra aquí: las ocho palabras ya lo dicen todo, y su sitio lo
    necesitan ellas. Sin ella, el grupo se centra sin las bandas de arriba y
    abajo que reservan las placas. */
 .herr-grupo:has(.herr-criterio) .herr-consola {
   display: none;
 }
 .herr-grupo:has(.herr-criterio) {
-  grid-template-rows: auto;
-  align-content: center;
+  /* La cuadrícula se estira hasta llenar la pantalla; arriba, el hueco de la
+     cabecera, y abajo un margen para que no quede pegada al borde. */
+  grid-template-rows: minmax(0, 1fr);
+  align-content: stretch;
+  padding: clamp(120px, 19svh, 180px) 0 clamp(40px, 7svh, 76px);
 }
 
 .herr-grupo .herr-criterio {
-  /* Sin consola no hay filas que reservar: fluye y el grupo lo centra. */
+  /* Ocho en cuadrícula: cuatro por fila llenan el ancho de la pantalla. En
+     renglones, la palabra quedaba a un borde y la frase al otro, con medio
+     mundo vacío en medio. */
   grid-row: auto;
   list-style: none;
   margin: 0;
   /* Sitio para el riel de la derecha: si no, las frases lo pisan. */
   padding: 0 clamp(40px, 4vw, 64px) 0 0;
   display: grid;
-  gap: clamp(2px, 0.6svh, 8px);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  height: 100%;
 }
 .herr-grupo .herr-criterio > li {
   position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) minmax(0, 0.92fr);
-  align-items: baseline;
-  column-gap: clamp(12px, 1.6vw, 28px);
-  padding: clamp(4px, 0.8svh, 10px) 0;
-  /* Entran desde la izquierda, una tras otra. */
+  /* El número arriba, la palabra y su frase abajo: la casilla se ocupa
+     entera en vez de amontonarse en el centro. */
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  padding: clamp(14px, 2.4svh, 28px) clamp(12px, 1.4vw, 26px);
+  border-left: 1px solid rgba(23, 24, 21, 0.12);
+  /* Entran desde abajo, una tras otra. */
   opacity: 0;
-  transform: translate3d(-36px, 0, 0);
+  transform: translate3d(0, 20px, 0);
   transition:
     opacity 0.2s ease,
     transform 0.26s ease;
+}
+/* La primera de cada fila abre a ras del margen, como la cabecera. */
+.herr-criterio > li:nth-child(4n + 1) {
+  border-left: 0;
+  padding-left: 0;
 }
 .herr-grupo[data-estado="activo"] .herr-criterio > li {
   opacity: 1;
   transform: none;
   transition:
-    opacity 0.34s ease calc(0.12s + var(--i) * 90ms),
-    transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) calc(0.12s + var(--i) * 90ms);
+    opacity 0.34s ease calc(0.12s + var(--i) * 70ms),
+    transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) calc(0.12s + var(--i) * 70ms);
 }
 .herr-indice {
-  align-self: center;
+  grid-row: 1;
+  justify-self: start;
   font-family: "JetBrains Mono", ui-monospace, monospace;
   font-weight: 700;
   font-size: clamp(11px, 0.9vw, 13px);
@@ -796,33 +828,32 @@
 /* La palabra, con la misma tipografía condensada del lector: se lee como
    parte del mismo capítulo, no como una tarjeta pegada. */
 .herr-criterio h4 {
-  grid-column: 2;
+  grid-row: 3;
   margin: 0;
   font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
   font-weight: 700;
-  font-size: clamp(22px, min(3.1vw, 5.6svh), 44px);
-  line-height: 0.95;
+  font-size: clamp(26px, min(3.4vw, 6svh), 52px);
+  line-height: 0.92;
   letter-spacing: 0.005em;
   text-transform: uppercase;
   color: var(--tinta);
 }
-/* La frase va al otro extremo de la fila: así la línea se lee como un índice
-   y no queda media pantalla vacía. */
 .herr-criterio p {
-  grid-column: 3;
-  align-self: center;
-  margin: 0;
+  grid-row: 4;
+  margin: clamp(6px, 1svh, 12px) 0 0;
   font-family: var(--display);
-  font-size: clamp(12.5px, 1vw, 15px);
+  font-size: clamp(12px, 0.92vw, 14.5px);
   line-height: 1.45;
-  text-align: right;
-  text-wrap: balance;
+  /* Dos líneas reservadas siempre: si no, las de una sola suben la palabra
+     de su casilla y la fila deja de leerse como una fila. */
+  min-height: 2.9em;
+  text-wrap: pretty;
   color: rgba(23, 24, 21, 0.55);
 }
-/* Un filo que se dibuja bajo cada línea al entrar. */
+/* Un filo que se dibuja sobre cada casilla al entrar. */
 .herr-filo {
-  grid-column: 1 / -1;
-  margin-top: clamp(7px, 1.2svh, 14px);
+  position: absolute;
+  inset: 0 0 auto;
   height: 1px;
   background: rgba(23, 24, 21, 0.16);
   transform-origin: 0 50%;
@@ -831,10 +862,7 @@
 }
 .herr-grupo[data-estado="activo"] .herr-filo {
   transform: scaleX(1);
-  transition-delay: calc(0.26s + var(--i) * 90ms);
-}
-.herr-criterio > li:last-child .herr-filo {
-  display: none;
+  transition-delay: calc(0.26s + var(--i) * 70ms);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -853,33 +881,33 @@
        leyendo detrás de «Cómo trabajo». */
     opacity: 0;
   }
-  .herramientas[data-criterio] .herr-fijo {
-    grid-template-rows: 30svh auto;
+  .herr-grupo:has(.herr-criterio) {
+    padding: clamp(128px, 20svh, 168px) 0 clamp(20px, 4svh, 44px);
   }
   .herr-grupo .herr-criterio {
     grid-row: auto;
-  }
-  .herr-grupo .herr-criterio {
     padding-right: 0;
-  }
-  .herr-grupo .herr-criterio {
-    gap: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .herr-grupo .herr-criterio > li {
-    grid-template-columns: auto minmax(0, 1fr);
-    column-gap: 12px;
-    padding: clamp(2px, 0.5svh, 6px) 0;
+    padding: clamp(8px, 1.6svh, 18px) 14px;
   }
-  .herr-criterio p {
-    grid-column: 2;
-    margin-top: 2px;
-    text-align: left;
+  .herr-criterio > li:nth-child(4n + 1) {
+    border-left: 1px solid rgba(23, 24, 21, 0.12);
+    padding-left: 14px;
+  }
+  .herr-criterio > li:nth-child(odd) {
+    border-left: 0;
+    padding-left: 0;
   }
   .herr-criterio h4 {
-    font-size: clamp(17px, 5.4vw, 26px);
+    font-size: clamp(18px, 5.4vw, 30px);
   }
   .herr-criterio p {
-    font-size: 12px;
-    line-height: 1.3;
+    font-size: 11.5px;
+    line-height: 1.32;
+    /* En dos columnas estrechas alguna frase se va a tres líneas: se
+       reservan para que las palabras sigan cuadrando entre sí. */
+    min-height: 3.96em;
   }
 }
