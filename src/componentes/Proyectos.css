@@ -291,7 +291,19 @@
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr);
 }
 /* Sin recorrido que enseñar no hay segunda columna: la ficha ocupa la
-   ventana entera en vez de dejar media pantalla en negro. */
+   ventana entera en vez de dejar media pantalla en negro, y la ventana se
+   ajusta a lo que hay dentro en vez de estirarse hasta el borde. */
+.proy-ventana:not(:has(.proy-landing)) {
+  /* `auto` no vale: el diálogo se coloca como un absoluto con los cuatro
+     lados fijados, y ahí un alto automático se estira hasta llenar. */
+  height: fit-content;
+  max-height: min(90svh, 100svh - 24px);
+}
+/* Y el cuerpo deja de estirarse: crece lo que ocupa, y si se pasa del alto
+   máximo encoge y la ficha se desplaza por dentro, como siempre. */
+.proy-ventana:not(:has(.proy-landing)) .proy-ventana-cuerpo {
+  flex: 0 1 auto;
+}
 .proy-ventana-cuerpo:not(:has(.proy-landing)) {
   grid-template-columns: minmax(0, 1fr);
 }

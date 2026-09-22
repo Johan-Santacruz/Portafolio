@@ -258,6 +258,32 @@ export const trabajos: Trabajo[] = [
     },
   },
   {
+    id: "chatpyme",
+    nombre: "ChatPyme",
+    resumen: {
+      es: "Un ERP para mipymes que se maneja hablando con Fina",
+      en: "An ERP for small businesses that you run by talking to Fina",
+    },
+    contexto: { es: "Proyecto en equipo", en: "Team project" },
+    periodo: "2026",
+    rol: { es: "Por confirmar", en: "To be confirmed" },
+    rolPorConfirmar: true,
+    descripcion: {
+      es: "Una tienda de barrio no lleva inventario porque el software de inventario está hecho para otra empresa. Fina, la asistente, vive en Telegram y en un panel web: se le cuenta qué entró y qué salió, en el idioma de siempre, y ella lleva las cuentas. Detrás hay varios agentes con oficios distintos, uno para el inventario, otro para las finanzas, otro para las alertas, y uno que supervisa a los demás: antes de ejecutar algo que no tiene vuelta atrás se detiene y pide confirmación, y la acción queda en espera hasta que se aprueba, se rechaza o caduca. Los informes dicen qué rota, qué se vende solo y qué compra fue un error.",
+      en: "A corner shop keeps no inventory because inventory software is built for a different kind of company. Fina, the assistant, lives on Telegram and in a web dashboard: you tell her what came in and what went out, in everyday words, and she keeps the books. Behind her are several agents with different jobs, one for inventory, one for finance, one for alerts, and one that supervises the rest: before running anything irreversible it stops and asks for confirmation, and the action waits until it is approved, rejected or expires. The reports say what turns over, what sells itself and which purchase was a mistake.",
+    },
+    stack: [
+      "FastAPI",
+      "Python",
+      "PostgreSQL",
+      "SQLAlchemy",
+      "React",
+      "OpenAI",
+      "Telegram",
+      "Docker",
+    ],
+  },
+  {
     id: "tritec",
     nombre: "Tritec",
     resumen: {
