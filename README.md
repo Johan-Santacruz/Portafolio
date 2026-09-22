@@ -164,13 +164,23 @@ node scripts/hoja-de-vida.mjs
 
 ## Trabajos
 
-Los cuatro trabajos viven en `src/datos/trabajos.ts`: el primero se presenta en
-grande con su galería y el resto como tarjetas. Cada uno puede llevar `capturas`
-(las que se ven en la tarjeta) y `landing` (la página completa que se abre en
-una ventana). Añadir uno nuevo es escribir una entrada más.
+Los trabajos viven en `src/datos/trabajos.ts`: el primero se presenta en grande
+con su galería y el resto como tarjetas. Cada uno puede llevar `capturas` (la
+primera es la que se ve tras el nombre en la lista), `landing` (la página
+completa que se abre en la ventana) y `sitio` (si está publicado y se puede
+probar). Añadir uno nuevo es escribir una entrada más.
 
-Las imágenes salen de ejecutar cada proyecto en local y fotografiarlo; las
-versiones a resolución completa quedan fuera del repositorio, en `capturas/`.
+Cuando el rol no consta en ninguna parte se marca `rolPorConfirmar` y la ficha
+lo omite, en vez de inventarlo.
+
+Las imágenes salen de ejecutar cada proyecto en local y fotografiarlo, o de su
+sitio publicado si lo tiene. Las versiones a resolución completa quedan fuera
+del repositorio, en `capturas/`. El formato es el mismo para todos: las de la
+lista a 1100 × 688 y las de recorrido a 1000 de ancho, en JPEG.
+
+Lo que no se puede fotografiar honestamente se queda sin imagen. Un proyecto
+que necesita base de datos y claves para arrancar sale vacío, y una pantalla
+vacía dice menos que ninguna.
 
 ## Reconocimientos
 

@@ -122,6 +122,15 @@ export const trabajos: Trabajo[] = [
     ],
     repositorio: "https://github.com/Fernando2205/CLARA",
     sitio: "https://somosclara.tech",
+    capturas: [
+      {
+        src: "/imagenes/trabajos/clara-registro.jpg",
+        alt: {
+          es: "Pantalla de alta de CLARA: nombre, cédula, correo, un teclado para el PIN y la captura del rostro",
+          en: "CLARA's sign-up screen: name, ID number, email, a keypad for the PIN and the face capture",
+        },
+      },
+    ],
   },
   {
     id: "gobla",
@@ -259,7 +268,8 @@ export const trabajos: Trabajo[] = [
   },
   {
     id: "chatpyme",
-    nombre: "ChatPyme",
+    // Así se llama a sí misma en pantalla; ChatPyme es el nombre interno.
+    nombre: "AgenteIA",
     resumen: {
       es: "Un ERP para mipymes que se maneja hablando con Fina",
       en: "An ERP for small businesses that you run by talking to Fina",
@@ -282,6 +292,23 @@ export const trabajos: Trabajo[] = [
       "Telegram",
       "Docker",
     ],
+    capturas: [
+      {
+        src: "/imagenes/trabajos/agenteia-portada.jpg",
+        alt: {
+          es: "Portada de AgenteIA: «Gestiona tu negocio con inteligencia», con el panel asomando debajo",
+          en: "AgenteIA's home page: \"Run your business with intelligence\", with the dashboard peeking below",
+        },
+      },
+    ],
+    landing: {
+      src: "/imagenes/landings/agenteia.jpg",
+      alt: {
+        es: "La portada de AgenteIA de arriba abajo: funciones, métricas, cómo funciona y Fina en Telegram",
+        en: "AgenteIA's home page from top to bottom: features, metrics, how it works and Fina on Telegram",
+      },
+      etiqueta: { es: "Ver la portada completa", en: "See the full home page" },
+    },
   },
   {
     id: "tritec",
@@ -300,5 +327,22 @@ export const trabajos: Trabajo[] = [
     },
     stack: ["Python", "Flask", "Jinja2", "JavaScript", "CSS"],
     repositorio: "https://github.com/Johan-Santacruz/Tritec",
+    capturas: [
+      {
+        src: "/imagenes/trabajos/tritec-ejercicios.jpg",
+        alt: {
+          es: "Lista de ejercicios de Tritec, cada uno con su icono, su descripción y su dificultad en estrellas",
+          en: "Tritec's exercise list, each with its icon, its description and its difficulty in stars",
+        },
+      },
+    ],
+    landing: {
+      src: "/imagenes/landings/tritec.jpg",
+      alt: {
+        es: "La lista de ejercicios de Tritec de arriba abajo, con los nueve problemas",
+        en: "Tritec's exercise list from top to bottom, with all nine problems",
+      },
+      etiqueta: { es: "Ver la lista completa", en: "See the full list" },
+    },
   },
 ];
