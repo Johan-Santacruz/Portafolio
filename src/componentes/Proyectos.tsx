@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { trabajos } from "../datos/trabajos";
+import { reconocimientos } from "../datos/reconocimientos";
 import type { Trabajo } from "../datos/trabajos";
 import { iconos } from "../datos/stack";
 import { useIdioma } from "../idioma/idioma";
@@ -10,6 +11,7 @@ import { vigilarCercania } from "../retrato/cercania";
 import "./Proyectos.css";
 
 const ICONOS = `${import.meta.env.BASE_URL}iconos/`;
+const RECONOCIMIENTOS = `${import.meta.env.BASE_URL}imagenes/reconocimientos/`;
 const MEDIA = `${import.meta.env.BASE_URL}media/`;
 
 /** Tecnologías de los trabajos que no están tal cual en `iconos`. */
@@ -182,6 +184,43 @@ export function Proyectos() {
           </li>
         ))}
         </ol>
+
+        {/* Lo que han dicho otros. No son proyectos: cierran el capítulo como
+            su respaldo, con el medio delante porque ahí está el valor. */}
+        <section className="proy-pie" aria-labelledby="titulo-reconocimientos">
+          <header className="recon-cabecera">
+            <p className="recon-rotulo">{di(textos.reconocimientosRotulo)}</p>
+            <h3 id="titulo-reconocimientos">{di(textos.reconocimientosTitulo)}</h3>
+          </header>
+          <ul className="recon-lista">
+            {reconocimientos.map((r) => {
+              const red = r.red === "instagram" ? "Instagram" : "LinkedIn";
+              return (
+                <li key={r.id}>
+                  <a href={r.url} target="_blank" rel="noreferrer">
+                    <img
+                      className="recon-foto"
+                      src={`${RECONOCIMIENTOS}${r.imagen}`}
+                      alt={di(r.alt)}
+                      loading="lazy"
+                      decoding="async"
+                      width="400"
+                      height="400"
+                    />
+                    <span className="recon-medio">{r.medio}</span>
+                    <span className="recon-titulo">{di(r.titulo)}</span>
+                    <span className="recon-meta" aria-hidden="true">
+                      <span>{red}</span>
+                      <span>{di(r.fecha)}</span>
+                    </span>
+                    <span className="proy-oculto">{` · ${di(textos.verPublicacion)} ${red}, ${di(r.fecha)}`}</span>
+                    <Icono nombre="diagonal" />
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       </div>
 
       {abierto && (
@@ -254,17 +293,22 @@ export function Proyectos() {
                   );
                 })}
               </ul>
-              {abierto.repositorio && (
-                <a
-                  className="proy-codigo"
-                  href={abierto.repositorio}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {di(textos.verCodigo)}
-                  <span className="proy-oculto">{di(textos.enGitHub)}</span>
-                  <Icono nombre="diagonal" />
-                </a>
+              {(abierto.sitio || abierto.repositorio) && (
+                <div className="proy-enlaces">
+                  {abierto.sitio && (
+                    <a href={abierto.sitio} target="_blank" rel="noreferrer">
+                      {di(textos.verSitio)}
+                      <Icono nombre="diagonal" />
+                    </a>
+                  )}
+                  {abierto.repositorio && (
+                    <a href={abierto.repositorio} target="_blank" rel="noreferrer">
+                      {di(textos.verCodigo)}
+                      <span className="proy-oculto">{di(textos.enGitHub)}</span>
+                      <Icono nombre="diagonal" />
+                    </a>
+                  )}
+                </div>
               )}
             </div>
             {abierto.landing && (

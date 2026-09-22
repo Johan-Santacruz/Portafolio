@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+// Solo los datos, no el componente: así la prueba sigue a la lista en vez de
+// romperse cada vez que se añade un proyecto. El import de `Par` que lleva es
+// de tipos, y se borra al compilar.
+import { trabajos } from "../src/datos/trabajos";
+import { reconocimientos } from "../src/datos/reconocimientos";
 
 /** La pantalla de carga tapa y bloquea el scroll hasta que la portada está
  *  lista: los tests que se mueven por la página esperan a que se retire. */
@@ -414,7 +419,7 @@ test("los proyectos se encienden al pasar por el centro y abren su ficha", async
   // Con las tipografías cargadas: la página encoge unos px al llegar.
   await page.evaluate(() => document.fonts.ready);
   const filas = page.locator(".proy-fila");
-  await expect(filas).toHaveCount(4);
+  await expect(filas).toHaveCount(trabajos.length);
   const luz = (i: number) =>
     filas.nth(i).evaluate((f) => Number(f.style.getPropertyValue("--luz")));
 
@@ -426,13 +431,21 @@ test("los proyectos se encienden al pasar por el centro y abren su ficha", async
   await expect.poll(() => luz(1)).toBeGreaterThan(0.9);
   expect(await luz(0)).toBeLessThan(0.2);
 
+  // Se abre la que esté en la segunda fila, sea cual sea: así añadir un
+  // proyecto no rompe la prueba.
+  const segundo = trabajos[1];
   const abridor = filas.nth(1).getByRole("button");
   await abridor.focus();
   await page.keyboard.press("Enter");
   const ventana = page.locator("dialog.proy-ventana");
   await expect(ventana).toBeVisible();
-  await expect(ventana.getByRole("heading", { name: "Oculus Auditor" })).toBeVisible();
-  await expect(ventana.locator(".proy-landing img")).toBeVisible();
+  await expect(
+    ventana.getByRole("heading", { name: segundo.nombre }),
+  ).toBeVisible();
+  // El recorrido completo solo lo tienen los que traen captura de la landing.
+  await expect(ventana.locator(".proy-landing img")).toHaveCount(
+    segundo.landing ? 1 : 0,
+  );
   await page.keyboard.press("Escape");
   await expect(ventana).not.toBeVisible();
   await expect(abridor).toBeFocused();
@@ -815,4 +828,51 @@ test("el criterio también cuadra en inglés", async ({ page }) => {
   expect(rejilla.torcidas).toBe(0);
   expect(rejilla.derecha).toBeLessThanOrEqual(rejilla.ancho);
   expect(rejilla.abajo).toBeLessThanOrEqual(rejilla.alto);
+});
+
+test("los reconocimientos cierran el capítulo y llevan a su publicación", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await sinCarga(page);
+  const filas = page.locator(".recon-lista li");
+  await expect(filas).toHaveCount(reconocimientos.length);
+
+  // Cada uno dice quién lo publicó, qué deja constancia y adónde lleva.
+  const primero = filas.first().locator("a");
+  await expect(primero).toContainText("Universidad de San Buenaventura Cali");
+  await expect(primero).toContainText("Ganadores de la Hackatón Colombia 5.0");
+  await expect(primero).toHaveAttribute("target", "_blank");
+  await expect(primero).toHaveAttribute("rel", /noreferrer/);
+
+  // Las vistas previas se sirven desde el repositorio, no desde Instagram:
+  // sus direcciones llevan firma y caducan.
+  const fotos = page.locator(".recon-foto");
+  await expect(fotos).toHaveCount(reconocimientos.length);
+  for (const src of await fotos.evaluateAll((e) =>
+    e.map((i) => (i as HTMLImageElement).getAttribute("src") ?? ""),
+  )) {
+    expect(src).toContain("/imagenes/reconocimientos/");
+  }
+  // Y cargan de verdad.
+  await page.locator(".proy-pie").scrollIntoViewIfNeeded();
+  await expect
+    .poll(() =>
+      fotos.evaluateAll(
+        (e) => e.filter((i) => (i as HTMLImageElement).naturalWidth > 0).length,
+      ),
+    )
+    .toBe(reconocimientos.length);
+
+  // Toda foto lleva su descripción, en los dos idiomas.
+  for (const alt of await fotos.evaluateAll((e) =>
+    e.map((i) => (i as HTMLImageElement).alt),
+  )) {
+    expect(alt.length).toBeGreaterThan(20);
+  }
+  await page.locator(".cabecera-idioma").click();
+  await expect(page.locator("#titulo-reconocimientos")).toHaveText("What others said");
+  await expect(filas.first().locator("a")).toContainText(
+    "Winners of Hackathon Colombia 5.0",
+  );
 });

@@ -85,6 +85,13 @@ export const textos = {
   tecnologias: { es: "Tecnologías", en: "Technologies" },
   verCodigo: { es: "Ver el código", en: "View the code" },
   enGitHub: { es: " en GitHub", en: " on GitHub" },
+  verSitio: { es: "Probarlo", en: "Try it" },
+
+  // --- Reconocimientos ----------------------------------------------------
+  reconocimientosRotulo: { es: "Reconocimientos", en: "Recognition" },
+  reconocimientosTitulo: { es: "Lo que han dicho", en: "What others said" },
+  /** Se lee en voz alta tras el titular: dice adónde lleva el enlace. */
+  verPublicacion: { es: "Ver la publicación en", en: "See the post on" },
 
   // --- Trayectoria --------------------------------------------------------
   trayectoriaRotulo: { es: "Trayectoria", en: "Career" },

@@ -172,6 +172,29 @@ una ventana). Añadir uno nuevo es escribir una entrada más.
 Las imágenes salen de ejecutar cada proyecto en local y fotografiarlo; las
 versiones a resolución completa quedan fuera del repositorio, en `capturas/`.
 
+## Reconocimientos
+
+Al final del capítulo de proyectos, en `datos/reconocimientos.ts`: lo que han
+publicado otros sobre el trabajo, con el medio delante porque ahí está el
+valor. Cada fila enlaza a la publicación original.
+
+Las vistas previas se guardan en el repositorio, en
+`public/imagenes/reconocimientos/`, y las baja `scripts/reconocimientos.mjs`:
+
+```bash
+node scripts/reconocimientos.mjs
+```
+
+No se enlazan directamente porque las direcciones de las imágenes de Instagram
+y de LinkedIn van firmadas y caducan, así que a las pocas semanas la página se
+queda con huecos. Instagram además no entrega la vista previa a `curl`, solo a
+un navegador de verdad; por eso el guion usa el Chromium de Playwright. Al
+añadir un reconocimiento hay que añadirlo también a la lista del guion y
+volver a correrlo.
+
+Las fotos son de quien las publicó. Van con su medio a la vista y enlazadas a
+la publicación.
+
 ## Videos
 
 En `public/media/` hay dos bucles, ambos recortados, acelerados y recomprimidos
@@ -274,8 +297,8 @@ pantalla. Ahí manda quien lee, se quita el cerrojo y la página se queda donde
 va. La rueda hacia arriba tampoco cuenta como «quiero bajar», o echarse atrás
 cortaría el deslizamiento y ese mismo gesto lo relanzaría al pararse.
 
-Los tramos están medidos para que la página no se haga larga: unas 15
-pantallas de principio a fin en escritorio y 14 en móvil. Si añades una
+Los tramos están medidos para que la página no se haga larga: unas 17
+pantallas de principio a fin en escritorio y 16 en móvil. Si añades una
 categoría o un pase, mira que no se dispare (`--por-categoria`, `--por-pase`,
 `--tunel`, `--agujero`).
 

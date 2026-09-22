@@ -283,16 +283,21 @@
   color: var(--accent);
 }
 .proy-cerrar:focus-visible,
-.proy-codigo:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 4px;
-}
 /* Ficha a la izquierda; la landing a la derecha, con su propio scroll. */
 .proy-ventana-cuerpo {
   flex: 1;
   min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr);
+}
+/* Sin recorrido que enseñar no hay segunda columna: la ficha ocupa la
+   ventana entera en vez de dejar media pantalla en negro. */
+.proy-ventana-cuerpo:not(:has(.proy-landing)) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.proy-ventana-cuerpo:not(:has(.proy-landing)) .proy-ficha {
+  /* Aunque quepa más, la línea sigue midiendo lo que se lee de un tirón. */
+  max-width: 72ch;
 }
 .proy-ficha {
   padding: 28px 28px 32px;
@@ -359,18 +364,28 @@
   -webkit-mask: var(--logo) center / contain no-repeat;
   mask: var(--logo) center / contain no-repeat;
 }
-.proy-codigo {
+/* Los enlaces de la ficha. El primero es la acción principal (probarlo si
+   está publicado, el código si no) y va en lima; los demás, perfilados. */
+.proy-enlaces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 26px;
+}
+.proy-enlaces a {
   display: inline-flex;
   align-items: center;
   gap: 14px;
   min-height: 46px;
-  margin-top: 26px;
   padding: 12px 18px;
   font-weight: 600;
   font-size: 14px;
   letter-spacing: 0.04em;
-  color: var(--ink);
-  background: var(--accent);
+  color: var(--texto);
+  box-shadow: inset 0 0 0 1px rgba(238, 240, 242, 0.28);
+  transition:
+    color 0.25s ease,
+    box-shadow 0.25s ease;
   clip-path: polygon(
     0 0,
     calc(100% - 10px) 0,
@@ -380,7 +395,20 @@
     0 calc(100% - 10px)
   );
 }
-.proy-codigo .icono {
+.proy-enlaces a:first-child {
+  color: var(--ink);
+  background: var(--accent);
+  box-shadow: none;
+}
+.proy-enlaces a:not(:first-child):hover {
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.proy-enlaces a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.proy-enlaces .icono {
   width: 16px;
   height: 16px;
 }
@@ -437,5 +465,175 @@
     overflow: visible;
     border-left: 0;
     border-top: 1px solid rgba(238, 240, 242, 0.12);
+  }
+}
+
+/* --- Reconocimientos -------------------------------------------------------------
+   Cierran el capítulo: lo que han dicho otros, con el medio delante. Filas
+   enlazadas, con el mismo filo que el resto de la sección. */
+.proy-pie {
+  margin-top: clamp(64px, 11svh, 130px);
+  padding-bottom: clamp(32px, 6svh, 70px);
+}
+.recon-cabecera {
+  text-align: center;
+}
+.recon-rotulo {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 500;
+  font-size: clamp(12px, 0.9vw, 14px);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(238, 240, 242, 0.62);
+}
+.recon-cabecera h3 {
+  margin-top: 10px;
+  font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
+  font-weight: 700;
+  font-size: clamp(30px, min(4.2vw, 7.5vh), 72px);
+  line-height: 0.92;
+  text-transform: uppercase;
+  color: var(--texto);
+}
+.recon-lista {
+  list-style: none;
+  margin: clamp(22px, 4.5svh, 44px) 0 0;
+  padding: 0;
+  display: grid;
+  border-top: 1px solid rgba(238, 240, 242, 0.14);
+}
+.recon-lista li {
+  border-bottom: 1px solid rgba(238, 240, 242, 0.14);
+}
+.recon-lista a {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: clamp(16px, 2.4vw, 32px);
+  row-gap: 6px;
+  padding: clamp(14px, 2.4svh, 24px) 0;
+  color: var(--texto);
+  transition: color 0.25s ease;
+}
+/* La vista previa de la publicación. Apagada hasta que se pasa por encima,
+   como los nombres de los proyectos: el capítulo se enciende al mirarlo. */
+.recon-foto {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  width: clamp(58px, 6.2vw, 92px);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  opacity: 0.66;
+  filter: saturate(0.5);
+  transition:
+    opacity 0.35s ease,
+    filter 0.35s ease,
+    transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  );
+}
+.recon-lista a:hover .recon-foto,
+.recon-lista a:focus-visible .recon-foto {
+  opacity: 1;
+  filter: none;
+  transform: scale(1.04);
+}
+.recon-medio {
+  grid-column: 2;
+  grid-row: 1;
+  /* La foto es más alta que el texto y reparte las dos filas: sin esto, el
+     medio y su titular acaban cada uno en una punta. */
+  align-self: end;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: clamp(11px, 0.85vw, 13px);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.recon-titulo {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: start;
+  font-family: "Chakra Petch", var(--display);
+  font-weight: 600;
+  font-size: clamp(17px, 1.7vw, 26px);
+  line-height: 1.25;
+  text-wrap: balance;
+}
+.recon-meta {
+  grid-column: 3;
+  grid-row: 1 / -1;
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: clamp(11px, 0.85vw, 13px);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(238, 240, 242, 0.62);
+  white-space: nowrap;
+}
+.recon-lista .icono {
+  grid-column: 4;
+  grid-row: 1 / -1;
+  width: 20px;
+  height: 20px;
+  color: rgba(238, 240, 242, 0.45);
+  transition:
+    transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1),
+    color 0.25s ease;
+}
+.recon-lista a:hover {
+  color: var(--accent);
+}
+.recon-lista a:hover .icono {
+  transform: translate3d(4px, -4px, 0);
+  color: var(--accent);
+}
+.recon-lista a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+@media (max-width: 720px) {
+  /* En estrecho la fecha estorba al lado: se va bajo el titular, y la foto
+     se queda arriba del todo con el medio. */
+  .recon-lista a {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    row-gap: 8px;
+  }
+  .recon-foto {
+    width: clamp(56px, 16vw, 78px);
+  }
+  .recon-meta {
+    grid-column: 2;
+    grid-row: 3;
+    grid-auto-flow: column;
+    justify-content: start;
+    justify-items: start;
+    gap: 14px;
+  }
+  .recon-lista .icono {
+    grid-column: 3;
+    grid-row: 1 / -1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .recon-foto {
+    transition: none;
+  }
+  .recon-lista a:hover .recon-foto {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .recon-lista .icono {
+    transition: none;
   }
 }

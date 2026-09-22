@@ -29,6 +29,8 @@ export interface Trabajo {
   /** Tecnologías: nombres propios. */
   stack: string[];
   repositorio?: string;
+  /** Si está publicado y se puede probar. */
+  sitio?: string;
   capturas?: Captura[];
   /** La página de entrada completa, para verla de arriba abajo. */
   landing?: Landing;
@@ -90,6 +92,36 @@ export const trabajos: Trabajo[] = [
       },
       etiqueta: { es: "Ver el recorrido completo", en: "See the full walkthrough" },
     },
+  },
+  {
+    id: "clara",
+    nombre: "CLARA",
+    resumen: {
+      es: "Inventario de cocina dictado en voz alta y validado al instante",
+      en: "Kitchen inventory dictated aloud and validated on the spot",
+    },
+    contexto: {
+      es: "Hackathon Colsubsidio × 30X · Equipo SOCADE",
+      en: "Colsubsidio × 30X hackathon · SOCADE team",
+    },
+    periodo: "2026",
+    rol: { es: "Por confirmar", en: "To be confirmed" },
+    rolPorConfirmar: true,
+    descripcion: {
+      es: "Colsubsidio entregó el inventario real de Piscilago: 48 bodegas y 1.405 referencias. Al revisarlo aparecieron 79 saldos negativos imposibles y 47.588 unidades que nunca existieron. No son errores de conteo, son errores de transcripción que nadie revisa hasta semanas después. CLARA quita esa cadena: quien cuenta lo dicta, la IA estructura la frase y un emparejador determinista resuelve el código de catálogo, nunca el modelo. Las reglas validan en el momento y, si algo no cuadra, pregunta antes de guardar. Funciona sin conexión y al cerrar firma el acta con SHA-256, lista para el ERP.",
+      en: "Colsubsidio handed over the real inventory of Piscilago: 48 storerooms and 1,405 references. Reviewing it turned up 79 impossible negative balances and 47,588 units that never existed. These are not counting errors but transcription errors that nobody reviews until weeks later. CLARA removes that chain: whoever counts dictates it, the AI structures the sentence and a deterministic matcher resolves the catalogue code, never the model. Rules validate on the spot and, if something does not add up, it asks before saving. It works offline, and on closing it signs the record with SHA-256, ready for the ERP.",
+    },
+    stack: [
+      "React + Vite",
+      "FastAPI",
+      "SQLite",
+      "OpenAI",
+      "Whisper",
+      "ElevenLabs",
+      "WeasyPrint",
+    ],
+    repositorio: "https://github.com/Fernando2205/CLARA",
+    sitio: "https://somosclara.tech",
   },
   {
     id: "gobla",
@@ -224,5 +256,23 @@ export const trabajos: Trabajo[] = [
       },
       etiqueta: { es: "Ver la landing completa", en: "See the full landing page" },
     },
+  },
+  {
+    id: "tritec",
+    nombre: "Tritec",
+    resumen: {
+      es: "Practicar algoritmos con corrección automática en el navegador",
+      en: "Practising algorithms with automatic grading in the browser",
+    },
+    contexto: { es: "Proyecto académico en equipo", en: "Team university project" },
+    periodo: "2024 — 2026",
+    rol: { es: "Por confirmar", en: "To be confirmed" },
+    rolPorConfirmar: true,
+    descripcion: {
+      es: "Nueve problemas clásicos, de FizzBuzz y los palíndromos a la búsqueda binaria, los números romanos en los dos sentidos, las cantidades escritas en letras, la matriz en espiral, las torres de Hanói y el ordenamiento por mezcla. Cada uno abre su editor: lo que se escribe se ejecuta contra una batería de pruebas y responde si pasa. Una fábrica asocia cada problema con su clase de pruebas y su solución, así que añadir uno nuevo no toca los demás.",
+      en: "Nine classic problems, from FizzBuzz and palindromes to binary search, Roman numerals both ways, amounts written out in words, the spiral matrix, the Towers of Hanoi and merge sort. Each one opens its editor: what you write runs against a battery of tests and reports whether it passes. A factory pairs every problem with its test class and its solver, so adding a new one leaves the rest alone.",
+    },
+    stack: ["Python", "Flask", "Jinja2", "JavaScript", "CSS"],
+    repositorio: "https://github.com/Johan-Santacruz/Tritec",
   },
 ];
