@@ -698,9 +698,11 @@ test("las animaciones largas se reproducen solas al pedir bajar", async ({
     "--traga": (s.querySelector(".herr-sonda-agujero") as HTMLElement).offsetHeight,
   }));
 
-  // Se baja a golpes cortos hasta entrar en el tramo y ahí se deja de tocar:
-  // la animación tiene que terminar sola. Arrastrándola haría falta el tramo
-  // entero, y el tramo mide bastante más que el golpe que la lanzó.
+  // Se baja a golpes cortos hasta entrar en el tramo; ahí se sigue rodando un
+  // poco más, como hace el trackpad, que manda eventos de rueda casi un
+  // segundo después de soltar el dedo. Luego se deja de tocar: la animación
+  // tiene que terminar sola. Arrastrándola haría falta el tramo entero, y el
+  // tramo mide bastante más que el golpe que la lanzó.
   const comprobar = async (prop: "--corte" | "--traga") => {
     for (let i = 0; i < 500; i++) {
       if ((await v(prop)) > 0.001) break;
@@ -709,13 +711,50 @@ test("las animaciones largas se reproducen solas al pedir bajar", async ({
     }
     expect(await v(prop), `${prop} no llegó a arrancar`).toBeGreaterThan(0.001);
     expect(tramos[prop]).toBeGreaterThan(200);
-    // Sin tocar nada más.
+    // La inercia. Antes bastaba con esto para tumbar el deslizamiento, y el
+    // tramo se quedaba a medias el resto de la pasada.
+    for (let i = 0; i < 6; i += 1) {
+      await page.mouse.wheel(0, 60);
+      await page.waitForTimeout(16);
+    }
+    // Y sin tocar nada más.
     await page.waitForTimeout(2400);
     expect(await v(prop), `${prop} no terminó solo`).toBeGreaterThan(0.98);
   };
 
   await comprobar("--corte");
   await comprobar("--traga");
+});
+
+test("echarse atrás corta el deslizamiento automático", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+  await sinCarga(page);
+  await page.evaluate(() => document.fonts.ready);
+  const seccion = page.locator("#herramientas");
+  const traga = () =>
+    seccion.evaluate((s: HTMLElement) => Number(s.style.getPropertyValue("--traga")));
+  await page.mouse.move(720, 450);
+
+  // Hasta la boca del agujero.
+  for (let i = 0; i < 500; i++) {
+    if ((await traga()) > 0.001) break;
+    await page.mouse.wheel(0, 60);
+    await page.waitForTimeout(35);
+  }
+  expect(await traga()).toBeGreaterThan(0.001);
+
+  // Rueda hacia arriba: manda quien lee, y la página se queda donde está en
+  // vez de seguir hasta el final del tramo.
+  await page.mouse.wheel(0, -200);
+  await page.waitForTimeout(1600);
+  expect(await traga(), "el deslizamiento no se dejó cortar").toBeLessThan(0.98);
+
+  // Y no queda el cerrojo puesto: se puede volver a subir.
+  const antes = await page.evaluate(() => window.scrollY);
+  await page.mouse.wheel(0, -600);
+  await page.waitForTimeout(600);
+  expect(await page.evaluate(() => window.scrollY)).toBeLessThan(antes);
 });
 
 test("el botón de la cabecera pasa la página a inglés y lo recuerda", async ({

@@ -172,9 +172,13 @@ export function Herramientas() {
     // prueba— no cuenta) y una vez por pasada.
     const reducidoMedia = window.matchMedia("(prefers-reduced-motion: reduce)");
     let ultimoY = window.scrollY;
-    let tunelPuesto = false;
-    let cortePuesto = false;
-    let agujeroPuesto = false;
+    // Cada tramo recuerda con qué gesto se lanzó, no si se lanzó ya. Si el
+    // lector se echa atrás y el deslizamiento se corta, el siguiente gesto
+    // hacia abajo es otro y el tramo se vuelve a lanzar; antes, un intento
+    // cortado dejaba el resto de la pasada a tirones.
+    let gestoTunel = 0;
+    let gestoCorte = 0;
+    let gestoAgujero = 0;
     // Solo cuenta como «quiero bajar» un gesto de verdad: rueda, dedo o
     // tecla. Un salto programático (un enlace, volver atrás) no dispara nada.
     // La ventana es ancha porque el dedo suelta y la página sigue por
@@ -183,19 +187,29 @@ export function Herramientas() {
     const marcarGesto = () => {
       ultimoGesto = performance.now();
     };
+    // Solo hacia abajo. Si la rueda hacia arriba contara, echarse atrás
+    // cortaría el deslizamiento y, en cuanto la página se parase, ese mismo
+    // gesto lo volvería a lanzar hacia abajo.
+    const alRodar = (ev: WheelEvent) => {
+      if (ev.deltaY > 0) marcarGesto();
+    };
     const alTeclado = (ev: KeyboardEvent) => {
       if (["ArrowDown", "PageDown", "Down", " ", "Spacebar"].includes(ev.key))
         marcarGesto();
     };
-    window.addEventListener("wheel", marcarGesto, { passive: true });
+    window.addEventListener("wheel", alRodar, { passive: true });
     window.addEventListener("touchmove", marcarGesto, { passive: true });
     window.addEventListener("keydown", alTeclado);
-    const lanzar = (hasta: number, ms: number, ya: boolean) => {
-      if (ya || reducidoMedia.matches || deslizando()) return ya;
-      if (performance.now() - ultimoGesto > 1200) return ya;
+    const lanzar = (hasta: number, ms: number, usado: number) => {
+      if (reducidoMedia.matches || deslizando()) return usado;
+      // Un gesto, un lanzamiento: con el trackpad llegan decenas de eventos
+      // de rueda por cada empujón.
+      if (ultimoGesto === usado) return usado;
+      if (performance.now() - ultimoGesto > 1200) return usado;
+      // La página tiene que estar bajando de verdad: quieta o subiendo, no.
       const salto = window.scrollY - ultimoY;
-      if (salto < 0 || salto > window.innerHeight * 0.5) return ya;
-      return deslizarHasta(hasta, ms);
+      if (salto <= 0 || salto > window.innerHeight * 0.5) return usado;
+      return deslizarHasta(hasta, ms) ? ultimoGesto : usado;
     };
 
     // --- El agujero negro: secuencia de fotogramas, como la portada -------
@@ -343,12 +357,8 @@ export function Herramientas() {
       // El túnel es el tramo más largo de todos: en cuanto se pide bajar se
       // recorre entero solo.
       if (pt > 0.02 && pt < 0.9) {
-        tunelPuesto = lanzar(
-          raiz.offsetTop + tunel,
-          DURACION_TUNEL,
-          tunelPuesto,
-        );
-      } else if (pt <= 0.02) tunelPuesto = false;
+        gestoTunel = lanzar(raiz.offsetTop + tunel, DURACION_TUNEL, gestoTunel);
+      } else if (pt <= 0.02) gestoTunel = 0;
       ultimoPt = pt;
       ultimoT = ahora;
       // Al fondo del túnel, «LENGUAJES» crece desde el punto de fuga y se
@@ -390,12 +400,12 @@ export function Herramientas() {
       poner("--p", p.toFixed(4));
       // Al asomar, se reproduce solo hasta el final de su tramo.
       if (corte > 0.002 && corte < 0.9) {
-        cortePuesto = lanzar(
+        gestoCorte = lanzar(
           raiz.offsetTop + tunel + sCorte + anchoCorte,
           DURACION_CORTE,
-          cortePuesto,
+          gestoCorte,
         );
-      } else if (corte <= 0.002) cortePuesto = false;
+      } else if (corte <= 0.002) gestoCorte = 0;
       poner("--corte", corte.toFixed(4));
       // El criterio es el capítulo de después del corte.
       raiz.toggleAttribute("data-criterio", corte > 0.5);
@@ -414,12 +424,12 @@ export function Herramientas() {
       const traga = limitar((-caja.top - tunel - largo) / Math.max(1, agujero));
       if (traga > 0 && !medidas) medirSuccion();
       if (traga > 0.002 && traga < 0.9) {
-        agujeroPuesto = lanzar(
+        gestoAgujero = lanzar(
           raiz.offsetTop + tunel + largo + agujero,
           DURACION_AGUJERO,
-          agujeroPuesto,
+          gestoAgujero,
         );
-      } else if (traga <= 0.002) agujeroPuesto = false;
+      } else if (traga <= 0.002) gestoAgujero = 0;
       poner("--traga", traga.toFixed(4));
       raiz.toggleAttribute("data-traga", traga > 0);
       const cuadro = Math.round(traga * (FOTOGRAMAS - 1));

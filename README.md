@@ -258,10 +258,21 @@ sección en `requestAnimationFrame`) y todo se anula con `prefers-reduced-motion
 Las tres animaciones largas —el túnel, el corte y el agujero negro— no hay
 que arrastrarlas: en cuanto se pide bajar con un gesto de verdad (rueda, dedo
 o tecla), la página se desliza sola hasta el final del tramo y se ven enteras
-(`deslizarHasta` en `suave.ts`). No bloquean: si se sigue moviendo la rueda o
-el dedo, manda quien lee y el deslizamiento se cancela; solo empuja cuando se
-suelta. Un salto programático —un enlace de la cabecera, una prueba— no las
-dispara, y con `prefers-reduced-motion` tampoco.
+(`deslizarHasta` en `suave.ts`). Un salto programático —un enlace de la
+cabecera, una prueba— no las dispara, y con `prefers-reduced-motion` tampoco.
+
+Mientras el deslizamiento dura, seguir bajando no lo corta: va al mismo sitio
+al que va quien lee. Esto importa con el trackpad, que manda eventos de rueda
+durante casi un segundo después de soltar el dedo; antes esa inercia cancelaba
+el deslizamiento siempre y, como cada tramo solo lo intentaba una vez por
+pasada, el agujero negro acababa haciéndose a pulso. Ahora va con cerrojo
+(`lock` de Lenis) y cada tramo recuerda con qué gesto se lanzó, no si se lanzó
+ya: si el intento se corta, el siguiente gesto hacia abajo vuelve a lanzarlo.
+
+Lo que sí lo corta es querer otra cosa: rueda hacia arriba o un dedo en la
+pantalla. Ahí manda quien lee, se quita el cerrojo y la página se queda donde
+va. La rueda hacia arriba tampoco cuenta como «quiero bajar», o echarse atrás
+cortaría el deslizamiento y ese mismo gesto lo relanzaría al pararse.
 
 Los tramos están medidos para que la página no se haga larga: unas 15
 pantallas de principio a fin en escritorio y 14 en móvil. Si añades una

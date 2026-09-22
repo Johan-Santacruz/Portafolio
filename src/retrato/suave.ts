@@ -39,33 +39,56 @@ let enCurso = false;
  * corte, el agujero negro) se terminan solas en cuanto se pide bajar, en vez
  * de avanzar a tirones según cuánto se arrastre.
  *
- * No bloquea a quien lee: si sigue moviendo la rueda o el dedo, manda él y el
- * deslizamiento se cancela. Solo empuja cuando se suelta. Devuelve `false` si
- * ya había uno en curso.
+ * Mientras dura, seguir bajando no lo corta: va al mismo sitio al que va el
+ * lector, y con el trackpad la inercia manda eventos de rueda casi un segundo
+ * después de soltar el dedo, que antes lo cancelaban siempre. Lo que sí lo
+ * corta es querer otra cosa: rueda hacia arriba o un dedo en la pantalla. Ahí
+ * manda el lector y la página se queda donde va, no donde iba.
+ *
+ * Devuelve `false` si ya había un deslizamiento en curso.
  */
 export function deslizarHasta(y: number, ms: number) {
   if (enCurso) return false;
   enCurso = true;
   let vivo = true;
+  let reloj = 0;
   const soltar = () => {
     if (!vivo) return;
     vivo = false;
     enCurso = false;
-    window.removeEventListener("wheel", cortar);
+    window.clearTimeout(reloj);
+    window.removeEventListener("wheel", alRodar);
     window.removeEventListener("touchstart", cortar);
   };
   const cortar = () => {
-    if (lenis) lenis.stop();
-    soltar();
-    if (lenis) lenis.start();
+    if (!vivo) return;
+    // `stop` y `start` pasan por `reset`, que quita el cerrojo y deja la
+    // página donde está en ese momento.
+    if (lenis) {
+      lenis.stop();
+      soltar();
+      lenis.start();
+    } else soltar();
   };
-  window.addEventListener("wheel", cortar, { passive: true });
+  /** Hacia abajo es hacia donde vamos: solo corta echarse atrás. */
+  const alRodar = (ev: WheelEvent) => {
+    if (ev.deltaY < 0) cortar();
+  };
+  window.addEventListener("wheel", alRodar, { passive: true });
   window.addEventListener("touchstart", cortar, { passive: true });
 
   if (lenis) {
-    lenis.scrollTo(y, { duration: ms / 1000, easing: suave, onComplete: soltar });
-    // Red de seguridad: si Lenis no avisa, se suelta igual.
-    window.setTimeout(soltar, ms + 400);
+    lenis.scrollTo(y, {
+      duration: ms / 1000,
+      easing: suave,
+      // Con cerrojo, o la inercia de la rueda sustituye la animación por un
+      // scroll normal y el tramo vuelve a hacerse a tirones.
+      lock: true,
+      onComplete: soltar,
+    });
+    // Red de seguridad: si Lenis no avisa, se suelta igual, y con `cortar`
+    // para que no quede el cerrojo puesto.
+    reloj = window.setTimeout(cortar, ms + 400);
     return true;
   }
 
@@ -78,6 +101,7 @@ export function deslizarHasta(y: number, ms: number) {
     if (k < 1) requestAnimationFrame(paso);
     else soltar();
   };
+  reloj = window.setTimeout(soltar, ms + 400);
   requestAnimationFrame(paso);
   return true;
 }
