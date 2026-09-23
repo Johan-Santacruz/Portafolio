@@ -145,14 +145,20 @@ ffmpeg -ss 1.0 -to 8.3 -i video8.mp4 -vf "$F,scale=320:180:flags=lanczos,format=
 
 Si cambia el número de fotogramas, ajusta `CORTES` en `Herramientas.tsx`.
 
-La sección es una pila de credenciales. Al bajar, el pase de delante se va
-por arriba girando y entra el siguiente, mientras a la izquierda cambia su
-ficha con el año en grande. La pila se detiene en cada pase (`conReposo`, el
-mismo recurso que el lector de herramientas), así que ninguno pasa de largo.
-Cada pase lleva lo que cabe en un gafete: el tipo, el sitio, el rol y un
-código; si hace falta un párrafo, va en la ficha de al lado. Añadir uno es
-añadir una entrada en `pases`; la altura de la sección se calcula sola con
-`--pases`.
+La sección es el recorrido entero a la vista: una fila por pase con su año,
+de qué fue y dónde, y al lado el detalle del pase en el que va el lector, con
+lo que hizo, el sitio y las notas. Al bajar se enciende la fila siguiente y el
+detalle se cruza con el suyo. El lector se detiene en cada pase (`conReposo`,
+el mismo recurso que el de herramientas), así que ninguno pasa de largo.
+
+Antes era una pila de credenciales, una a la vez. Se veía una sola tarjeta que
+era casi toda hueco, con media pantalla vacía al lado, y no se entendía el
+recorrido hasta haberlo bajado entero. Con las cinco filas a la vista tampoco
+hace falta una pantalla larga por pase: `--por-pase` bajó de 40 a 26 svh, y la
+página con ella.
+
+Añadir un pase es añadir una entrada en `pases`; la altura de la sección se
+calcula sola con `--pases`.
 
 La hoja de vida vive en `public/documentos/`: el PDF que se descarga y sus
 páginas en JPEG, que son las que se ven en la ventana (un PDF embebido no se

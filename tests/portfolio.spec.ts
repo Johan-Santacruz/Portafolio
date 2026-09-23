@@ -644,6 +644,34 @@ test("la trayectoria pasa las credenciales y abre la hoja de vida", async ({
   await expect(tray).toContainText("Massachusetts");
   await expect(tray).toContainText("Inglés");
 
+  // Las cinco se ven a la vez y caben en la pantalla: el recorrido entero de
+  // un vistazo. Antes se veía una sola credencial, con media pantalla vacía
+  // al lado.
+  await page.evaluate(
+    (y) => window.scrollTo(0, y),
+    await tray.evaluate((s: HTMLElement) => s.offsetTop),
+  );
+  const caben = await tray.evaluate((s) => {
+    const cajas = [...s.querySelectorAll(".tray-pase")].map((e) =>
+      e.getBoundingClientRect(),
+    );
+    const cab = s.querySelector(".tray-cabecera")!.getBoundingClientRect();
+    const idi = s.querySelector(".tray-idiomas")!.getBoundingClientRect();
+    return {
+      dentro: cajas.every((c) => c.top >= 0 && c.bottom <= window.innerHeight),
+      // Y ocupan la banda que queda entre la cabecera y los idiomas, en vez
+      // de amontonarse en el centro.
+      llenan:
+        (Math.max(...cajas.map((c) => c.bottom)) -
+          Math.min(...cajas.map((c) => c.top))) /
+        (idi.top - cab.bottom),
+      solapan: cajas.some((c) => c.top < cab.bottom) ,
+    };
+  });
+  expect(caben.dentro).toBe(true);
+  expect(caben.solapan).toBe(false);
+  expect(caben.llenan).toBeGreaterThan(0.8);
+
   const { inicio, porPase, alto } = await tray.evaluate((s) => {
     const sonda = s.querySelector<HTMLElement>(".tray-sonda")!;
     const n = s.querySelectorAll(".tray-pase").length;

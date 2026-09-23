@@ -40,25 +40,19 @@ function conReposo(x: number) {
  */
 
 /**
- * Un pase: acero achaflanado con su filete lima, la banda del tipo arriba, el
- * sitio en grande y los datos en mono abajo. Su sitio en la pila sale de la
- * distancia al pase activo (--d), que se calcula en CSS.
+ * Una fila del recorrido: el año, de qué fue y dónde. Todas se ven a la vez;
+ * el pase activo se enciende y los demás se apagan. Antes se veía uno solo,
+ * en una tarjeta que era casi toda hueco y dejaba media pantalla vacía al
+ * lado.
  */
-function Credencial({ n, pase }: { n: number; pase: (typeof pases)[number] }) {
+function Fila({ n, pase }: { n: number; pase: (typeof pases)[number] }) {
   const { di } = useIdioma();
   return (
     <li className="tray-pase" style={{ "--n": n } as CSSProperties}>
-      <span className="tray-troquel" aria-hidden="true" />
-      <p className="tray-tipo">
-        <span>{di(pase.tipo)}</span>
-        {pase.sello && <b className="tray-sello">{di(pase.sello)}</b>}
-      </p>
+      <span className="tray-anio">{di(pase.año)}</span>
+      <span className="tray-tipo">{di(pase.tipo)}</span>
       <h3 className="tray-donde">{pase.donde}</h3>
-      <p className="tray-rol">{di(pase.rol)}</p>
-      <p className="tray-codigo" aria-hidden="true">
-        {pase.codigo}
-        <span className="tray-barras" />
-      </p>
+      {pase.sello && <b className="tray-sello">{di(pase.sello)}</b>}
     </li>
   );
 }
@@ -212,7 +206,14 @@ export function Trayectoria() {
           <h2 id="titulo-trayectoria">{di(textos.trayectoriaTitulo)}</h2>
         </header>
 
-        {/* La ficha del pase activo: el año en grande y lo que se hizo. */}
+        {/* El recorrido entero, siempre a la vista. */}
+        <ol className="tray-lista">
+          {pases.map((pase, i) => (
+            <Fila key={pase.codigo} n={i} pase={pase} />
+          ))}
+        </ol>
+
+        {/* Y al lado, lo que se hizo en el pase activo. */}
         <div className="tray-ficha">
           {pases.map((pase, i) => (
             <article
@@ -220,23 +221,20 @@ export function Trayectoria() {
               className="tray-detalle"
               style={{ "--n": i } as CSSProperties}
             >
-              <p className="tray-anio">{di(pase.año)}</p>
+              <p className="tray-rol">{di(pase.rol)}</p>
               <p className="tray-lugar">{di(pase.lugar)}</p>
               <ul>
                 {pase.notas.map((nota, n) => (
                   <li key={n}>{di(nota)}</li>
                 ))}
               </ul>
+              <p className="tray-codigo" aria-hidden="true">
+                {pase.codigo}
+                <span className="tray-barras" />
+              </p>
             </article>
           ))}
         </div>
-
-        {/* La pila de pases: el activo al frente, los demás detrás. */}
-        <ul className="tray-pila">
-          {pases.map((pase, i) => (
-            <Credencial key={pase.codigo} n={i} pase={pase} />
-          ))}
-        </ul>
 
         <p className="tray-idiomas">
           {idiomas.map((l) => (

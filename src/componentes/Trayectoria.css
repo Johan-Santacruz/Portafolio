@@ -8,8 +8,10 @@
   --p: 0;
   --fin: 0;
   --pases: 5;
-  /* Lo que se baja por cada pase, y la salida hacia el contacto. */
-  --por-pase: 40svh;
+  /* Lo que se baja por cada pase, y la salida hacia el contacto. Con las
+     cinco filas a la vista no hace falta una pantalla larga por pase: basta
+     con que el lector repose en cada una. */
+  --por-pase: 26svh;
   --niebla: 70svh;
   --cola: 65svh;
   position: relative;
@@ -74,10 +76,13 @@
   height: 100svh;
   overflow: clip;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.78fr);
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1fr);
   align-items: center;
   column-gap: clamp(20px, 2vw, 34px);
   padding-inline: max(var(--aire), (100% - var(--ancho)) / 2);
+  /* El hueco de la cabecera arriba y el de los idiomas abajo: lo que queda
+     en medio es la banda que ocupa el recorrido. */
+  padding-block: clamp(140px, 20svh, 190px) clamp(76px, 11svh, 104px);
   /* Lo que queda se apaga dentro de la niebla. */
   opacity: calc(1 - clamp(0, (var(--fin) - 0.3) / 0.4, 1));
 }
@@ -127,11 +132,113 @@
   color: var(--texto);
 }
 
-/* --- La ficha: el año en grande y lo que se hizo. ------------------------------
-   Todas ocupan la misma celda; solo se ve la del pase activo. */
+/* --- El recorrido: todos los pases a la vista ---------------------------------
+   Una fila por pase, siempre las cinco. La del lector se enciende y las demás
+   se apagan, así que se ve el recorrido entero de un vistazo. Antes se veía
+   uno solo, en una tarjeta que era casi toda hueco y con media pantalla
+   vacía al lado. */
+.tray-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  /* Las cinco filas se reparten la banda entera en vez de amontonarse en el
+     centro y dejar el resto en negro. */
+  align-self: stretch;
+  grid-auto-rows: minmax(0, 1fr);
+}
+.tray-pase {
+  --d: calc(var(--n) - var(--p));
+  --ad: max(var(--d), 0 - var(--d));
+  --luz: clamp(0, 1 - var(--ad) * 1.5, 1);
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: clamp(14px, 1.8vw, 26px);
+  row-gap: 3px;
+  padding: clamp(10px, 1.9svh, 20px) 0 clamp(10px, 1.9svh, 20px)
+    clamp(14px, 1.5vw, 22px);
+  border-top: 1px solid rgba(238, 240, 242, 0.13);
+  opacity: calc(0.4 + var(--luz) * 0.6);
+}
+.tray-pase:last-child {
+  border-bottom: 1px solid rgba(238, 240, 242, 0.13);
+}
+/* El filo lima dice dónde va el lector. */
+.tray-pase::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--accent);
+  opacity: var(--luz);
+}
+.tray-anio {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  align-self: center;
+  font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
+  font-weight: 700;
+  font-size: clamp(26px, min(2.8vw, 5svh), 44px);
+  line-height: 0.9;
+  white-space: nowrap;
+  text-transform: uppercase;
+  color: color-mix(
+    in srgb,
+    var(--accent) calc(var(--luz) * 100%),
+    var(--texto)
+  );
+}
+.tray-tipo {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: end;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: clamp(10px, 0.78vw, 12px);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(238, 240, 242, 0.58);
+}
+.tray-donde {
+  grid-column: 2;
+  grid-row: 2;
+  margin: 0;
+  font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
+  font-weight: 700;
+  font-size: clamp(19px, min(2vw, 3.6svh), 32px);
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--texto);
+}
+.tray-sello {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  align-self: center;
+  padding: 3px 9px 2px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: #171815;
+  background: var(--accent);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 6px) 0,
+    100% 6px,
+    100% 100%,
+    6px 100%,
+    0 calc(100% - 6px)
+  );
+}
+
+/* --- El detalle del pase activo -----------------------------------------------
+   Todos en la misma celda; solo se ve el del lector, que se cruza con el
+   siguiente. */
 .tray-ficha {
   position: relative;
   display: grid;
+  align-self: center;
+  /* Sitio para el riel de la derecha: si no, los titulares largos lo pisan. */
+  padding-right: clamp(36px, 3.4vw, 58px);
   z-index: 1;
 }
 .tray-detalle {
@@ -139,21 +246,22 @@
   --d: calc(var(--n) - var(--p));
   --luz: clamp(0, 1 - max(var(--d), 0 - var(--d)) * 2.4, 1);
   opacity: var(--luz);
-  transform: translate3d(0, calc(var(--d) * -26px), 0);
+  transform: translate3d(0, calc(var(--d) * -22px), 0);
   pointer-events: none;
 }
-.tray-anio {
+/* Lo que se hizo: es lo que se lee, así que va de titular. */
+.tray-rol {
   font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
   font-weight: 700;
-  font-size: clamp(64px, min(11vw, 20svh), 200px);
-  line-height: 0.82;
-  letter-spacing: 0.005em;
+  font-size: clamp(24px, min(2.6vw, 4.6svh), 40px);
+  line-height: 1.02;
   text-transform: uppercase;
+  text-wrap: balance;
   color: var(--texto);
 }
 .tray-lugar {
-  margin-top: 14px;
-  font-size: clamp(13px, 1.1vw, 16px);
+  margin-top: 12px;
+  font-size: clamp(13px, 1.05vw, 15px);
   color: rgba(238, 240, 242, 0.62);
 }
 .tray-detalle ul {
@@ -162,7 +270,7 @@
   padding: 0;
   display: grid;
   gap: 8px;
-  max-width: 44ch;
+  max-width: 46ch;
 }
 .tray-detalle li {
   position: relative;
@@ -181,114 +289,10 @@
   height: 1px;
   background: var(--accent);
 }
-
-/* --- Los pases -----------------------------------------------------------------
-   Uno a la vez, en la misma celda: el que se va sube y se desvanece, el que
-   llega entra desde abajo. Nada se superpone: apilarlos con perspectiva los
-   dejaba ilegibles. */
-.tray-pila {
-  position: relative;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  justify-items: start;
-  align-items: center;
-  height: min(62svh, 460px);
-}
-.tray-pase {
-  grid-area: 1 / 1;
-  --d: calc(var(--n) - var(--p));
-  --ad: max(var(--d), 0 - var(--d));
-  position: relative;
-  width: min(400px, 100%);
-  aspect-ratio: 5 / 6.8;
-  padding: clamp(18px, 2.4vw, 26px);
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.045) 0 1px,
-      transparent 1px 4px
-    ),
-    linear-gradient(150deg, #343a42, #1b1e23 75%);
-  box-shadow:
-    inset 3px 0 0 var(--accent),
-    inset 0 0 0 1px rgba(238, 240, 242, 0.08),
-    0 34px 70px -34px rgba(0, 0, 0, 0.95);
-  clip-path: polygon(
-    0 0,
-    calc(100% - 20px) 0,
-    100% 20px,
-    100% 100%,
-    20px 100%,
-    0 calc(100% - 20px)
-  );
-  /* El que viene sube desde abajo y el que se va sale por arriba: el
-     desplazamiento es el mismo signo que --d, así que basta una línea. */
-  transform: translate3d(0, calc(var(--d) * 34%), 0)
-    rotate(calc(var(--d) * 2.5deg))
-    scale(calc(1 - var(--ad) * 0.1));
-  /* Solo se ve el de en medio; los demás desaparecen deprisa para que nunca
-     se lean dos a la vez. */
-  opacity: clamp(0, 1 - var(--ad) * 2.6, 1);
-  z-index: 1;
-}
-/* El troquel del gafete, arriba al centro. */
-.tray-troquel {
-  position: absolute;
-  top: 14px;
-  left: 50%;
-  translate: -50% 0;
-  width: 46px;
-  height: 8px;
-  border-radius: 999px;
-  background: #0f1113;
-  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.6);
-}
-.tray-tipo {
-  margin-top: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(238, 240, 242, 0.55);
-}
-.tray-sello {
-  padding: 3px 9px 2px;
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  color: #171815;
-  background: var(--accent);
-  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
-}
-.tray-donde {
-  align-self: center;
-  font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
-  font-weight: 700;
-  font-size: clamp(30px, 3.2vw, 46px);
-  line-height: 0.95;
-  text-transform: uppercase;
-  color: var(--texto);
-}
-.tray-rol {
-  margin-top: 8px;
-  font-size: clamp(12.5px, 1vw, 14.5px);
-  line-height: 1.45;
-  color: rgba(238, 240, 242, 0.7);
-}
-.tray-donde + .tray-rol {
-  align-self: start;
-}
 .tray-codigo {
+  margin-top: clamp(16px, 3svh, 30px);
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 14px;
   font-family: "JetBrains Mono", ui-monospace, monospace;
   font-size: 10.5px;
@@ -354,7 +358,7 @@
 /* --- Pantallas estrechas: el pase arriba y la ficha debajo. -------------------- */
 @media (max-width: 860px) {
   .trayectoria {
-    --por-pase: 34svh;
+    --por-pase: 24svh;
     --niebla: 60svh;
   }
   .tray-fijo {
@@ -364,19 +368,25 @@
     gap: clamp(18px, 3svh, 30px);
     padding-top: clamp(96px, 16svh, 150px);
   }
-  .tray-pila {
-    order: -1;
-    height: min(40svh, 300px);
-    justify-items: center;
-  }
   .tray-pase {
-    width: min(230px, 72vw);
+    padding-block: clamp(6px, 1.3svh, 14px);
+    padding-left: 12px;
+    column-gap: 14px;
   }
   .tray-anio {
-    font-size: clamp(48px, 16vw, 92px);
+    font-size: clamp(21px, 6.4vw, 32px);
+  }
+  .tray-donde {
+    font-size: clamp(15px, 4.2vw, 22px);
+  }
+  .tray-rol {
+    font-size: clamp(20px, 5.8vw, 30px);
   }
   .tray-detalle ul {
     gap: 6px;
+  }
+  .tray-codigo {
+    display: none;
   }
   .tray-riel {
     top: auto;
