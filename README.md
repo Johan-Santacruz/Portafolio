@@ -222,7 +222,15 @@ negro al blanco del sitio y vuelve a bajar, sin bordes, y dentro los textos van
 en tinta. El difuminado mide lo mismo que el relleno y va en píxeles, no en
 porcentaje, para que el blanco esté lleno del todo antes del primer texto y
 siga lleno después del último; con porcentajes, la primera y la última fila
-caían en el degradado y no se leían. El lima de la casa tampoco se lee sobre
+caían en el degradado y no se leían.
+
+El papel va en su propia capa (`::before`) con una máscara escalonada, no en
+un degradado de fondo plano. Una rampa lineal entre el negro del capítulo y
+el papel pasa por un gris muerto a mitad de camino y se ve sucia: la máscara
+aguanta oscuro los primeros dos tercios y sube deprisa al final, medido sobre
+píxeles reales. El difuminado mide 180 px en escritorio, casi el doble que
+antes, y lleva encima la misma trama de líneas del capítulo en tinta, para
+que el blanco no sea un rectángulo pegado sino la misma pantalla iluminada. El lima de la casa tampoco se lee sobre
 papel, así que el medio y el estado de paso usan el verde oscuro que ya llevan
 la portada y la pantalla de carga. Y las vistas previas se encienden solas al pasar por el
 centro de la pantalla, con el mismo `--luz` que escribe `Proyectos.tsx` para

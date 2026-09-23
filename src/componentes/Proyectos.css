@@ -498,13 +498,57 @@
      porcentaje: así el blanco está lleno del todo antes de que empiece el
      primer texto y sigue lleno después del último. Con porcentajes, la
      primera y la última fila caían en el degradado y no se leían. */
-  --fundido: clamp(64px, 12svh, 150px);
+  --fundido: clamp(110px, 20svh, 240px);
   padding-block: var(--fundido);
-  background: linear-gradient(
+}
+/* El papel, en su propia capa: así se le puede poner encima la trama del
+   capítulo sin manchar el texto, que va por delante. */
+.proy-pie > * {
+  position: relative;
+  z-index: 1;
+}
+.proy-pie::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    /* La misma trama de líneas del capítulo, en tinta sobre el papel: el
+       blanco no es un rectángulo pegado, es la misma pantalla iluminada. */
+    repeating-linear-gradient(
+      0deg,
+      rgba(23, 24, 21, 0.028) 0 1px,
+      transparent 1px 4px
+    ),
+    var(--papel);
+  /* La máscara lleva el difuminado. En oklab y con paradas escalonadas: una
+     rampa lineal entre el negro del capítulo y el papel pasa por un gris
+     muerto a mitad de camino, y se veía sucia. */
+  -webkit-mask-image: linear-gradient(
     180deg,
     transparent 0,
-    var(--papel) var(--fundido),
-    var(--papel) calc(100% - var(--fundido)),
+    rgba(0, 0, 0, 0.06) calc(var(--fundido) * 0.3),
+    rgba(0, 0, 0, 0.28) calc(var(--fundido) * 0.55),
+    rgba(0, 0, 0, 0.68) calc(var(--fundido) * 0.78),
+    #000 var(--fundido),
+    #000 calc(100% - var(--fundido)),
+    rgba(0, 0, 0, 0.68) calc(100% - var(--fundido) * 0.78),
+    rgba(0, 0, 0, 0.28) calc(100% - var(--fundido) * 0.55),
+    rgba(0, 0, 0, 0.06) calc(100% - var(--fundido) * 0.3),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0,
+    rgba(0, 0, 0, 0.06) calc(var(--fundido) * 0.3),
+    rgba(0, 0, 0, 0.28) calc(var(--fundido) * 0.55),
+    rgba(0, 0, 0, 0.68) calc(var(--fundido) * 0.78),
+    #000 var(--fundido),
+    #000 calc(100% - var(--fundido)),
+    rgba(0, 0, 0, 0.68) calc(100% - var(--fundido) * 0.78),
+    rgba(0, 0, 0, 0.28) calc(100% - var(--fundido) * 0.55),
+    rgba(0, 0, 0, 0.06) calc(100% - var(--fundido) * 0.3),
     transparent 100%
   );
 }
