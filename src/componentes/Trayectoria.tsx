@@ -40,22 +40,41 @@ function conReposo(x: number) {
  */
 
 /**
- * Una fila del recorrido: el año, de qué fue y dónde. Todas se ven a la vez;
- * el pase activo se enciende y los demás se apagan. Antes se veía uno solo,
- * en una tarjeta que era casi toda hueco y dejaba media pantalla vacía al
- * lado.
+ * Una banda del recorrido, a todo el ancho. Siempre se ve su línea (índice,
+ * año, de qué fue y dónde); la del pase activo se abre y enseña dentro lo
+ * que hizo, el sitio y las notas. Cuánto se abre sale de --p, así que al
+ * bajar una se cierra mientras la siguiente se abre.
  */
-function Fila({ n, pase }: { n: number; pase: (typeof pases)[number] }) {
+function Banda({ n, pase }: { n: number; pase: (typeof pases)[number] }) {
   const { di } = useIdioma();
   return (
     <li className="tray-pase" style={{ "--n": n } as CSSProperties}>
-      <span className="tray-indice" aria-hidden="true">
-        {String(n + 1).padStart(2, "0")}
-      </span>
-      <span className="tray-anio">{di(pase.año)}</span>
-      <span className="tray-tipo">{di(pase.tipo)}</span>
-      <h3 className="tray-donde">{pase.donde}</h3>
-      {pase.sello && <b className="tray-sello">{di(pase.sello)}</b>}
+      <div className="tray-linea">
+        <span className="tray-indice" aria-hidden="true">
+          {String(n + 1).padStart(2, "0")}
+        </span>
+        <span className="tray-anio">{di(pase.año)}</span>
+        <span className="tray-tipo">{di(pase.tipo)}</span>
+        <h3 className="tray-donde">{pase.donde}</h3>
+        {pase.sello && <b className="tray-sello">{di(pase.sello)}</b>}
+      </div>
+      <div className="tray-detalle">
+        <div>
+          <p className="tray-rol">{di(pase.rol)}</p>
+          <p className="tray-lugar">{di(pase.lugar)}</p>
+        </div>
+        <div>
+          <ul>
+            {pase.notas.map((nota, i) => (
+              <li key={i}>{di(nota)}</li>
+            ))}
+          </ul>
+          <p className="tray-codigo" aria-hidden="true">
+            {pase.codigo}
+            <span className="tray-barras" />
+          </p>
+        </div>
+      </div>
     </li>
   );
 }
@@ -209,20 +228,8 @@ export function Trayectoria() {
           <h2 id="titulo-trayectoria">{di(textos.trayectoriaTitulo)}</h2>
         </header>
 
-        {/* El año del pase activo, gigante y casi invisible, de fondo: da
-            profundidad y llena la pantalla sin recargarla. Cada año lleva su
-            --n y se cruza con el siguiente según --p. */}
-        <div className="tray-fondo" aria-hidden="true">
-          {pases.map((pase, i) => (
-            <span key={pase.codigo} style={{ "--n": i } as CSSProperties}>
-              {di(pase.año)}
-            </span>
-          ))}
-        </div>
-
-        {/* El recorrido entero, siempre a la vista, como un libro mayor: un
-            encabezado con el contador, y las filas con su índice. Un carril a
-            la izquierda lleva un marcador que viaja con el scroll. */}
+        {/* El recorrido entero, como un libro mayor: un encabezado con el
+            contador y cinco bandas a todo el ancho, con la activa abierta. */}
         <div className="tray-marco">
           <div className="tray-encabezado" aria-hidden="true">
             <span>
@@ -242,35 +249,9 @@ export function Trayectoria() {
           </div>
           <ol className="tray-lista">
             {pases.map((pase, i) => (
-              <Fila key={pase.codigo} n={i} pase={pase} />
+              <Banda key={pase.codigo} n={i} pase={pase} />
             ))}
           </ol>
-        </div>
-
-        {/* Y al lado, lo que se hizo en el pase activo. */}
-        <div className="tray-ficha">
-          {pases.map((pase, i) => (
-            <article
-              key={pase.codigo}
-              className="tray-detalle"
-              style={{ "--n": i } as CSSProperties}
-            >
-              <p className="tray-clave">
-                {di(pase.tipo)} · {di(pase.año)}
-              </p>
-              <p className="tray-rol">{di(pase.rol)}</p>
-              <p className="tray-lugar">{di(pase.lugar)}</p>
-              <ul>
-                {pase.notas.map((nota, n) => (
-                  <li key={n}>{di(nota)}</li>
-                ))}
-              </ul>
-              <p className="tray-codigo" aria-hidden="true">
-                {pase.codigo}
-                <span className="tray-barras" />
-              </p>
-            </article>
-          ))}
         </div>
 
         <p className="tray-idiomas">

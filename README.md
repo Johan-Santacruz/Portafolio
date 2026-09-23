@@ -145,28 +145,23 @@ ffmpeg -ss 1.0 -to 8.3 -i video8.mp4 -vf "$F,scale=320:180:flags=lanczos,format=
 
 Si cambia el número de fotogramas, ajusta `CORTES` en `Herramientas.tsx`.
 
-La sección es el recorrido entero a la vista, compuesto como un libro mayor:
-un encabezado con el contador («02 / 05»), una fila por pase con su índice, su
-año, de qué fue y dónde, y a la izquierda un carril con un marcador lima que
-viaja con el scroll en vez de saltar de fila en fila (como las filas miden lo
-mismo, su posición sale de `--p` directamente). Al lado, el detalle del pase
-activo: de qué fue y cuándo en mono, lo que hizo de titular, el sitio y las
-notas. De fondo, el año del pase activo en un numeral gigante casi invisible,
-sangrado por la derecha, que se cruza con el siguiente según `--p`: da
-profundidad y llena la pantalla sin recargarla.
+La sección es un libro mayor de cinco bandas a todo el ancho, una por pase,
+con un encabezado que lleva el contador («02 / 05»). Cada banda enseña siempre
+su línea: el índice, el año en grande, de qué fue, dónde y el sello. La banda
+del pase activo se abre y enseña dentro lo que hizo, el sitio y las notas, en
+dos columnas; las demás quedan como una línea. Cuánto se abre cada una sale de
+`--p`: cada banda mide al menos su línea (el detalle va con alto cero en el
+flujo y se desborda dentro, recortado por la banda) y el espacio que sobra se
+lo lleva entero la abierta; a medio deslizamiento se lo reparten dos, así que
+una se cierra mientras la siguiente se abre. El lector se detiene en cada pase
+(`conReposo`, el mismo recurso que el de herramientas).
 
-Los recursos vienen de portafolios premiados en Awwwards: el libro mayor con
-hairlines, índices y etiquetas mono con tracking (Dennis Snellenberg, Jesper
-Landberg), el numeral gigante de fondo y el carril con marcador ligado al
-scroll (Lusion, Locomotive, Aristide Benoist). El lector se detiene en cada
-pase (`conReposo`, el mismo recurso que el de herramientas), así que ninguno
-pasa de largo.
-
-Antes era una pila de credenciales, una a la vez. Se veía una sola tarjeta que
-era casi toda hueco, con media pantalla vacía al lado, y no se entendía el
-recorrido hasta haberlo bajado entero. Con las cinco filas a la vista tampoco
-hace falta una pantalla larga por pase: `--por-pase` bajó de 40 a 26 svh, y la
-página con ella.
+Antes era una pila de credenciales, una a la vez, con media pantalla vacía; y
+antes de esto, una lista con el detalle al lado, que el dueño encontró
+demasiado parecida. Las bandas que se abren son el recurso que más se repite
+en los portafolios premiados de Awwwards para listas de trabajos y de
+experiencia (Dennis Snellenberg, Jesper Landberg): la lista entera a la
+vista, y la fila activa que crece y enseña lo suyo.
 
 Añadir un pase es añadir una entrada en `pases`; la altura de la sección se
 calcula sola con `--pases`.
