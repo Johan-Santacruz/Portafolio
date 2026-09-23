@@ -217,28 +217,19 @@ volver a correrlo.
 Las fotos son de quien las publicó. Van con su medio a la vista y enlazadas a
 la publicación.
 
-La banda es una isla de papel al cierre del capítulo oscuro: el fondo sube del
-negro al blanco del sitio y vuelve a bajar, sin bordes, y dentro los textos van
-en tinta. El difuminado mide lo mismo que el relleno y va en píxeles, no en
-porcentaje, para que el blanco esté lleno del todo antes del primer texto y
-siga lleno después del último; con porcentajes, la primera y la última fila
-caían en el degradado y no se leían.
+La banda es una placa de papel sobre el capítulo oscuro, con borde limpio: el
+mismo chaflán y el mismo filo lima de las demás placas del sitio (la ventana
+de proyecto, los pases), y dentro los textos en tinta. Sobresale del texto una
+holgura por cada lado y nunca llega a pegarse al borde de la pantalla.
 
-El papel va en su propia capa (`::before`) y el difuminado no es una rampa,
-sino un disolvido por trama: el blanco llega a través de las mismas líneas de
-4 px del capítulo, que se van engordando y aclarando hasta cerrar, como una
-pantalla que enciende. Seis bandas arriba, seis abajo y el centro macizo: en
-total trece capas de máscara, que el navegador suma entre sí (`add` es lo que
-hace por defecto). Una rampa lisa entre el negro y el blanco pasaba por un
-gris plano y se veía de plantilla.
+Probamos a difuminar el negro hasta el blanco de cuatro maneras: rampa lineal,
+rampa suavizada, en oklab y un disolvido por trama de líneas. Todas se veían
+sucias, porque cualquier paso entre los dos pasa por grises; el corte neto se
+lee como una pieza a propósito. El lima de la casa no se lee sobre papel, así
+que el medio y el estado de paso usan el verde oscuro que ya llevan la portada
+y la pantalla de carga.
 
-Dos trampas que costaron: `mask-position` no admite la forma de tres valores
-(`left bottom 30px`), y al descartarla el navegador apila todas las capas
-arriba y la máscara se satura a blanco de golpe; hay que dar los cuatro
-valores. Y el difuminado mide lo mismo que el relleno, en píxeles. El lima de la casa tampoco se lee sobre
-papel, así que el medio y el estado de paso usan el verde oscuro que ya llevan
-la portada y la pantalla de carga. Y las vistas previas se encienden solas al pasar por el
-centro de la pantalla, con el mismo `--luz` que escribe `Proyectos.tsx` para
+Las vistas previas se encienden solas al pasar por el centro de la pantalla, con el mismo `--luz` que escribe `Proyectos.tsx` para
 los nombres de los proyectos (ahí con un alcance mayor, porque las filas son
 más bajas y van seguidas). Antes solo se encendían con el ratón, así que en un
 teléfono se quedaban siempre apagadas. Con `prefers-reduced-motion` se quedan

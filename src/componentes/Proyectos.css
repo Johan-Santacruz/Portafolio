@@ -485,24 +485,19 @@
    enlazadas, con el mismo filo que el resto de la sección. */
 .proy-pie {
   position: relative;
-  margin-top: clamp(64px, 11svh, 130px);
-  /* El fondo sube del negro del capítulo al papel del sitio y vuelve a
-     bajar: una isla clara al cierre del capítulo oscuro, que es donde las
-     vistas previas se despegan de verdad. El difuminado ocurre dentro del
-     relleno, así que ningún texto cae en el degradado: todos quedan sobre
-     blanco. La banda ocupa el ancho entero de la sección porque el relleno
-     lateral lo pone la regla compartida de arriba. */
+  margin-block: clamp(64px, 11svh, 130px) clamp(48px, 9svh, 110px);
+  /* Una placa de papel sobre el capítulo oscuro, con borde limpio. Probamos
+     a difuminar el negro hasta el blanco de cuatro maneras (rampa, rampa
+     suavizada, en oklab, por trama) y todas se veían sucias: cualquier paso
+     entre los dos pasa por grises. Un corte neto, con el chaflán y el filo
+     lima de las demás placas del sitio, se lee como una pieza a propósito. */
   --papel: #fdfdfe;
   --tinta-pie: #171815;
-  /* El difuminado mide lo mismo que el relleno y va en píxeles, no en
-     porcentaje: así el blanco está lleno del todo antes de que empiece el
-     primer texto y sigue lleno después del último. Con porcentajes, la
-     primera y la última fila caían en el degradado y no se leían. */
-  --fundido: clamp(110px, 20svh, 240px);
-  padding-block: var(--fundido);
+  /* Lo que la placa sobresale del texto por cada lado. */
+  --holgura: clamp(18px, 3vw, 48px);
+  padding-block: clamp(44px, 8svh, 92px);
 }
-/* El papel, en su propia capa: así se le puede poner encima la trama del
-   capítulo sin manchar el texto, que va por delante. */
+/* El papel, en su propia capa: el texto va por delante. */
 .proy-pie > * {
   position: relative;
   z-index: 1;
@@ -510,114 +505,32 @@
 .proy-pie::before {
   content: "";
   position: absolute;
-  inset: 0;
   z-index: 0;
+  top: 0;
+  bottom: 0;
+  /* El relleno lateral de la sección menos la holgura: la placa rodea el
+     texto con aire, sin llegar a pegarse al borde de la pantalla. */
+  left: max(8px, max(var(--aire), (100% - var(--ancho)) / 2) - var(--holgura));
+  right: max(8px, max(var(--aire), (100% - var(--ancho)) / 2) - var(--holgura));
   pointer-events: none;
   background:
-    /* La misma trama de líneas del capítulo, en tinta sobre el papel: el
-       blanco no es un rectángulo pegado, es la misma pantalla iluminada. */
     repeating-linear-gradient(
       0deg,
-      rgba(23, 24, 21, 0.028) 0 1px,
+      rgba(23, 24, 21, 0.022) 0 1px,
       transparent 1px 4px
     ),
     var(--papel);
-  /* El difuminado no es una rampa: el papel llega a través de la misma trama
-     de líneas del capítulo, que se van engordando hasta cerrar, como una
-     pantalla que enciende. Seis bandas arriba y seis abajo, cada una con más
-     tinta que la anterior, y el centro macizo. Una rampa lisa entre el negro
-     y el blanco pasaba por un gris plano y se veía de plantilla; así el
-     blanco se abre paso por la rejilla, que es el idioma de la página.
-     Las capas de máscara se suman entre sí (`add` es lo que hace el navegador
-     por defecto), así que basta con listarlas; eso sí, `mask-position` no
-     admite la forma de tres valores y hay que dar los cuatro. */
-  --banda: calc(var(--fundido) / 6);
-  -webkit-mask-image:
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 4px),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.45) 0 1px, rgba(0, 0, 0, 0.04) 1px 4px),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.75) 0 1px, rgba(0, 0, 0, 0.14) 1px 4px),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.95) 0 2px, rgba(0, 0, 0, 0.3) 2px 4px),
-    repeating-linear-gradient(0deg, #000 0 2px, rgba(0, 0, 0, 0.55) 2px 4px),
-    repeating-linear-gradient(0deg, #000 0 3px, rgba(0, 0, 0, 0.8) 3px 4px),
-    linear-gradient(#000, #000),
-    repeating-linear-gradient(0deg, #000 0 3px, rgba(0, 0, 0, 0.8) 3px 4px),
-    repeating-linear-gradient(0deg, #000 0 2px, rgba(0, 0, 0, 0.55) 2px 4px),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.95) 0 2px, rgba(0, 0, 0, 0.3) 2px 4px),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.75) 0 1px, rgba(0, 0, 0, 0.14) 1px 4px),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.45) 0 1px, rgba(0, 0, 0, 0.04) 1px 4px),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 4px);
-  -webkit-mask-size:
-    100% var(--banda),
-    100% var(--banda),
-    100% var(--banda),
-    100% var(--banda),
-    100% var(--banda),
-    100% var(--banda),
-    100% calc(100% - var(--fundido) * 2),
-    100% var(--banda),
-    100% var(--banda),
-    100% var(--banda),
-    100% var(--banda),
-    100% var(--banda),
-    100% var(--banda);
-  -webkit-mask-position:
-    left 0 top 0,
-    left 0 top calc(var(--banda) * 1),
-    left 0 top calc(var(--banda) * 2),
-    left 0 top calc(var(--banda) * 3),
-    left 0 top calc(var(--banda) * 4),
-    left 0 top calc(var(--banda) * 5),
-    left 0 top var(--fundido),
-    left 0 bottom calc(var(--banda) * 5),
-    left 0 bottom calc(var(--banda) * 4),
-    left 0 bottom calc(var(--banda) * 3),
-    left 0 bottom calc(var(--banda) * 2),
-    left 0 bottom calc(var(--banda) * 1),
-    left 0 bottom 0;
-  mask-image:
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 4px),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.45) 0 1px, rgba(0, 0, 0, 0.04) 1px 4px),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.75) 0 1px, rgba(0, 0, 0, 0.14) 1px 4px),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.95) 0 2px, rgba(0, 0, 0, 0.3) 2px 4px),
-    repeating-linear-gradient(0deg, #000 0 2px, rgba(0, 0, 0, 0.55) 2px 4px),
-    repeating-linear-gradient(0deg, #000 0 3px, rgba(0, 0, 0, 0.8) 3px 4px),
-    linear-gradient(#000, #000),
-    repeating-linear-gradient(0deg, #000 0 3px, rgba(0, 0, 0, 0.8) 3px 4px),
-    repeating-linear-gradient(0deg, #000 0 2px, rgba(0, 0, 0, 0.55) 2px 4px),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.95) 0 2px, rgba(0, 0, 0, 0.3) 2px 4px),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.75) 0 1px, rgba(0, 0, 0, 0.14) 1px 4px),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.45) 0 1px, rgba(0, 0, 0, 0.04) 1px 4px),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 4px);
-  mask-size:
-    100% var(--banda),
-    100% var(--banda),
-    100% var(--banda),
-    100% var(--banda),
-    100% var(--banda),
-    100% var(--banda),
-    100% calc(100% - var(--fundido) * 2),
-    100% var(--banda),
-    100% var(--banda),
-    100% var(--banda),
-    100% var(--banda),
-    100% var(--banda),
-    100% var(--banda);
-  mask-position:
-    left 0 top 0,
-    left 0 top calc(var(--banda) * 1),
-    left 0 top calc(var(--banda) * 2),
-    left 0 top calc(var(--banda) * 3),
-    left 0 top calc(var(--banda) * 4),
-    left 0 top calc(var(--banda) * 5),
-    left 0 top var(--fundido),
-    left 0 bottom calc(var(--banda) * 5),
-    left 0 bottom calc(var(--banda) * 4),
-    left 0 bottom calc(var(--banda) * 3),
-    left 0 bottom calc(var(--banda) * 2),
-    left 0 bottom calc(var(--banda) * 1),
-    left 0 bottom 0;
-  -webkit-mask-repeat: repeat-x;
-  mask-repeat: repeat-x;
+  /* El filo lima a la izquierda y la sombra que la despega del negro. */
+  box-shadow: inset 4px 0 0 var(--accent);
+  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.45));
+  clip-path: polygon(
+    0 0,
+    calc(100% - 22px) 0,
+    100% 22px,
+    100% 100%,
+    22px 100%,
+    0 calc(100% - 22px)
+  );
 }
 .recon-cabecera {
   text-align: center;
