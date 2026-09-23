@@ -130,8 +130,27 @@ y otro la devuelve a blanco (fotogramas de `video8.mp4`, ver abajo). Con la
 pantalla negra, la cabecera cambia de «Herramientas · Con qué construyo» a
 «Habilidades blandas · Cómo trabajo», así que el relevo no se ve. Después el
 lector de palabras se aparta a la izquierda y se apaga, y las habilidades
-toman el ancho entero, una palabra por línea con una frase corta a la
-derecha. Si una necesita un párrafo para explicarse, está mal escrita.
+toman el ancho entero en una cuadrícula de ocho casillas: el número, un
+esquema, la palabra y una frase corta. Si una necesita un párrafo para
+explicarse, está mal escrita.
+
+Cada esquema (`componentes/Glifo.tsx`) enseña la habilidad en vez de
+ilustrarla: resolutivo parte un problema en ramas hasta que cada hoja lleva
+su check; responsable, una barra de progreso que cae justo en la bandera de
+la fecha; adaptativo, una ruta que rodea el obstáculo; colaborativo, una red
+que pasa por el centro; autodidacta, una escalera que sigue; ordenado, un
+árbol con la rama buena en lima; comunicativo, un bocadillo que se oye;
+riguroso, un documento bajo la lupa, aprobado. Ocupan el hueco que antes
+quedaba vacío en las ocho casillas y hacía que la pantalla pareciera una
+tabla. Se dibujan trazo a trazo al aparecer: cada línea lleva `pathLength` 1
+para que el mismo `stroke-dasharray` valga para todas, y la pieza en lima
+llega la última, que es la conclusión del diagrama.
+
+El esquema ocupa el hueco que deja su casilla, con tope. En un teléfono bajo
+(menos de 780 px de alto) no queda sitio y encogería hasta ser una mancha, así
+que no se pinta. Para que eso funcione, la bandeja lleva en ese capítulo una
+fila del alto de la pantalla y no del contenido: con la fila automática, la
+cuadrícula crecía con lo que tuviera dentro y en móvil se salía por abajo.
 
 El corte se genera igual que las demás secuencias:
 

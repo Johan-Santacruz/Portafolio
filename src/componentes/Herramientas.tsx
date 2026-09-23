@@ -7,6 +7,7 @@ import { vigilarCercania } from "../retrato/cercania";
 import { deslizando, deslizarHasta } from "../retrato/suave";
 import { SecuenciaFotogramas } from "../retrato/secuencia";
 import { Tunel } from "./Tunel";
+import { Glifo } from "./Glifo";
 import "./Herramientas.css";
 
 const ICONOS = `${import.meta.env.BASE_URL}iconos/`;
@@ -563,6 +564,9 @@ export function Herramientas() {
                       <span className="herr-indice" aria-hidden="true">
                         {String(i + 1).padStart(2, "0")}
                       </span>
+                      {/* El hueco entre el número y la palabra: un esquema
+                          que enseña la habilidad y se dibuja al aparecer. */}
+                      <Glifo id={c.id} />
                       <h4>{di(c.titulo)}</h4>
                       <p>{di(c.texto)}</p>
                       <span className="herr-filo" aria-hidden="true" />

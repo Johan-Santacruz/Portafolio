@@ -751,6 +751,10 @@
    pista de la bandeja con su ancho mínimo. */
 .herramientas[data-criterio] .herr-bandeja {
   grid-template-columns: minmax(0, 1fr);
+  /* Y una fila del alto de la pantalla, no del contenido: con la fila
+     automática, la cuadrícula crecía con lo que tuviera dentro y en móvil
+     se salía por abajo en cuanto las casillas llevaron su esquema. */
+  grid-template-rows: minmax(0, 1fr);
 }
 .herramientas[data-criterio] .herr-lector,
 .herramientas[data-criterio] .herr-bandeja {
@@ -825,6 +829,75 @@
   letter-spacing: 0.18em;
   color: var(--accent);
 }
+/* --- El esquema de cada habilidad --------------------------------------------
+   Ocupa el hueco entre el número y la palabra, que antes quedaba vacío en
+   las ocho casillas y hacía que la pantalla pareciera una tabla. Se dibuja
+   trazo a trazo al aparecer el grupo: cada línea lleva `pathLength` 1, así
+   que el mismo `stroke-dasharray` vale para todas, y --j dice su turno
+   dentro del esquema; --i, el de la casilla. La pieza en lima llega la
+   última: es la conclusión del diagrama. */
+.herr-glifo {
+  grid-row: 2;
+  align-self: center;
+  justify-self: start;
+  /* Ocupa el hueco que deja la casilla, con tope: en escritorio sobra sitio
+     y se queda en su tamaño; en un teléfono bajo encoge en vez de empujar la
+     palabra fuera de la casilla. */
+  height: 100%;
+  max-height: clamp(54px, min(8.4vw, 12svh), 108px);
+  min-height: 0;
+  width: auto;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: visible;
+  fill: none;
+  stroke: rgba(23, 24, 21, 0.62);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.herr-glifo .tenue {
+  stroke: rgba(23, 24, 21, 0.22);
+}
+.herr-glifo .grueso {
+  stroke-width: 3;
+}
+.herr-glifo .acento {
+  /* El lima de la casa es muy claro para un trazo fino sobre papel: este
+     aguanta el contraste y sigue siendo el mismo color. */
+  stroke: #8cc21a;
+  stroke-width: 2.4;
+}
+.herr-glifo > * {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.75s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.herr-grupo[data-estado="activo"] .herr-glifo > * {
+  stroke-dashoffset: 0;
+  transition-delay: calc(0.3s + var(--i) * 90ms + var(--j, 0) * 110ms);
+}
+/* Al pasar por encima se asienta: el trazo gana tinta y el acento, brillo. */
+.herr-criterio > li:hover .herr-glifo {
+  stroke: rgba(23, 24, 21, 0.9);
+}
+.herr-criterio > li:hover .herr-glifo .acento {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 80%, transparent));
+}
+/* En un teléfono bajo no queda sitio: el esquema encogería hasta ser una
+   mancha de pocos píxeles, y es peor que no ponerlo. En los altos (la
+   mayoría hoy) sí cabe. */
+@media (max-width: 860px) and (max-height: 780px) {
+  .herr-glifo {
+    display: none;
+  }
+}
+/* Mientras el agujero se traga la sección, el trazo se aclara como el texto
+   para no perderse contra el negro. */
+.herramientas[data-traga] .herr-grupo[data-estado="activo"] .herr-glifo {
+  stroke: color-mix(in srgb, #eef0f2 calc(var(--s, 0) * 100%), rgba(23, 24, 21, 0.62));
+}
+
 /* La palabra, con la misma tipografía condensada del lector: se lee como
    parte del mismo capítulo, no como una tarjeta pegada. */
 .herr-criterio h4 {
@@ -872,6 +945,11 @@
   .herr-criterio > li,
   .herr-filo {
     transition: none;
+  }
+  /* Sin movimiento, los esquemas ya están dibujados. */
+  .herr-glifo > * {
+    transition: none;
+    stroke-dashoffset: 0;
   }
 }
 @media (max-width: 860px) {

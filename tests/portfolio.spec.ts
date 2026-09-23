@@ -350,6 +350,33 @@ test("las herramientas pasan por el lector una categoría cada vez", async ({
     (rejilla.alto - rejilla.arriba) * 0.8,
   );
 
+  // Cada habilidad lleva su esquema en el hueco entre el número y la
+  // palabra, dibujado entero y sin pisar ni a uno ni a otra. Antes ese
+  // hueco quedaba vacío en las ocho casillas y la pantalla parecía una tabla.
+  const esquemas = await page.evaluate(() => {
+    const lis = [...document.querySelectorAll(".herr-criterio > li")];
+    return lis.map((li) => {
+      const g = li.querySelector(".herr-glifo");
+      if (!g) return { hay: false, dibujado: false, choca: false, alto: 0 };
+      const r = g.getBoundingClientRect();
+      const i = li.querySelector(".herr-indice")!.getBoundingClientRect();
+      const h = li.querySelector("h4")!.getBoundingClientRect();
+      const trazos = [...g.children];
+      return {
+        hay: true,
+        alto: r.height,
+        dibujado: trazos.every(
+          (t) => parseFloat(getComputedStyle(t).strokeDashoffset) < 0.01,
+        ),
+        choca: r.top < i.bottom - 1 || r.bottom > h.top + 1,
+      };
+    });
+  });
+  expect(esquemas.every((e) => e.hay)).toBe(true);
+  expect(esquemas.every((e) => e.dibujado)).toBe(true);
+  expect(esquemas.some((e) => e.choca)).toBe(false);
+  expect(Math.min(...esquemas.map((e) => e.alto))).toBeGreaterThan(40);
+
   // Y subir vuelve atrás: no hay estado.
   await page.evaluate((y) => window.scrollTo(0, y), inicio);
   await expect.poll(activos).toEqual(["Lenguajes"]);
