@@ -224,13 +224,18 @@ porcentaje, para que el blanco esté lleno del todo antes del primer texto y
 siga lleno después del último; con porcentajes, la primera y la última fila
 caían en el degradado y no se leían.
 
-El papel va en su propia capa (`::before`) con una máscara escalonada, no en
-un degradado de fondo plano. Una rampa lineal entre el negro del capítulo y
-el papel pasa por un gris muerto a mitad de camino y se ve sucia: la máscara
-aguanta oscuro los primeros dos tercios y sube deprisa al final, medido sobre
-píxeles reales. El difuminado mide 180 px en escritorio, casi el doble que
-antes, y lleva encima la misma trama de líneas del capítulo en tinta, para
-que el blanco no sea un rectángulo pegado sino la misma pantalla iluminada. El lima de la casa tampoco se lee sobre
+El papel va en su propia capa (`::before`) y el difuminado no es una rampa,
+sino un disolvido por trama: el blanco llega a través de las mismas líneas de
+4 px del capítulo, que se van engordando y aclarando hasta cerrar, como una
+pantalla que enciende. Seis bandas arriba, seis abajo y el centro macizo: en
+total trece capas de máscara, que el navegador suma entre sí (`add` es lo que
+hace por defecto). Una rampa lisa entre el negro y el blanco pasaba por un
+gris plano y se veía de plantilla.
+
+Dos trampas que costaron: `mask-position` no admite la forma de tres valores
+(`left bottom 30px`), y al descartarla el navegador apila todas las capas
+arriba y la máscara se satura a blanco de golpe; hay que dar los cuatro
+valores. Y el difuminado mide lo mismo que el relleno, en píxeles. El lima de la casa tampoco se lee sobre
 papel, así que el medio y el estado de paso usan el verde oscuro que ya llevan
 la portada y la pantalla de carga. Y las vistas previas se encienden solas al pasar por el
 centro de la pantalla, con el mismo `--luz` que escribe `Proyectos.tsx` para

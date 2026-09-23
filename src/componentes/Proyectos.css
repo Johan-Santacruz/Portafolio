@@ -522,35 +522,102 @@
       transparent 1px 4px
     ),
     var(--papel);
-  /* La máscara lleva el difuminado. En oklab y con paradas escalonadas: una
-     rampa lineal entre el negro del capítulo y el papel pasa por un gris
-     muerto a mitad de camino, y se veía sucia. */
-  -webkit-mask-image: linear-gradient(
-    180deg,
-    transparent 0,
-    rgba(0, 0, 0, 0.06) calc(var(--fundido) * 0.3),
-    rgba(0, 0, 0, 0.28) calc(var(--fundido) * 0.55),
-    rgba(0, 0, 0, 0.68) calc(var(--fundido) * 0.78),
-    #000 var(--fundido),
-    #000 calc(100% - var(--fundido)),
-    rgba(0, 0, 0, 0.68) calc(100% - var(--fundido) * 0.78),
-    rgba(0, 0, 0, 0.28) calc(100% - var(--fundido) * 0.55),
-    rgba(0, 0, 0, 0.06) calc(100% - var(--fundido) * 0.3),
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    180deg,
-    transparent 0,
-    rgba(0, 0, 0, 0.06) calc(var(--fundido) * 0.3),
-    rgba(0, 0, 0, 0.28) calc(var(--fundido) * 0.55),
-    rgba(0, 0, 0, 0.68) calc(var(--fundido) * 0.78),
-    #000 var(--fundido),
-    #000 calc(100% - var(--fundido)),
-    rgba(0, 0, 0, 0.68) calc(100% - var(--fundido) * 0.78),
-    rgba(0, 0, 0, 0.28) calc(100% - var(--fundido) * 0.55),
-    rgba(0, 0, 0, 0.06) calc(100% - var(--fundido) * 0.3),
-    transparent 100%
-  );
+  /* El difuminado no es una rampa: el papel llega a través de la misma trama
+     de líneas del capítulo, que se van engordando hasta cerrar, como una
+     pantalla que enciende. Seis bandas arriba y seis abajo, cada una con más
+     tinta que la anterior, y el centro macizo. Una rampa lisa entre el negro
+     y el blanco pasaba por un gris plano y se veía de plantilla; así el
+     blanco se abre paso por la rejilla, que es el idioma de la página.
+     Las capas de máscara se suman entre sí (`add` es lo que hace el navegador
+     por defecto), así que basta con listarlas; eso sí, `mask-position` no
+     admite la forma de tres valores y hay que dar los cuatro. */
+  --banda: calc(var(--fundido) / 6);
+  -webkit-mask-image:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.45) 0 1px, rgba(0, 0, 0, 0.04) 1px 4px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.75) 0 1px, rgba(0, 0, 0, 0.14) 1px 4px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.95) 0 2px, rgba(0, 0, 0, 0.3) 2px 4px),
+    repeating-linear-gradient(0deg, #000 0 2px, rgba(0, 0, 0, 0.55) 2px 4px),
+    repeating-linear-gradient(0deg, #000 0 3px, rgba(0, 0, 0, 0.8) 3px 4px),
+    linear-gradient(#000, #000),
+    repeating-linear-gradient(0deg, #000 0 3px, rgba(0, 0, 0, 0.8) 3px 4px),
+    repeating-linear-gradient(0deg, #000 0 2px, rgba(0, 0, 0, 0.55) 2px 4px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.95) 0 2px, rgba(0, 0, 0, 0.3) 2px 4px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.75) 0 1px, rgba(0, 0, 0, 0.14) 1px 4px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.45) 0 1px, rgba(0, 0, 0, 0.04) 1px 4px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 4px);
+  -webkit-mask-size:
+    100% var(--banda),
+    100% var(--banda),
+    100% var(--banda),
+    100% var(--banda),
+    100% var(--banda),
+    100% var(--banda),
+    100% calc(100% - var(--fundido) * 2),
+    100% var(--banda),
+    100% var(--banda),
+    100% var(--banda),
+    100% var(--banda),
+    100% var(--banda),
+    100% var(--banda);
+  -webkit-mask-position:
+    left 0 top 0,
+    left 0 top calc(var(--banda) * 1),
+    left 0 top calc(var(--banda) * 2),
+    left 0 top calc(var(--banda) * 3),
+    left 0 top calc(var(--banda) * 4),
+    left 0 top calc(var(--banda) * 5),
+    left 0 top var(--fundido),
+    left 0 bottom calc(var(--banda) * 5),
+    left 0 bottom calc(var(--banda) * 4),
+    left 0 bottom calc(var(--banda) * 3),
+    left 0 bottom calc(var(--banda) * 2),
+    left 0 bottom calc(var(--banda) * 1),
+    left 0 bottom 0;
+  mask-image:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.45) 0 1px, rgba(0, 0, 0, 0.04) 1px 4px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.75) 0 1px, rgba(0, 0, 0, 0.14) 1px 4px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.95) 0 2px, rgba(0, 0, 0, 0.3) 2px 4px),
+    repeating-linear-gradient(0deg, #000 0 2px, rgba(0, 0, 0, 0.55) 2px 4px),
+    repeating-linear-gradient(0deg, #000 0 3px, rgba(0, 0, 0, 0.8) 3px 4px),
+    linear-gradient(#000, #000),
+    repeating-linear-gradient(0deg, #000 0 3px, rgba(0, 0, 0, 0.8) 3px 4px),
+    repeating-linear-gradient(0deg, #000 0 2px, rgba(0, 0, 0, 0.55) 2px 4px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.95) 0 2px, rgba(0, 0, 0, 0.3) 2px 4px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.75) 0 1px, rgba(0, 0, 0, 0.14) 1px 4px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.45) 0 1px, rgba(0, 0, 0, 0.04) 1px 4px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 4px);
+  mask-size:
+    100% var(--banda),
+    100% var(--banda),
+    100% var(--banda),
+    100% var(--banda),
+    100% var(--banda),
+    100% var(--banda),
+    100% calc(100% - var(--fundido) * 2),
+    100% var(--banda),
+    100% var(--banda),
+    100% var(--banda),
+    100% var(--banda),
+    100% var(--banda),
+    100% var(--banda);
+  mask-position:
+    left 0 top 0,
+    left 0 top calc(var(--banda) * 1),
+    left 0 top calc(var(--banda) * 2),
+    left 0 top calc(var(--banda) * 3),
+    left 0 top calc(var(--banda) * 4),
+    left 0 top calc(var(--banda) * 5),
+    left 0 top var(--fundido),
+    left 0 bottom calc(var(--banda) * 5),
+    left 0 bottom calc(var(--banda) * 4),
+    left 0 bottom calc(var(--banda) * 3),
+    left 0 bottom calc(var(--banda) * 2),
+    left 0 bottom calc(var(--banda) * 1),
+    left 0 bottom 0;
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
 }
 .recon-cabecera {
   text-align: center;
