@@ -484,8 +484,29 @@
    Cierran el capítulo: lo que han dicho otros, con el medio delante. Filas
    enlazadas, con el mismo filo que el resto de la sección. */
 .proy-pie {
+  position: relative;
   margin-top: clamp(64px, 11svh, 130px);
-  padding-bottom: clamp(32px, 6svh, 70px);
+  /* El fondo sube del negro del capítulo al papel del sitio y vuelve a
+     bajar: una isla clara al cierre del capítulo oscuro, que es donde las
+     vistas previas se despegan de verdad. El difuminado ocurre dentro del
+     relleno, así que ningún texto cae en el degradado: todos quedan sobre
+     blanco. La banda ocupa el ancho entero de la sección porque el relleno
+     lateral lo pone la regla compartida de arriba. */
+  --papel: #fdfdfe;
+  --tinta-pie: #171815;
+  /* El difuminado mide lo mismo que el relleno y va en píxeles, no en
+     porcentaje: así el blanco está lleno del todo antes de que empiece el
+     primer texto y sigue lleno después del último. Con porcentajes, la
+     primera y la última fila caían en el degradado y no se leían. */
+  --fundido: clamp(64px, 12svh, 150px);
+  padding-block: var(--fundido);
+  background: linear-gradient(
+    180deg,
+    transparent 0,
+    var(--papel) var(--fundido),
+    var(--papel) calc(100% - var(--fundido)),
+    transparent 100%
+  );
 }
 .recon-cabecera {
   text-align: center;
@@ -496,7 +517,7 @@
   font-size: clamp(12px, 0.9vw, 14px);
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(238, 240, 242, 0.62);
+  color: rgba(23, 24, 21, 0.6);
 }
 .recon-cabecera h3 {
   margin-top: 10px;
@@ -505,39 +526,48 @@
   font-size: clamp(30px, min(4.2vw, 7.5vh), 72px);
   line-height: 0.92;
   text-transform: uppercase;
-  color: var(--texto);
+  color: var(--tinta-pie);
 }
 .recon-lista {
   list-style: none;
   margin: clamp(22px, 4.5svh, 44px) 0 0;
   padding: 0;
   display: grid;
-  border-top: 1px solid rgba(238, 240, 242, 0.14);
+  border-top: 1px solid rgba(23, 24, 21, 0.16);
 }
 .recon-lista li {
-  border-bottom: 1px solid rgba(238, 240, 242, 0.14);
+  border-bottom: 1px solid rgba(23, 24, 21, 0.16);
 }
 .recon-lista a {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto auto;
+  /* Filas declaradas: sin ellas «1 / -1» no abarca nada (no hay rejilla
+     explícita) y la foto se quedaba en la primera fila, con el texto
+     descolgado por debajo. Las dos holguras centran el texto con la foto. */
+  grid-template-rows: minmax(0, 1fr) auto auto minmax(0, 1fr);
   align-items: center;
   column-gap: clamp(16px, 2.4vw, 32px);
   row-gap: 6px;
   padding: clamp(14px, 2.4svh, 24px) 0;
-  color: var(--texto);
+  color: var(--tinta-pie);
   transition: color 0.25s ease;
 }
-/* La vista previa de la publicación. Apagada hasta que se pasa por encima,
-   como los nombres de los proyectos: el capítulo se enciende al mirarlo. */
+/* La vista previa de la publicación. Se enciende al pasar por el centro de
+   la pantalla (--luz, que escribe Proyectos.tsx), como los nombres de los
+   proyectos: así también se ve en un teléfono, donde no hay ratón. El ratón
+   la enciende del todo aunque no esté centrada. */
 .recon-foto {
   grid-column: 1;
   grid-row: 1 / -1;
-  width: clamp(58px, 6.2vw, 92px);
+  width: clamp(76px, 9vw, 136px);
   height: auto;
   aspect-ratio: 1;
   object-fit: cover;
-  opacity: 0.66;
-  filter: saturate(0.5);
+  opacity: calc(0.5 + var(--luz, 0) * 0.5);
+  filter: saturate(calc(0.35 + var(--luz, 0) * 0.65));
+  /* Crece un pelo al encenderse; con `transform` no mueve nada de sitio. */
+  transform: scale(calc(1 + var(--luz, 0) * 0.05));
+  box-shadow: 0 18px 40px -22px rgba(23, 24, 21, calc(var(--luz, 0) * 0.5));
   transition:
     opacity 0.35s ease,
     filter 0.35s ease,
@@ -555,11 +585,11 @@
 .recon-lista a:focus-visible .recon-foto {
   opacity: 1;
   filter: none;
-  transform: scale(1.04);
+  transform: scale(1.05);
 }
 .recon-medio {
   grid-column: 2;
-  grid-row: 1;
+  grid-row: 2;
   /* La foto es más alta que el texto y reparte las dos filas: sin esto, el
      medio y su titular acaban cada uno en una punta. */
   align-self: end;
@@ -567,12 +597,20 @@
   font-size: clamp(11px, 0.85vw, 13px);
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--accent);
+  /* El lima de la casa no se lee sobre papel: el mismo verde oscuro que ya
+     usan la portada y la pantalla de carga. */
+  color: #6a8f00;
 }
 .recon-titulo {
   grid-column: 2;
-  grid-row: 2;
+  grid-row: 3;
   align-self: start;
+  color: color-mix(
+    in srgb,
+    var(--tinta-pie) calc(68% + var(--luz, 0) * 32%),
+    transparent
+  );
+  transition: color 0.3s ease;
   font-family: "Chakra Petch", var(--display);
   font-weight: 600;
   font-size: clamp(17px, 1.7vw, 26px);
@@ -589,7 +627,7 @@
   font-size: clamp(11px, 0.85vw, 13px);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(238, 240, 242, 0.62);
+  color: rgba(23, 24, 21, 0.58);
   white-space: nowrap;
 }
 .recon-lista .icono {
@@ -597,20 +635,20 @@
   grid-row: 1 / -1;
   width: 20px;
   height: 20px;
-  color: rgba(238, 240, 242, 0.45);
+  color: rgba(23, 24, 21, 0.42);
   transition:
     transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1),
     color 0.25s ease;
 }
 .recon-lista a:hover {
-  color: var(--accent);
+  color: #6a8f00;
 }
 .recon-lista a:hover .icono {
   transform: translate3d(4px, -4px, 0);
-  color: var(--accent);
+  color: #6a8f00;
 }
 .recon-lista a:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid #6a8f00;
   outline-offset: 4px;
 }
 @media (max-width: 720px) {
@@ -621,11 +659,11 @@
     row-gap: 8px;
   }
   .recon-foto {
-    width: clamp(56px, 16vw, 78px);
+    width: clamp(66px, 19vw, 96px);
   }
   .recon-meta {
     grid-column: 2;
-    grid-row: 3;
+    grid-row: 4;
     grid-auto-flow: column;
     justify-content: start;
     justify-items: start;
@@ -647,5 +685,15 @@
 @media (prefers-reduced-motion: reduce) {
   .recon-lista .icono {
     transition: none;
+  }
+  .recon-foto,
+  .recon-titulo {
+    transition: none;
+  }
+  /* Sin movimiento no se escalan: se quedan encendidas del todo. */
+  .recon-foto {
+    opacity: 1;
+    filter: none;
+    transform: none;
   }
 }

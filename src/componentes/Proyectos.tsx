@@ -49,6 +49,12 @@ export function Proyectos() {
     const raiz = seccion.current;
     if (!raiz) return;
     const filas = Array.from(raiz.querySelectorAll<HTMLElement>(".proy-fila"));
+    // Los reconocimientos se encienden igual que los proyectos: con el
+    // scroll, no solo al pasar el ratón. En un teléfono no hay ratón, y ahí
+    // las vistas previas se quedaban siempre apagadas.
+    const reconocidos = Array.from(
+      raiz.querySelectorAll<HTMLElement>(".recon-lista li"),
+    );
     let pendiente = false;
 
     const medir = () => {
@@ -70,6 +76,15 @@ export function Proyectos() {
         const caja = fila.getBoundingClientRect();
         const d = Math.abs(caja.top + caja.height / 2 - centro);
         const luz = Math.max(0, 1 - d / alcance);
+        fila.style.setProperty("--luz", luz.toFixed(3));
+      }
+      // Las filas de reconocimientos son más bajas y van seguidas: con el
+      // alcance de los proyectos se encendían de una en una y a tirones.
+      const alcanceRecon = alto * 0.34;
+      for (const fila of reconocidos) {
+        const caja = fila.getBoundingClientRect();
+        const d = Math.abs(caja.top + caja.height / 2 - centro);
+        const luz = Math.max(0, 1 - d / alcanceRecon);
         fila.style.setProperty("--luz", luz.toFixed(3));
       }
     };
@@ -196,7 +211,7 @@ export function Proyectos() {
             {reconocimientos.map((r) => {
               const red = r.red === "instagram" ? "Instagram" : "LinkedIn";
               return (
-                <li key={r.id}>
+                <li key={r.id} style={{ "--luz": 0 } as CSSProperties}>
                   <a href={r.url} target="_blank" rel="noreferrer">
                     <img
                       className="recon-foto"

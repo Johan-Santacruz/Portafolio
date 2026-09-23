@@ -898,6 +898,42 @@ test("los reconocimientos cierran el capítulo y llevan a su publicación", asyn
   )) {
     expect(alt.length).toBeGreaterThan(20);
   }
+  // Las vistas previas se encienden al pasar por el centro de la pantalla,
+  // no solo con el ratón: en un teléfono no hay ratón y se quedaban apagadas.
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  for (let i = 0; i < 14; i += 1) {
+    const centrada = await page.evaluate(() => {
+      const li = document.querySelectorAll(".recon-lista li")[2];
+      const r = li.getBoundingClientRect();
+      const d = r.top + r.height / 2 - window.innerHeight / 2;
+      if (Math.abs(d) < 6) return true;
+      window.scrollTo(0, window.scrollY + d);
+      return false;
+    });
+    await page.waitForTimeout(180);
+    if (centrada) break;
+  }
+  const luces = await page.evaluate(() =>
+    [...document.querySelectorAll(".recon-foto")].map((i) =>
+      Number(getComputedStyle(i).opacity),
+    ),
+  );
+  // La del centro, encendida del todo; las de los extremos, apagadas.
+  expect(luces[2]).toBeGreaterThan(0.95);
+  expect(luces[0]).toBeLessThan(0.7);
+  expect(luces[luces.length - 1]).toBeLessThan(0.7);
+  // Y el texto va centrado con su foto, no descolgado debajo.
+  const desfase = await page.evaluate(() => {
+    const a = document.querySelectorAll(".recon-lista a")[2];
+    const foto = a.querySelector(".recon-foto")!.getBoundingClientRect();
+    const medio = a.querySelector(".recon-medio")!.getBoundingClientRect();
+    const titulo = a.querySelector(".recon-titulo")!.getBoundingClientRect();
+    return Math.abs(
+      foto.top + foto.height / 2 - (medio.top + titulo.bottom) / 2,
+    );
+  });
+  expect(desfase).toBeLessThan(8);
+
   await page.locator(".cabecera-idioma").click();
   await expect(page.locator("#titulo-reconocimientos")).toHaveText("What others said");
   await expect(filas.first().locator("a")).toContainText(

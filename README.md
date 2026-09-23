@@ -217,6 +217,20 @@ volver a correrlo.
 Las fotos son de quien las publicó. Van con su medio a la vista y enlazadas a
 la publicación.
 
+La banda es una isla de papel al cierre del capítulo oscuro: el fondo sube del
+negro al blanco del sitio y vuelve a bajar, sin bordes, y dentro los textos van
+en tinta. El difuminado mide lo mismo que el relleno y va en píxeles, no en
+porcentaje, para que el blanco esté lleno del todo antes del primer texto y
+siga lleno después del último; con porcentajes, la primera y la última fila
+caían en el degradado y no se leían. El lima de la casa tampoco se lee sobre
+papel, así que el medio y el estado de paso usan el verde oscuro que ya llevan
+la portada y la pantalla de carga. Y las vistas previas se encienden solas al pasar por el
+centro de la pantalla, con el mismo `--luz` que escribe `Proyectos.tsx` para
+los nombres de los proyectos (ahí con un alcance mayor, porque las filas son
+más bajas y van seguidas). Antes solo se encendían con el ratón, así que en un
+teléfono se quedaban siempre apagadas. Con `prefers-reduced-motion` se quedan
+encendidas del todo.
+
 ## Videos
 
 En `public/media/` hay dos bucles, ambos recortados, acelerados y recomprimidos
