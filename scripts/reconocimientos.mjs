@@ -33,6 +33,14 @@ const FUENTES = [
     "usb-sala",
     "https://es.linkedin.com/posts/johan-santacruz-366a641aa_activity-7437654534367105026-D2sP",
   ],
+  [
+    "johan-regional",
+    "https://es.linkedin.com/posts/johan-santacruz-366a641aa_datic-padia-hackathoncolombia-activity-7455740372376449024-XhAP",
+  ],
+  [
+    "padia-taller",
+    "https://es.linkedin.com/posts/sofia-valencia-solano-66022a345_matem%C3%A1ticas-semilleropadia-educaci%C3%B3nconsentido-activity-7371688396055928833-gQzk",
+  ],
 ];
 
 const UA =

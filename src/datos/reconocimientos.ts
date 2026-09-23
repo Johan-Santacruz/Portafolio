@@ -43,6 +43,22 @@ export const reconocimientos: Reconocimiento[] = [
     },
   },
   {
+    id: "johan-regional",
+    medio: "Publicación propia",
+    red: "linkedin",
+    fecha: { es: "Mayo 2026", en: "May 2026" },
+    titulo: {
+      es: "Primer lugar regional en la Hackatón Colombia 5.0 y paso a la final en Bogotá",
+      en: "First place at the Hackathon Colombia 5.0 regional and a place in the Bogotá final",
+    },
+    url: "https://www.linkedin.com/feed/update/urn:li:activity:7455740372376449024/",
+    imagen: "johan-regional.jpg",
+    alt: {
+      es: "Johan con la placa del primer lugar ante la pantalla de Colombia 5.0 del Ministerio TIC",
+      en: "Johan holding the first-place award in front of the Colombia 5.0 screen from the ICT Ministry",
+    },
+  },
+  {
     id: "padia-sala",
     medio: "Semillero PADIA",
     red: "instagram",
@@ -72,6 +88,22 @@ export const reconocimientos: Reconocimiento[] = [
     alt: {
       es: "Johan y una compañera en el auditorio del SALA 2026, con sus escarapelas en alto",
       en: "Johan and a teammate in the SALA 2026 auditorium, holding up their badges",
+    },
+  },
+  {
+    id: "padia-taller",
+    medio: "Sofía Valencia · Semillero PADIA",
+    red: "linkedin",
+    fecha: { es: "2025", en: "2025" },
+    titulo: {
+      es: "Taller «¿Pueden las matemáticas hacernos reír?» para estudiantes de colegio",
+      en: "\"Can maths make us laugh?\", a workshop for school students",
+    },
+    url: "https://www.linkedin.com/feed/update/urn:li:ugcPost:7371688394881531904/",
+    imagen: "padia-taller.jpg",
+    alt: {
+      es: "El aula llena de estudiantes del colegio Juana de Cayzedo y Cuero, con el título del taller encima",
+      en: "A classroom full of students at the Juana de Cayzedo y Cuero school, with the workshop title on top",
     },
   },
 ];
