@@ -49,6 +49,9 @@ function Fila({ n, pase }: { n: number; pase: (typeof pases)[number] }) {
   const { di } = useIdioma();
   return (
     <li className="tray-pase" style={{ "--n": n } as CSSProperties}>
+      <span className="tray-indice" aria-hidden="true">
+        {String(n + 1).padStart(2, "0")}
+      </span>
       <span className="tray-anio">{di(pase.año)}</span>
       <span className="tray-tipo">{di(pase.tipo)}</span>
       <h3 className="tray-donde">{pase.donde}</h3>
@@ -206,12 +209,43 @@ export function Trayectoria() {
           <h2 id="titulo-trayectoria">{di(textos.trayectoriaTitulo)}</h2>
         </header>
 
-        {/* El recorrido entero, siempre a la vista. */}
-        <ol className="tray-lista">
+        {/* El año del pase activo, gigante y casi invisible, de fondo: da
+            profundidad y llena la pantalla sin recargarla. Cada año lleva su
+            --n y se cruza con el siguiente según --p. */}
+        <div className="tray-fondo" aria-hidden="true">
           {pases.map((pase, i) => (
-            <Fila key={pase.codigo} n={i} pase={pase} />
+            <span key={pase.codigo} style={{ "--n": i } as CSSProperties}>
+              {di(pase.año)}
+            </span>
           ))}
-        </ol>
+        </div>
+
+        {/* El recorrido entero, siempre a la vista, como un libro mayor: un
+            encabezado con el contador, y las filas con su índice. Un carril a
+            la izquierda lleva un marcador que viaja con el scroll. */}
+        <div className="tray-marco">
+          <div className="tray-encabezado" aria-hidden="true">
+            <span>
+              {di(textos.trayectoriaRecorrido)} · {String(pases.length).padStart(2, "0")}{" "}
+              {di(textos.trayectoriaPases)}
+            </span>
+            <span className="tray-contador">
+              <span className="tray-contador-n">
+                {pases.map((pase, i) => (
+                  <b key={pase.codigo} style={{ "--n": i } as CSSProperties}>
+                    {String(i + 1).padStart(2, "0")}
+                  </b>
+                ))}
+              </span>
+              <i>/ {String(pases.length).padStart(2, "0")}</i>
+            </span>
+          </div>
+          <ol className="tray-lista">
+            {pases.map((pase, i) => (
+              <Fila key={pase.codigo} n={i} pase={pase} />
+            ))}
+          </ol>
+        </div>
 
         {/* Y al lado, lo que se hizo en el pase activo. */}
         <div className="tray-ficha">
@@ -221,6 +255,9 @@ export function Trayectoria() {
               className="tray-detalle"
               style={{ "--n": i } as CSSProperties}
             >
+              <p className="tray-clave">
+                {di(pase.tipo)} · {di(pase.año)}
+              </p>
               <p className="tray-rol">{di(pase.rol)}</p>
               <p className="tray-lugar">{di(pase.lugar)}</p>
               <ul>

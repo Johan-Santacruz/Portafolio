@@ -99,6 +99,33 @@
   mask-image: radial-gradient(ellipse 75% 70% at 50% 50%, #000 15%, transparent 78%);
 }
 
+/* --- El año de fondo ------------------------------------------------------------
+   Gigante, casi invisible, sangrado por la derecha: da profundidad y llena la
+   pantalla sin recargarla. Cada año lleva su --n y se cruza con el siguiente
+   según --p, igual que el detalle. */
+.tray-fondo {
+  position: absolute;
+  z-index: 0;
+  right: -1.5vw;
+  bottom: clamp(24px, 4svh, 48px);
+  display: grid;
+  pointer-events: none;
+}
+.tray-fondo span {
+  grid-area: 1 / 1;
+  --d: calc(var(--n) - var(--p));
+  --luz: clamp(0, 1 - max(var(--d), 0 - var(--d)) * 1.2, 1);
+  font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
+  font-weight: 700;
+  font-size: clamp(180px, 26vw, 440px);
+  line-height: 0.8;
+  white-space: nowrap;
+  text-transform: uppercase;
+  color: rgba(238, 240, 242, 0.05);
+  opacity: var(--luz);
+  transform: translate3d(0, calc(var(--d) * 4vh), 0);
+}
+
 /* Cabecera del capítulo, como en las demás secciones: rótulo pequeño y
    título. Así se ve que esto es otra sección y no la cola de los proyectos. */
 .tray-cabecera {
@@ -137,15 +164,79 @@
    se apagan, así que se ve el recorrido entero de un vistazo. Antes se veía
    uno solo, en una tarjeta que era casi toda hueco y con media pantalla
    vacía al lado. */
+.tray-marco {
+  position: relative;
+  z-index: 1;
+  /* Las cinco filas se reparten la banda entera en vez de amontonarse en el
+     centro y dejar el resto en negro. */
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+}
+/* Encabezado del libro mayor: qué es esto y en qué pase va el lector. */
+.tray-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0 0 10px clamp(14px, 1.5vw, 22px);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: clamp(10px, 0.78vw, 12px);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(238, 240, 242, 0.5);
+}
+.tray-contador {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+/* Los cinco números en la misma celda; se ve el del pase activo. */
+.tray-contador-n {
+  display: inline-grid;
+}
+.tray-contador-n b {
+  grid-area: 1 / 1;
+  --d: calc(var(--n) - var(--p));
+  opacity: clamp(0, 1 - max(var(--d), 0 - var(--d)) * 2, 1);
+  font-weight: 700;
+  color: var(--accent);
+}
+.tray-contador i {
+  font-style: normal;
+}
 .tray-lista {
+  position: relative;
+  flex: 1;
+  min-height: 0;
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  /* Las cinco filas se reparten la banda entera en vez de amontonarse en el
-     centro y dejar el resto en negro. */
-  align-self: stretch;
   grid-auto-rows: minmax(0, 1fr);
+}
+/* El carril: una línea a lo largo de la lista y un marcador que viaja con el
+   scroll, en vez de saltar de fila en fila. Como las filas miden lo mismo,
+   la posición sale de --p directamente. */
+.tray-lista::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(238, 240, 242, 0.16);
+}
+.tray-lista::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  top: calc(var(--p) * 100% / var(--pases));
+  height: calc(100% / var(--pases));
+  width: 3px;
+  background: var(--accent);
+  box-shadow: 0 0 18px -2px color-mix(in srgb, var(--accent) 70%, transparent);
 }
 .tray-pase {
   --d: calc(var(--n) - var(--p));
@@ -153,28 +244,34 @@
   --luz: clamp(0, 1 - var(--ad) * 1.5, 1);
   position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
   column-gap: clamp(14px, 1.8vw, 26px);
   row-gap: 3px;
   padding: clamp(10px, 1.9svh, 20px) 0 clamp(10px, 1.9svh, 20px)
-    clamp(14px, 1.5vw, 22px);
+    clamp(16px, 1.7vw, 26px);
   border-top: 1px solid rgba(238, 240, 242, 0.13);
-  opacity: calc(0.4 + var(--luz) * 0.6);
+  opacity: calc(0.42 + var(--luz) * 0.58);
 }
 .tray-pase:last-child {
   border-bottom: 1px solid rgba(238, 240, 242, 0.13);
 }
-/* El filo lima dice dónde va el lector. */
-.tray-pase::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 3px;
-  background: var(--accent);
-  opacity: var(--luz);
+/* El índice, como en las habilidades: mono, pequeño, lima en el activo. */
+.tray-indice {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  align-self: center;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 700;
+  font-size: clamp(10px, 0.8vw, 12px);
+  letter-spacing: 0.16em;
+  color: color-mix(
+    in srgb,
+    var(--accent) calc(var(--luz) * 100%),
+    rgba(238, 240, 242, 0.45)
+  );
 }
 .tray-anio {
-  grid-column: 1;
+  grid-column: 2;
   grid-row: 1 / span 2;
   align-self: center;
   font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
@@ -190,7 +287,7 @@
   );
 }
 .tray-tipo {
-  grid-column: 2;
+  grid-column: 3;
   grid-row: 1;
   align-self: end;
   font-family: "JetBrains Mono", ui-monospace, monospace;
@@ -200,7 +297,7 @@
   color: rgba(238, 240, 242, 0.58);
 }
 .tray-donde {
-  grid-column: 2;
+  grid-column: 3;
   grid-row: 2;
   margin: 0;
   font-family: "Saira Extra Condensed", "Chakra Petch", sans-serif;
@@ -211,7 +308,7 @@
   color: var(--texto);
 }
 .tray-sello {
-  grid-column: 3;
+  grid-column: 4;
   grid-row: 1 / span 2;
   align-self: center;
   padding: 3px 9px 2px;
@@ -237,6 +334,7 @@
   position: relative;
   display: grid;
   align-self: center;
+  z-index: 1;
   /* Sitio para el riel de la derecha: si no, los titulares largos lo pisan. */
   padding-right: clamp(36px, 3.4vw, 58px);
   z-index: 1;
@@ -248,6 +346,15 @@
   opacity: var(--luz);
   transform: translate3d(0, calc(var(--d) * -22px), 0);
   pointer-events: none;
+}
+/* De qué fue y cuándo, en mono, encima del titular. */
+.tray-clave {
+  margin-bottom: 10px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: clamp(10px, 0.8vw, 12px);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
 }
 /* Lo que se hizo: es lo que se lee, así que va de titular. */
 .tray-rol {
@@ -368,10 +475,24 @@
     gap: clamp(18px, 3svh, 30px);
     padding-top: clamp(96px, 16svh, 150px);
   }
+  .tray-fondo {
+    right: -3vw;
+    top: clamp(40px, 6svh, 70px);
+    bottom: auto;
+  }
+  .tray-fondo span {
+    font-size: clamp(120px, 42vw, 200px);
+  }
+  .tray-encabezado {
+    padding-left: 12px;
+  }
   .tray-pase {
     padding-block: clamp(6px, 1.3svh, 14px);
     padding-left: 12px;
-    column-gap: 14px;
+    column-gap: 12px;
+  }
+  .tray-indice {
+    display: none;
   }
   .tray-anio {
     font-size: clamp(21px, 6.4vw, 32px);

@@ -96,6 +96,9 @@ export const textos = {
   // --- Trayectoria --------------------------------------------------------
   trayectoriaRotulo: { es: "Trayectoria", en: "Career" },
   trayectoriaTitulo: { es: "Dónde he estado", en: "Where I've been" },
+  /** Encabezado del libro mayor: cuántos pases hay y en cuál va el lector. */
+  trayectoriaRecorrido: { es: "Recorrido", en: "Journey" },
+  trayectoriaPases: { es: "pases", en: "stops" },
 
   // --- Cierre -------------------------------------------------------------
   contactoRotulo: { es: "Contacto", en: "Contact" },

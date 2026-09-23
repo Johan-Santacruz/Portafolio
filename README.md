@@ -145,11 +145,22 @@ ffmpeg -ss 1.0 -to 8.3 -i video8.mp4 -vf "$F,scale=320:180:flags=lanczos,format=
 
 Si cambia el número de fotogramas, ajusta `CORTES` en `Herramientas.tsx`.
 
-La sección es el recorrido entero a la vista: una fila por pase con su año,
-de qué fue y dónde, y al lado el detalle del pase en el que va el lector, con
-lo que hizo, el sitio y las notas. Al bajar se enciende la fila siguiente y el
-detalle se cruza con el suyo. El lector se detiene en cada pase (`conReposo`,
-el mismo recurso que el de herramientas), así que ninguno pasa de largo.
+La sección es el recorrido entero a la vista, compuesto como un libro mayor:
+un encabezado con el contador («02 / 05»), una fila por pase con su índice, su
+año, de qué fue y dónde, y a la izquierda un carril con un marcador lima que
+viaja con el scroll en vez de saltar de fila en fila (como las filas miden lo
+mismo, su posición sale de `--p` directamente). Al lado, el detalle del pase
+activo: de qué fue y cuándo en mono, lo que hizo de titular, el sitio y las
+notas. De fondo, el año del pase activo en un numeral gigante casi invisible,
+sangrado por la derecha, que se cruza con el siguiente según `--p`: da
+profundidad y llena la pantalla sin recargarla.
+
+Los recursos vienen de portafolios premiados en Awwwards: el libro mayor con
+hairlines, índices y etiquetas mono con tracking (Dennis Snellenberg, Jesper
+Landberg), el numeral gigante de fondo y el carril con marcador ligado al
+scroll (Lusion, Locomotive, Aristide Benoist). El lector se detiene en cada
+pase (`conReposo`, el mismo recurso que el de herramientas), así que ninguno
+pasa de largo.
 
 Antes era una pila de credenciales, una a la vez. Se veía una sola tarjeta que
 era casi toda hueco, con media pantalla vacía al lado, y no se entendía el
