@@ -142,9 +142,28 @@ que pasa por el centro; autodidacta, una escalera que sigue; ordenado, un
 árbol con la rama buena en lima; comunicativo, un bocadillo que se oye;
 riguroso, un documento bajo la lupa, aprobado. Ocupan el hueco que antes
 quedaba vacío en las ocho casillas y hacía que la pantalla pareciera una
-tabla. Se dibujan trazo a trazo al aparecer: cada línea lleva `pathLength` 1
-para que el mismo `stroke-dasharray` valga para todas, y la pieza en lima
-llega la última, que es la conclusión del diagrama.
+tabla.
+
+**El armado.** Las casillas no aparecen con un fundido: nacen del centro de
+la pantalla, justo donde se retira la luz del corte, y salen girando y
+creciendo hasta su sitio, cada una a su turno, mientras su esquema se dibuja
+trazo a trazo. Todo sale de `--arma` (0 a 1), que `Herramientas.tsx` calcula
+con el scroll en el tramo entre el corte y el agujero; subiendo, vuelven al
+centro y se desdibujan. Es el camino inverso al del agujero negro, que luego
+se las traga al mismo centro: nacen de la luz y mueren en la oscuridad.
+
+El vector de cada casilla hasta el centro no se mide: va en tamaños de
+casilla (el % de `translate` es el de la propia casilla), con su columna y
+su fila en la rejilla de 4 × 2 y en la de 2 × 4 (`--c4`, `--f4`, `--c2`,
+`--f2`, que pone el marcado). Así vale durante el propio armado, cuando las
+casillas están desplazadas y medirlas daría un vector falso. Cada trazo del
+esquema lleva `pathLength` 1 para que el mismo `stroke-dasharray` valga para
+todas las líneas, y --j dice su turno: la pieza en lima llega la última, justo
+cuando la casilla se posa.
+
+El disparo automático del corte llega hasta el final del armado: un solo
+gesto reproduce el barrido y la llegada de las casillas. Con movimiento
+reducido, todo está ya posado y dibujado.
 
 El esquema ocupa el hueco que deja su casilla, con tope. En un teléfono bajo
 (menos de 780 px de alto) no queda sitio y encogería hasta ser una mancha, así

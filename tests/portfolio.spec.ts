@@ -791,6 +791,17 @@ test("las animaciones largas se reproducen solas al pedir bajar", async ({
   };
 
   await comprobar("--corte");
+  // El mismo gesto sigue hasta el final del armado de las habilidades
+  // blandas: salen del centro y se reparten por la pantalla sin más scroll.
+  expect(await v("--arma"), "el armado no terminó solo").toBeGreaterThan(0.98);
+  const posadas = await page.evaluate(() =>
+    [...document.querySelectorAll(".herr-criterio > li")].filter((li) => {
+      const t = getComputedStyle(li).transform;
+      return Number(getComputedStyle(li).opacity) > 0.99 &&
+        (t === "none" || t === "matrix(1, 0, 0, 1, 0, 0)");
+    }).length,
+  );
+  expect(posadas, "alguna casilla no llegó a su sitio").toBe(8);
   await comprobar("--traga");
 });
 

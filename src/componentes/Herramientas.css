@@ -801,24 +801,48 @@
   grid-template-rows: auto minmax(0, 1fr) auto auto;
   padding: clamp(14px, 2.4svh, 28px) clamp(12px, 1.4vw, 26px);
   border-left: 1px solid rgba(23, 24, 21, 0.12);
-  /* Entran desde abajo, una tras otra. */
-  opacity: 0;
-  transform: translate3d(0, 20px, 0);
-  transition:
-    opacity 0.2s ease,
-    transform 0.26s ease;
+  /* --- El armado --------------------------------------------------------------
+     Las casillas nacen del centro de la pantalla, donde se apaga la luz del
+     corte, y salen girando y creciendo hasta su sitio, cada una a su turno.
+     Todo sale de --arma (0 a 1), que escribe Herramientas.tsx con el scroll:
+     es el camino inverso al del agujero negro, que luego se las traga al
+     mismo centro. Nacen de la luz y mueren en la oscuridad.
+     El vector hasta el centro va en tamaños de casilla (el % de translate es
+     el de la propia casilla): en la rejilla de 4 × 2 el centro cae entre las
+     columnas 1 y 2 y entre las dos filas. */
+  --col: var(--c4);
+  --fila: var(--f4);
+  --cc: 1.5;
+  --cf: 0.5;
+  --ox: calc((var(--col) - var(--cc)) * -100%);
+  --oy: calc((var(--fila) - var(--cf)) * -100%);
+  /* Su tramo dentro del armado, y ese tramo suavizado al llegar. */
+  --t: clamp(0, (var(--arma, 1) - var(--i) * 0.06) / 0.52, 1);
+  --e: calc(var(--t) * var(--t) * (3 - 2 * var(--t)));
+  /* Giran en sentidos alternos, como piezas que caen en su sitio. */
+  --giro: calc((var(--c2) * 2 - 1) * 18deg);
+  transform: translate3d(
+      calc(var(--ox) * (1 - var(--e))),
+      calc(var(--oy) * (1 - var(--e))),
+      0
+    )
+    scale(calc(0.28 + var(--e) * 0.72))
+    rotate(calc((1 - var(--e)) * var(--giro)));
+  opacity: clamp(0, var(--t) * 3, 1);
 }
 /* La primera de cada fila abre a ras del margen, como la cabecera. */
 .herr-criterio > li:nth-child(4n + 1) {
   border-left: 0;
   padding-left: 0;
 }
-.herr-grupo[data-estado="activo"] .herr-criterio > li {
-  opacity: 1;
-  transform: none;
-  transition:
-    opacity 0.34s ease calc(0.12s + var(--i) * 70ms),
-    transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) calc(0.12s + var(--i) * 70ms);
+/* Fuera de su capítulo no se ven, pase lo que pase con --arma. */
+.herr-grupo:not([data-estado="activo"]) .herr-criterio > li {
+  opacity: 0;
+}
+/* El número y la frase llegan cuando la casilla ya casi se ha posado. */
+.herr-criterio .herr-indice,
+.herr-criterio p {
+  opacity: clamp(0, (var(--t) - 0.55) / 0.35, 1);
 }
 .herr-indice {
   grid-row: 1;
@@ -869,13 +893,12 @@
   stroke-width: 2.4;
 }
 .herr-glifo > * {
+  /* Cada trazo, a su turno (--j) en la segunda mitad de la llegada de su
+     casilla: el último acaba justo cuando la casilla se posa. Lo dibuja el
+     scroll; subiendo, se desdibuja. */
+  --dib: clamp(0, (var(--t) - 0.45 - var(--j, 0) * 0.06) / 0.25, 1);
   stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  transition: stroke-dashoffset 0.75s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.herr-grupo[data-estado="activo"] .herr-glifo > * {
-  stroke-dashoffset: 0;
-  transition-delay: calc(0.3s + var(--i) * 90ms + var(--j, 0) * 110ms);
+  stroke-dashoffset: calc(1 - var(--dib));
 }
 /* Al pasar por encima se asienta: el trazo gana tinta y el acento, brillo. */
 .herr-criterio > li:hover .herr-glifo {
@@ -932,12 +955,7 @@
   height: 1px;
   background: rgba(23, 24, 21, 0.16);
   transform-origin: 0 50%;
-  transform: scaleX(0);
-  transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-.herr-grupo[data-estado="activo"] .herr-filo {
-  transform: scaleX(1);
-  transition-delay: calc(0.26s + var(--i) * 70ms);
+  transform: scaleX(clamp(0, (var(--t, 1) - 0.4) / 0.5, 1));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -946,10 +964,10 @@
   .herr-filo {
     transition: none;
   }
-  /* Sin movimiento, los esquemas ya están dibujados. */
-  .herr-glifo > * {
-    transition: none;
-    stroke-dashoffset: 0;
+  /* Sin movimiento, las casillas ya están en su sitio y los esquemas
+     dibujados: el armado se da por terminado. */
+  .herr-grupo .herr-criterio > li {
+    --t: 1;
   }
 }
 @media (max-width: 860px) {
@@ -971,6 +989,12 @@
   }
   .herr-grupo .herr-criterio > li {
     padding: clamp(8px, 1.6svh, 18px) 14px;
+    /* Rejilla de 2 × 4: el centro, entre las dos columnas y entre las filas
+       1 y 2. */
+    --col: var(--c2);
+    --fila: var(--f2);
+    --cc: 0.5;
+    --cf: 1.5;
   }
   .herr-criterio > li:nth-child(4n + 1) {
     border-left: 1px solid rgba(23, 24, 21, 0.12);
