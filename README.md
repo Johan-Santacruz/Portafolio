@@ -202,6 +202,13 @@ El disparo automático del corte llega hasta el final del armado: un solo
 gesto reproduce el barrido y la llegada de las casillas. Con movimiento
 reducido, todo está ya posado y dibujado.
 
+En pantallas táctiles no hay corte (`--corte-tramo: 0`, su lienzo no se pinta
+y sus fotogramas no se descargan): el lector sigue de largo hasta «Cómo
+trabajo» como con cualquier otra categoría, y el criterio entra a mitad del
+paso desde «Control de versiones». Lo mismo con movimiento reducido. Antes,
+sin tramo de corte, el criterio saltaba al llegar a la penúltima y esa
+categoría no se llegaba a ver.
+
 El esquema ocupa el hueco que deja su casilla, con tope. En un teléfono bajo
 (menos de 780 px de alto) no queda sitio y encogería hasta ser una mancha, así
 que no se pinta. Para que eso funcione, la bandeja lleva en ese capítulo una
@@ -344,6 +351,22 @@ logo original con `scripts/logo.mjs`, que lo recorta y lo aplana a tres tintas
 14 kB en vez de 170 y aparece de inmediato.
 
 ## En el teléfono
+
+**Rendimiento en gama baja.** Las cinco secuencias de fotogramas (retrato,
+corte, agujero, niebla y cierre) suman 361 imágenes de 1280 × 720 o más; el
+cargador (`src/retrato/secuencia.ts`) las descomprimía todas y las guardaba,
+unos 1,6 GB en memoria, y un teléfono de gama baja tiene 2 o 3 en total. El
+navegador acababa tirándolas y volviéndolas a descomprimir en pleno scroll:
+esos eran los tirones. En pantallas táctiles, o con poca memoria o pocos
+núcleos (`LIGERO`), el cargador solo guarda los fotogramas buenos a 8 del que
+se ve, descomprime como mucho tres a la vez y, cuando la sección se aleja,
+lo suelta todo (`soltar()`, desde `vigilarCercania` de cada sección); al
+volver se recargan solos de la caché. Medido con un teléfono emulado: de 371
+fotogramas grandes vivos al final de la página a un máximo de 44 (de 1,6 GB
+a unos 210 MB). Además, en táctil el túnel lleva 28 placas en vez de 50, el
+párrafo de la portada no lleva halo (un desenfoque por letra que se repintaba
+en cada fotograma) y no hay scroll automático: el dedo ya lleva la página, y
+que siguiera bajando sola al soltarlo confundía.
 
 La página se revisa en vertical (320 × 568, 360 × 640, 375 × 667, 390 × 844,
 430 × 932), en horizontal (640 × 360, 667 × 375, 740 × 360, 844 × 390,

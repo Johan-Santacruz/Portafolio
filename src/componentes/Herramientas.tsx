@@ -202,8 +202,11 @@ export function Herramientas() {
     window.addEventListener("wheel", alRodar, { passive: true });
     window.addEventListener("touchmove", marcarGesto, { passive: true });
     window.addEventListener("keydown", alTeclado);
+    // En pantallas táctiles, nunca: el dedo ya lleva la página, y que
+    // siguiera bajando sola después de soltarlo confundía.
+    const tactil = window.matchMedia("(pointer: coarse)");
     const lanzar = (hasta: number, ms: number, usado: number) => {
-      if (reducidoMedia.matches || deslizando()) return usado;
+      if (reducidoMedia.matches || tactil.matches || deslizando()) return usado;
       // Un gesto, un lanzamiento: con el trackpad llegan decenas de eventos
       // de rueda por cada empujón.
       if (ultimoGesto === usado) return usado;
@@ -295,7 +298,9 @@ export function Herramientas() {
       ([e]) => {
         if (!e.isIntersecting) return;
         vigiaCorte.disconnect();
-        secuenciaCorte.empezar();
+        // Sin tramo para el corte (en pantallas táctiles, o con movimiento
+        // reducido) no hay nada que descargar.
+        if ((sondaCorte?.offsetHeight ?? 0) >= 1) secuenciaCorte.empezar();
       },
       { rootMargin: "0px" },
     );
@@ -382,9 +387,19 @@ export function Herramientas() {
         PAUSA_INICIO +
         ((total - 2) / (total - 1)) * (1 - PAUSA_INICIO - PAUSA_FINAL);
       const sCorte = avanceCorte * largoLector;
+      // Lo que avanza el lector de una categoría a la siguiente.
+      const paso = (largoLector * (1 - PAUSA_INICIO - PAUSA_FINAL)) / (total - 1);
+      // Sin corte (en el teléfono no hay barrido, y con movimiento reducido
+      // tampoco), el criterio llega como una categoría más: a mitad del paso
+      // desde la penúltima, como cambian todas. Antes saltaba al llegar a la
+      // penúltima y «Control de versiones» no se llegaba a ver.
+      const sinCorte = anchoCorte < 1;
       let avance: number;
       let corte: number;
-      if (s < sCorte) {
+      if (sinCorte) {
+        avance = limitar(s / largoLector);
+        corte = s >= sCorte + paso / 2 ? 1 : 0;
+      } else if (s < sCorte) {
         avance = limitar(s / largoLector);
         corte = 0;
       } else if (s < sCorte + anchoCorte) {
@@ -407,7 +422,7 @@ export function Herramientas() {
       // oscuridad, al mismo centro.
       // Empieza justo cuando el corte termina: mientras dura, su luz tapa la
       // pantalla y la primera fila se armaba sin que se viera.
-      const sArmaIni = sCorte + anchoCorte;
+      const sArmaIni = sinCorte ? sCorte + paso / 2 : sCorte + anchoCorte;
       const trasCorte = Math.max(1, largoLector - sCorte);
       const sArmaFin = sArmaIni + trasCorte * 0.62;
       const arma = limitar((s - sArmaIni) / Math.max(1, sArmaFin - sArmaIni));
@@ -488,11 +503,16 @@ export function Herramientas() {
     const dejarDeVigilar = vigilarCercania(raiz, (c) => {
       cerca = c;
       pintar();
+      // Lejos, sus fotogramas sobran en memoria (ver secuencia.ts).
+      if (!c) {
+        secuencia.soltar();
+        secuenciaCorte.soltar();
+      }
     });
     window.addEventListener("scroll", alScroll, { passive: true });
     window.addEventListener("resize", alRedimensionar);
     return () => {
-      window.removeEventListener("wheel", marcarGesto);
+      window.removeEventListener("wheel", alRodar);
       window.removeEventListener("touchmove", marcarGesto);
       window.removeEventListener("keydown", alTeclado);
       dejarDeVigilar();

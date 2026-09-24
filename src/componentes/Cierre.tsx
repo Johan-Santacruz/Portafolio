@@ -128,6 +128,8 @@ export function Cierre() {
     const dejarDeVigilar = vigilarCercania(raiz, (c) => {
       cerca = c;
       medir();
+      // Lejos, sus fotogramas sobran en memoria (ver secuencia.ts).
+      if (!c) secuencia.soltar();
     });
     window.addEventListener("scroll", alScroll, { passive: true });
     window.addEventListener("resize", alScroll);

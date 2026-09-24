@@ -1091,3 +1091,53 @@ test("en el teléfono el contacto deja a mano la hoja de vida y GitHub", async (
     await expect(page.locator("dialog.hoja-ventana .hoja-paginas img").first()).toBeVisible();
   }
 });
+
+test.describe("en el teléfono", () => {
+  // Con movimiento normal: con el reducido tampoco hay barrido ni
+  // deslizamiento, y la prueba no distinguiría nada.
+  test.use({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+    reducedMotion: "no-preference",
+  });
+
+  test("las herramientas siguen de largo hasta «Cómo trabajo» y nada baja solo", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await sinCarga(page);
+    await page.evaluate(() => document.fonts.ready);
+    // Sin barrido entre lo técnico y el criterio: no tiene tramo ni se pinta.
+    expect(
+      await page.locator(".herr-sonda-corte").evaluate((e: HTMLElement) => e.offsetHeight),
+    ).toBe(0);
+    await expect(page.locator(".herr-corte")).toBeHidden();
+
+    // Las categorías pasan por orden y la penúltima se llega a ver: antes,
+    // sin corte, el criterio saltaba al llegar a ella.
+    const vistas = await page.locator("#herramientas").evaluate(async (s: HTMLElement) => {
+      const orden: string[] = [];
+      for (let y = s.offsetTop; y < s.offsetTop + s.offsetHeight; y += 25) {
+        // Instantáneo: con movimiento normal la página se desplaza suave y
+        // cada salto cortaría el anterior.
+        window.scrollTo({ top: y, behavior: "instant" });
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        const t = s.querySelector('.herr-grupo[data-estado="activo"] .herr-titulo')?.textContent;
+        if (t && orden[orden.length - 1] !== t) orden.push(t);
+      }
+      return orden;
+    });
+    expect(vistas.slice(-2)).toEqual(["Control de versiones", "Cómo trabajo"]);
+
+    // Con el dedo en el túnel, la página no sigue bajando sola.
+    const seccion = page.locator("#herramientas");
+    const inicio = await seccion.evaluate((s: HTMLElement) => s.offsetTop);
+    await page.evaluate((y) => window.scrollTo({ top: y, behavior: "instant" }), inicio - 200);
+    await page.waitForTimeout(300);
+    await page.evaluate(() => window.dispatchEvent(new Event("touchmove")));
+    await page.evaluate((y) => window.scrollTo({ top: y, behavior: "instant" }), inicio - 100);
+    await page.waitForTimeout(1500);
+    expect(await page.evaluate(() => window.scrollY)).toBe(inicio - 100);
+  });
+});

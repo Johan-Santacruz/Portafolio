@@ -360,6 +360,8 @@ export function Retrato() {
         dejarDeVigilar = vigilarCercania(recorrido, (c) => {
           cerca = c;
           medir();
+          // Lejos, sus fotogramas sobran en memoria (ver secuencia.ts).
+          if (!c) secuencia.soltar();
         });
       // Tras la entrada, una pasada sola por la cara enseña el gesto.
       temporizadorInsinuar = window.setTimeout(() => {

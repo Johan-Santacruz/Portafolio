@@ -623,7 +623,12 @@
     --por-categoria: 32svh;
     --tunel: 90svh;
     --agujero: 60svh;
-    --corte-tramo: 36svh;
+    /* En el teléfono no hay barrido entre lo técnico y el criterio: el
+       lector sigue de largo hasta «Cómo trabajo», como con el resto. */
+    --corte-tramo: 0svh;
+  }
+  .herr-corte {
+    display: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {

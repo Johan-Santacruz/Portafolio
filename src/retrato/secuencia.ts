@@ -17,7 +17,28 @@
  * para cualquier punto del vídeo, borrosa hasta que llega la buena.
  *
  * No descarga nada hasta `empezar()`; `pedir()` antes de eso solo reordena.
+ *
+ * En un teléfono, o en un equipo con poca memoria, no se guardan todos los
+ * fotogramas descomprimidos: las cinco secuencias de la página suman 361
+ * imágenes de 1280 × 720 o más, cerca de 1,6 GB en memoria, y un teléfono de
+ * gama baja tiene 2 o 3 en total. El navegador acababa tirándolas y
+ * volviéndolas a descomprimir al pintar, en pleno scroll: eso eran los
+ * tirones. En ese modo (`LIGERO`) solo se guardan los buenos a `RADIO`
+ * fotogramas del que se está viendo, se descomprimen como mucho tres a la
+ * vez, y `soltar()` lo libera todo cuando la sección se aleja; al volver se
+ * piden de nuevo, de la caché del navegador y sin descargarlos otra vez.
  */
+const LIGERO =
+  typeof window !== "undefined" &&
+  (window.matchMedia("(pointer: coarse)").matches ||
+    ((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8) <= 4 ||
+    (navigator.hardwareConcurrency ?? 8) <= 4);
+/** Buenos que se guardan a cada lado del que se ve (en modo ligero). */
+const RADIO = 8;
+/** Y cuánto más lejos tiene que quedar uno para soltarlo: sin ese margen,
+ *  subir y bajar un poco soltaba y volvía a pedir los mismos. */
+const HOLGURA = 4;
+
 export class SecuenciaFotogramas {
   readonly cuadros: (HTMLImageElement | null)[];
   private cola: number[];
@@ -28,19 +49,55 @@ export class SecuenciaFotogramas {
   private minisListos = new Set<number>();
   /** Cola de minis (van antes que la de fotogramas buenos). */
   private colaMini: number[];
+  /** El último fotograma pedido: el centro de la ventana en modo ligero. */
+  private centro = 0;
+  /** Cuántos se descargan y descomprimen a la vez. */
+  private limite: number;
+  /** Soltada por `soltar()`: lo siguiente que se pida la vuelve a cargar. */
+  private suelta = false;
 
   constructor(
     private total: number,
     private url: (i: number) => string,
     /** Se llama cada vez que llega un fotograma (bueno o mini). */
     private alCargar: (i: number) => void,
-    private concurrencia = 8,
+    concurrencia = 8,
     private urlMini?: (i: number) => string,
   ) {
     this.cuadros = Array(total).fill(null);
     this.minis = Array(total).fill(null);
-    this.cola = SecuenciaFotogramas.orden(total);
+    this.limite = LIGERO ? Math.min(concurrencia, 3) : concurrencia;
+    this.cola = LIGERO ? this.ventana() : SecuenciaFotogramas.orden(total);
     this.colaMini = urlMini ? SecuenciaFotogramas.orden(total) : [];
+  }
+
+  /** Los buenos que faltan alrededor del centro, del más cercano al más lejano. */
+  private ventana() {
+    const r: number[] = [];
+    for (let d = 0; d <= RADIO; d++) {
+      for (const n of d ? [this.centro + d, this.centro - d] : [this.centro]) {
+        if (n >= 0 && n < this.total && this.cuadros[n] === null) r.push(n);
+      }
+    }
+    return r;
+  }
+
+  /**
+   * En modo ligero, suelta todo lo cargado (buenos y minis) para que el
+   * navegador recupere la memoria. Se llama cuando la sección se aleja; el
+   * siguiente `pedir()` vuelve a cargar lo que haga falta.
+   */
+  soltar() {
+    if (!LIGERO) return;
+    this.cuadros.fill(null);
+    this.decodificados.clear();
+    this.minis.fill(null);
+    this.minisListos.clear();
+    // Nada en cola: lo que esté llegando termina y se descarta, y no se
+    // pide nada más mientras la sección esté lejos.
+    this.colaMini = [];
+    this.cola = [];
+    this.suelta = true;
   }
 
   /** 0, 8, 16… luego 4, 12, 20… luego 2, 6, 10… y por último los impares. */
@@ -76,6 +133,24 @@ export class SecuenciaFotogramas {
 
   /** Adelanta `i` (y sus vecinos) en la cola si aún no se han pedido. */
   pedir(i: number) {
+    if (LIGERO) {
+      if (this.suelta) {
+        this.suelta = false;
+        this.colaMini = this.urlMini ? SecuenciaFotogramas.orden(this.total) : [];
+      }
+      this.centro = i;
+      // Los buenos que se han quedado lejos, fuera: así la memoria no crece
+      // con lo que se va viendo.
+      for (let n = 0; n < this.total; n++) {
+        if (this.cuadros[n] !== null && Math.abs(n - i) > RADIO + HOLGURA) {
+          this.cuadros[n] = null;
+          this.decodificados.delete(n);
+        }
+      }
+      this.cola = this.ventana();
+      this.seguir();
+      return;
+    }
     const urgentes = [i, i - 1, i + 1, i - 2, i + 2].filter(
       (n) => n >= 0 && n < this.total && this.cuadros[n] === null,
     );
@@ -89,6 +164,8 @@ export class SecuenciaFotogramas {
    * de un vecino muy próximo; si no, el mini; si no, lo más cercano que haya.
    */
   mejor(i: number): HTMLImageElement | null {
+    // Al volver a necesitarla tras soltarla, se recarga sola.
+    if (this.suelta) this.pedir(i);
     if (this.listo(i)) return this.cuadros[i];
     for (let d = 1; d <= 2; d++) {
       if (this.listo(i - d)) return this.cuadros[i - d];
@@ -118,7 +195,7 @@ export class SecuenciaFotogramas {
   }
 
   private seguir() {
-    while (this.activa && this.cargando < this.concurrencia) {
+    while (this.activa && this.cargando < this.limite) {
       const m = this.colaMini.shift();
       if (m !== undefined && this.urlMini) {
         const img = new Image();
@@ -129,6 +206,8 @@ export class SecuenciaFotogramas {
         img
           .decode()
           .then(() => {
+            // Soltada mientras llegaba: no cuenta.
+            if (this.minis[m] !== img) return;
             this.minisListos.add(m);
             if (this.activa) this.alCargar(m);
           })
@@ -150,6 +229,8 @@ export class SecuenciaFotogramas {
       img
         .decode()
         .then(() => {
+          // Soltado mientras llegaba (quedó lejos o la sección se fue).
+          if (this.cuadros[i] !== img) return;
           this.decodificados.add(i);
           if (this.activa) this.alCargar(i);
         })

@@ -39,7 +39,13 @@ const herramientas = stack.flatMap((g) => g.items);
  * cada placa es una capa en 3D, y al crecer la lista el túnel iba más lleno
  * y costaba más sin que se notara.
  */
-const EN_EL_TUNEL = 50;
+const EN_EL_TUNEL =
+  typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches
+    ? // En el teléfono, menos: a la GPU de uno de gama baja le pesaba
+      // componer 50 capas en 3D en cada fotograma, y en pantalla pequeña el
+      // túnel se ve igual de lleno.
+      28
+    : 50;
 /** Las de la primera categoría son las que aterrizan en la sección. */
 const aterrizan = stack[0].items;
 

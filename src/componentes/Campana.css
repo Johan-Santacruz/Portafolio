@@ -91,6 +91,13 @@
      sea transparente, y delataría lo que falta por teclear. */
   text-shadow: 0 0 6px rgb(253 253 254 / calc(var(--escrita) * 0.9));
 }
+/* En el teléfono el texto va sobre el velo y la figura fundida, y el halo
+   obligaba a repintar un desenfoque por letra en cada fotograma. */
+@media (pointer: coarse) {
+  .cli-perfil > [aria-hidden] > span {
+    text-shadow: none;
+  }
+}
 /* El nombre, en negrita y más oscuro: es lo primero que se lee. */
 .cli-perfil > [aria-hidden] > .cli-fuerte {
   font-weight: 800;
