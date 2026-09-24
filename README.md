@@ -384,15 +384,28 @@ importa:
 - El contacto enseña la figura ya salida: un fotograma, no los 120.
 - El vídeo de fondo de los proyectos se queda en su imagen fija.
 
-La portada se queda entera, que es lo primero que se ve, pero más ligera: el
-párrafo que se teclea ya no hereda `--avance` (Campana.tsx escribe `--k`, las
-letras escritas, solo cuando cambia, a partir del evento `avance` que emite
-Retrato.tsx), y en modo ligero los fotogramas llegan como `ImageBitmap` hechos
-del archivo con `fetch` y `createImageBitmap`, que Chrome descomprime en otro
-hilo: con `<img>` los volvía a descomprimir al pintarlos. Medido con un
-teléfono emulado y la CPU a un cuarto de velocidad (un gama media): todas las
-secciones a 60 fotogramas por segundo; a un sexto (gama baja), solo la
-portada tiene algún pico (14 % de fotogramas lentos, antes 55 %).
+La portada se queda entera, que es lo primero que se ve, pero más ligera:
+
+- El alter ego llega con un fundido: el motor lo dibuja entero una vez y el
+  scroll solo cambia la opacidad de su lienzo, que aplica la GPU. El círculo
+  que crece desde el centro se redibujaba entero en cada fotograma. Arriba
+  del todo el lienzo vuelve a opacidad plena y se destapa con el dedo como
+  siempre. Como la foto y el alter ego están alineados al píxel, la camiseta
+  se vuelve armadura sin saltos.
+- El párrafo aparece entero con un fundido, en vez de teclearse letra a
+  letra: con el scroll rápido del dedo cambiaba una letra casi en cada
+  fotograma y las casi 200 se recalculaban. En escritorio se sigue
+  tecleando, y ahí las letras ya no heredan `--avance`: Campana.tsx escribe
+  `--k` (las escritas) solo cuando cambia, a partir del evento `avance` que
+  emite Retrato.tsx.
+- En modo ligero los fotogramas llegan como `ImageBitmap` hechos del archivo
+  con `fetch` y `createImageBitmap`, que Chrome descomprime en otro hilo: con
+  `<img>` los volvía a descomprimir al pintarlos.
+
+Medido con un teléfono emulado y la CPU a un cuarto de velocidad (un gama
+media), todas las secciones van a 60 fotogramas por segundo. A un sexto (gama
+baja), el destape de la portada pasó del 87 % de fotogramas lentos al 0 %, y
+el resto de la portada queda en torno al 5-20 % según la medición.
 
 **Rendimiento en gama baja.** Las cinco secuencias de fotogramas (retrato,
 corte, agujero, niebla y cierre) suman 361 imágenes de 1280 × 720 o más; el

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import { perfil } from "../datos/perfil";
+import { esCelular } from "../retrato/telefono";
 import { useIdioma } from "../idioma/idioma";
 import { textos } from "../idioma/textos";
 import { Retrato } from "./Retrato";
@@ -114,6 +115,28 @@ function Salida({
     portada.addEventListener("avance", alAvanzar);
     return () => portada.removeEventListener("avance", alAvanzar);
   }, [ini, fin, total]);
+  // En el celular, entero y con un fundido: tecleado letra a letra, con el
+  // scroll rápido del dedo cambiaba una letra en casi cada fotograma y las
+  // casi 200 se recalculaban otra vez. El nombre, igual de en negrita.
+  if (esCelular()) {
+    return (
+      <p
+        className="cli-perfil cli-perfil-entero"
+        style={{ "--ini": ini, "--fin": fin } as CSSProperties}
+      >
+        {desde < 0 ? (
+          texto
+        ) : (
+          <>
+            {texto.slice(0, desde)}
+            <b>{texto.slice(desde, hasta)}</b>
+            {texto.slice(hasta)}
+          </>
+        )}
+        <span className="cli-cursor-entero" aria-hidden="true" />
+      </p>
+    );
+  }
   return (
     <p
       className="cli-perfil"

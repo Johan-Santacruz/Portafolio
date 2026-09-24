@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MotorRetrato } from "../retrato/motor";
 import { SecuenciaFotogramas } from "../retrato/secuencia";
+import { esCelular } from "../retrato/telefono";
 import { vigilarCercania } from "../retrato/cercania";
 import { trabajos } from "../datos/trabajos";
 import { useIdioma } from "../idioma/idioma";
@@ -126,6 +127,9 @@ export function Retrato() {
     const imagen = new Image();
     imagen.src = `${RETRATO}alter.jpg`;
     let m: MotorRetrato | null = null;
+    // En el celular el alter ego llega con un fundido (ver medir).
+    const celular = esCelular();
+    let opacidadAlter = "";
     let cancelado = false;
     let temporizadorPulsacion = 0;
     let temporizadorInsinuar = 0;
@@ -314,7 +318,20 @@ export function Retrato() {
       // de la portada, letra a letra) no tiene que heredar --avance y
       // recalcularse en cada fotograma.
       recorrido.dispatchEvent(new CustomEvent("avance", { detail: avance }));
-      m.avanzar(base);
+      if (celular) {
+        // En el celular, un fundido: el alter ego se dibuja entero una vez y
+        // el scroll solo cambia la opacidad del lienzo, que aplica la GPU sin
+        // redibujar. El círculo que crece se repintaba entero en cada
+        // fotograma y era lo que más pesaba de la portada en un gama media.
+        // Arriba del todo (base 0) el lienzo vuelve a opacidad plena: ahí se
+        // destapa con el dedo, como siempre.
+        m.avanzar(base > 0 ? 1 : 0);
+        const opacidad = base > 0 ? base.toFixed(3) : "1";
+        if (opacidad !== opacidadAlter) {
+          opacidadAlter = opacidad;
+          canvas.style.opacity = opacidad;
+        }
+      } else m.avanzar(base);
       const antes = enSecuencia;
       enSecuencia = avance > TRAMO_REVELADO;
       if (enSecuencia) {
