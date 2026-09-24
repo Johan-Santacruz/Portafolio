@@ -110,6 +110,9 @@ export const textos = {
   },
   escribeme: { es: "Escríbeme", en: "Email me" },
   copiado: { es: "Copiado", en: "Copied" },
+  // El pie: la página es obra propia y está protegida por derechos de autor.
+  derechos: { es: "Todos los derechos reservados", en: "All rights reserved" },
+  obraPropia: { es: "Diseño y código originales", en: "Original design and code" },
   hojaDeVida: { es: "Hoja de vida", en: "Résumé" },
   descargarPdf: { es: "Descargar PDF", en: "Download PDF" },
   hojaPagina: {

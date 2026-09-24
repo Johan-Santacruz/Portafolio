@@ -8,7 +8,8 @@ export interface GrupoStack {
   /** Versión corta para la palabra gigante, si el título no cabe. */
   palabra?: Par;
   items: string[];
-  /** Consola de la categoría: la orden y lo que responde. */
+  /** Consola de la categoría: la orden y lo que responde. Cada línea, de 36
+   *  caracteres como mucho: en un teléfono de 320 no cabe más. */
   consola: [Par, Par];
   /**
    * Habilidades blandas. El grupo que las lleva no se pinta con placas: la
@@ -73,17 +74,66 @@ export const stack: GrupoStack[] = [
       "Jupyter",
     ],
     consola: [
-      { es: ">>> modelo.fit(X_train, y_train, epochs=20)", en: ">>> model.fit(X_train, y_train, epochs=20)" },
+      { es: ">>> modelo.fit(X, y, epochs=20)", en: ">>> model.fit(X, y, epochs=20)" },
       { es: "Epoch 20/20 ━━━━━━━━━━━━━━ listo", en: "Epoch 20/20 ━━━━━━━━━━━━━━ done" },
+    ],
+  },
+  {
+    // Los asistentes y modelos con los que trabajo a diario: para escribir y
+    // revisar código, investigar y montar agentes.
+    id: "generativa",
+    titulo: { es: "IA generativa", en: "Generative AI" },
+    items: [
+      "Claude",
+      "ChatGPT",
+      "Codex",
+      "Gemini",
+      "Llama",
+      "Perplexity",
+      "GitHub Copilot",
+    ],
+    consola: [
+      { es: '$ claude "¿por qué falla el test?"', en: '$ claude "why does the test fail?"' },
+      { es: "No espera a las fuentes.", en: "It never waits for the fonts." },
     ],
   },
   {
     id: "datos",
     titulo: { es: "Bases de datos", en: "Databases" },
-    items: ["SQL", "PostgreSQL", "SQLite", "MongoDB"],
+    items: [
+      "SQL",
+      "PostgreSQL",
+      "MySQL",
+      "SQL Server",
+      "SQLite",
+      "MongoDB",
+      "Firebase",
+      "Supabase",
+      "Redis",
+    ],
     consola: [
       { es: "SELECT nombre FROM proyectos;", en: "SELECT name FROM projects;" },
-      { es: "SENDA · Oculus Auditor · Nimbus · AgentX", en: "SENDA · Oculus Auditor · Nimbus · AgentX" },
+      { es: "SENDA · CLARA · Nimbus · AgentX", en: "SENDA · CLARA · Nimbus · AgentX" },
+    ],
+  },
+  {
+    // Para llevar lo construido a producción y mantenerlo en pie. Este mismo
+    // portafolio se publica en Cloudflare.
+    id: "devops",
+    titulo: { es: "DevOps y nube", en: "DevOps and cloud" },
+    items: [
+      "Docker",
+      "Kubernetes",
+      "Linux",
+      "GitHub Actions",
+      "AWS",
+      "Google Cloud",
+      "Azure",
+      "Cloudflare",
+    ],
+    consola: [
+      { es: "$ docker compose up -d", en: "$ docker compose up -d" },
+      { es: "✔ api, db y web en marcha", en: "✔ api, db and web running" },
     ],
   },
   {
@@ -98,10 +148,10 @@ export const stack: GrupoStack[] = [
   {
     id: "versiones",
     titulo: { es: "Control de versiones", en: "Version control" },
-    items: ["Git"],
+    items: ["Git", "GitHub"],
     consola: [
       { es: "$ git log --oneline -1", en: "$ git log --oneline -1" },
-      { es: "57c1cdd Portafolio: landing con video", en: "57c1cdd Portfolio: landing with video" },
+      { es: "57c1cdd Añade IA generativa y GitHub", en: "57c1cdd Add generative AI and GitHub" },
     ],
   },
   {
@@ -185,8 +235,9 @@ export const stack: GrupoStack[] = [
  * Logo de cada herramienta, en `public/iconos/`. Se pintan en un solo color
  * (como máscara), así que sirve cualquier SVG con fondo transparente. Vienen
  * de Simple Icons, salvo Rocketbot (de su web, pasado a una tinta),
- * Matplotlib (redibujado en una tinta) y SQL y Seaborn, que no tienen logo
- * oficial y usan un glifo genérico.
+ * Matplotlib (redibujado en una tinta), SQL y Seaborn, que no tienen logo
+ * oficial y usan un glifo genérico, y Codex, que tampoco lo tiene y lleva una
+ * terminal. ChatGPT lleva el de OpenAI y Llama el de Meta, sus casas.
  */
 export const iconos: Record<string, string> = {
   Python: "python",
@@ -211,6 +262,18 @@ export const iconos: Record<string, string> = {
   PostgreSQL: "postgresql",
   SQLite: "sqlite",
   MongoDB: "mongodb",
+  MySQL: "mysql",
+  "SQL Server": "microsoftsqlserver",
+  Firebase: "firebase",
+  Supabase: "supabase",
+  Redis: "redis",
+  Claude: "claude",
+  ChatGPT: "openai",
+  Codex: "codex",
+  Gemini: "googlegemini",
+  Llama: "meta",
+  Perplexity: "perplexity",
+  "GitHub Copilot": "githubcopilot",
   TensorFlow: "tensorflow",
   PyTorch: "pytorch",
   Keras: "keras",
@@ -223,4 +286,13 @@ export const iconos: Record<string, string> = {
   n8n: "n8n",
   Rocketbot: "rocketbot",
   Git: "git",
+  GitHub: "github",
+  Docker: "docker",
+  Kubernetes: "kubernetes",
+  Linux: "linux",
+  "GitHub Actions": "githubactions",
+  AWS: "amazonwebservices",
+  "Google Cloud": "googlecloud",
+  Azure: "microsoftazure",
+  Cloudflare: "cloudflare",
 };

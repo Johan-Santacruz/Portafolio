@@ -17,14 +17,14 @@ export const perfil = {
   rol: { es: "Ingeniero de software", en: "Software engineer" },
 
   /**
-   * La portada: lo que responde `whoami`. Es el perfil de la hoja de vida en
-   * primera persona y en tres frases: quién, qué hago ahora y qué más he
-   * hecho. Se teclea letra a letra, así que conviene que no crezca mucho: en
-   * un teléfono de 320 px ya ocupa media pantalla.
+   * La portada: lo que responde `whoami`. El perfil de la hoja de vida en
+   * primera persona, en corto y cercano: quién soy y qué hago. El resto lo
+   * cuentan la trayectoria y los reconocimientos; aquí, más texto tapa la
+   * portada en vez de presentarla.
    */
   presentacion: {
-    es: "Soy Johan Camilo Balanta, estudiante de octavo semestre de Ingeniería de Sistemas en la Universidad de San Buenaventura, Cali. Trabajo como desarrollador RPA en Familia Insurances, donde automatizo procesos e integro APIs e inteligencia artificial. Investigo en el grupo PADIA, publiqué en IEEE y compito en hackatones dentro y fuera del país.",
-    en: "I'm Johan Camilo Balanta, an eighth-semester Systems Engineering student at Universidad de San Buenaventura, Cali. I work as an RPA developer at Familia Insurances, where I automate processes and integrate APIs and artificial intelligence. I do research with the PADIA group, have published in IEEE and compete in hackathons at home and abroad.",
+    es: "Soy Johan Camilo Balanta, estudiante de Ingeniería de Sistemas en Cali. Me gusta el desarrollo web, automatizar procesos y conectar APIs e inteligencia artificial para resolver problemas reales.",
+    en: "I'm Johan Camilo Balanta, a Systems Engineering student in Cali. I love web development, automating processes and connecting APIs and artificial intelligence to solve real problems.",
   },
   // Lo que va en negrita dentro de `presentacion`. Debe existir tal cual.
   presentacionEnfasis: { es: "Johan Camilo Balanta", en: "Johan Camilo Balanta" },
@@ -61,8 +61,11 @@ export const perfil = {
   },
 
   enlaces: [
-    { etiqueta: { es: "GitHub [pendiente]", en: "GitHub [pending]" }, url: "#" },
-    { etiqueta: { es: "LinkedIn [pendiente]", en: "LinkedIn [pending]" }, url: "#" },
+    { etiqueta: { es: "GitHub", en: "GitHub" }, url: "https://github.com/Johan-Santacruz" },
+    {
+      etiqueta: { es: "LinkedIn", en: "LinkedIn" },
+      url: "https://www.linkedin.com/in/johan-santacruz-366a641aa/",
+    },
     {
       etiqueta: { es: "Hoja de vida PDF [pendiente]", en: "Résumé PDF [pending]" },
       url: "#",

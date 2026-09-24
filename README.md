@@ -130,6 +130,22 @@ lado largo limitado a 2000 px). La foto actual es apaisada con fondo blanco, y
 el hero toma ese blanco como fondo para que los bordes que no cubra se fundan
 con ella.
 
+## Herramientas
+
+`src/datos/stack.ts` tiene las categorías y sus herramientas: lenguajes,
+desarrollo web, IA y datos, IA generativa (Claude, ChatGPT, Codex, Gemini,
+Llama, Perplexity, GitHub Copilot), bases de datos, DevOps y nube,
+automatización y control de versiones, y al final las habilidades blandas.
+Añadir una herramienta es añadirla a su lista y su logo a `iconos`; una
+categoría nueva entra sola en el lector, el túnel y el riel.
+
+Los logos (`public/iconos/`) son de Simple Icons, salvo los que dice el
+comentario de `iconos`: Codex no tiene logo propio y lleva una terminal,
+ChatGPT lleva el de OpenAI y Llama el de Meta. Por el túnel pasan siempre 50
+placas (`EN_EL_TUNEL` en `Tunel.tsx`), todas las herramientas una vez y el
+resto repetidas: cada placa es una capa en 3D, y con cada herramienta nueva
+el túnel costaba más sin verse mejor.
+
 ## Trayectoria y hoja de vida
 
 `src/datos/trayectoria.ts` tiene los pases: cada sitio donde he estado dio
@@ -347,8 +363,8 @@ La página se revisa en vertical (320 × 568, 360 × 640, 375 × 667, 390 × 844
   400 px de ancho los dos idiomas se apilan, que en una línea pisaban el riel.
 - **Contacto**: la figura ocupa lo que deja libre el texto, medido desde
   abajo, en vez de un 62 % fijo que en los teléfonos bajos ponía el titular
-  encima de la cara. La hoja de vida y GitHub también salen en el teléfono:
-  es el único sitio desde el que se abren.
+  encima de la cara. La hoja de vida, GitHub y LinkedIn también salen en el
+  teléfono, en una sola línea: es el único sitio desde el que se abren.
 - **Cabecera**: la letra más pequeña del menú (10 px) es solo para 320; a 360
   y 375 cabe la de 390. El botón de idioma mide al menos 38 px de ancho, que
   con dos letras se quedaba en 26. Entre 861 y 1400 px la píldora, con los
@@ -357,6 +373,12 @@ La página se revisa en vertical (320 × 568, 360 × 640, 375 × 667, 390 × 844
 - **Fichas**: el botón de cerrar no se encoge (`flex: 0 0 44px`); con un
   título largo, a 320 quedaba en 12 px. La barra de la hoja de vida, a 320,
   pasa la descarga a una segunda línea.
+- **Herramientas**: en horizontal el lector va a la izquierda y las placas a
+  la derecha, como en escritorio; encima, la consola se salía por abajo. En
+  los teléfonos de hasta 700 px de alto las placas se aprietan para que una
+  categoría de nueve o diez quepa con su consola. Cada línea de la consola
+  tiene 36 caracteres como mucho, y la consola no puede ensanchar la columna
+  (`min-width: 0`): una línea larga empujaba las placas fuera por la derecha.
 
 Las dos últimas pruebas de `tests/portfolio.spec.ts` lo vigilan: el pase
 abierto entero en horizontal y a 320, y el contacto con la hoja de vida y
@@ -495,7 +517,14 @@ en `vite.config.ts` antes de compilar: las rutas de video e imágenes la usan.
 
 La última sección (`src/componentes/Cierre.tsx`) es otro recorrido con
 scroll: la figura con armadura sale de la niebla a la luz y, al final, entra
-el contacto (correo, copiar correo y GitHub).
+el contacto (correo, copiar correo, hoja de vida, GitHub y LinkedIn).
+
+El pie dice de quién es la página: «© año Johan Santacruz · Todos los derechos
+reservados» y «Diseño y código originales» (`derechos` y `obraPropia` en
+`src/idioma/textos.ts`). Lo mismo va en las metas `author` y `copyright` de
+`index.html` y, con detalle, en `LICENSE`: el código se publica para leerlo,
+no para reutilizarlo, y los logos, las tipografías y las librerías de
+terceros conservan sus licencias.
 
 - Los fotogramas están en `public/imagenes/cierre/f000.jpg … f119.jpg`: salen
   de `video3.mp4` (la versión en 4K) a 12 por segundo y 1600×900, con los

@@ -16,6 +16,7 @@ const FOTOGRAMAS = 120;
 const fotograma = (i: number) =>
   `${CIERRE}f${String(i).padStart(3, "0")}.jpg`;
 const GITHUB = "https://github.com/Johan-Santacruz";
+const LINKEDIN = "https://www.linkedin.com/in/johan-santacruz-366a641aa/";
 /** Hoja de vida: el PDF para descargar y sus páginas para verlas aquí. */
 const HOJA = `${import.meta.env.BASE_URL}documentos/`;
 const HOJA_PDF = `${HOJA}hoja-de-vida-johan-balanta.pdf`;
@@ -212,6 +213,14 @@ export function Cierre() {
             >
               GitHub <Icono nombre="diagonal" />
             </a>
+            <a
+              className="cierre-enlace"
+              href={LINKEDIN}
+              target="_blank"
+              rel="noreferrer"
+            >
+              LinkedIn <Icono nombre="diagonal" />
+            </a>
           </div>
         </div>
 
@@ -255,9 +264,13 @@ export function Cierre() {
           </dialog>
         )}
 
+        {/* Autoría y derechos: la página, su diseño y su código son obra
+            propia (ver LICENSE). */}
         <footer className="cierre-pie">
-          <span>© {new Date().getFullYear()} Johan Santacruz</span>
-          <span>{perfil.ubicacion}</span>
+          <span>
+            © {new Date().getFullYear()} Johan Santacruz · {di(textos.derechos)}
+          </span>
+          <span>{di(textos.obraPropia)}</span>
         </footer>
       </div>
     </section>

@@ -33,6 +33,13 @@ function azarConSemilla(semilla: number) {
 }
 
 const herramientas = stack.flatMap((g) => g.items);
+/**
+ * Placas que pasan por el túnel: todas las herramientas una vez y, hasta
+ * completar, las primeras otra vez. Es un número fijo y no «vuelta y media»:
+ * cada placa es una capa en 3D, y al crecer la lista el túnel iba más lleno
+ * y costaba más sin que se notara.
+ */
+const EN_EL_TUNEL = 50;
 /** Las de la primera categoría son las que aterrizan en la sección. */
 const aterrizan = stack[0].items;
 
@@ -48,12 +55,13 @@ const aterrizan = stack[0].items;
  */
 export function Tunel() {
   const { di } = useIdioma();
-  // Dos vueltas de todas las herramientas, repartidas en espiral por el túnel.
+  // Todas las herramientas, repartidas en espiral por el túnel.
   const placas = useMemo(() => {
     const azar = azarConSemilla(7);
-    // Vuelta y media: con dos el túnel iba igual de lleno y costaba un tercio
-    // más de placas en 3D.
-    const lista = [...herramientas, ...herramientas.slice(0, 16)];
+    const lista = Array.from(
+      { length: Math.max(EN_EL_TUNEL, herramientas.length) },
+      (_, i) => herramientas[i % herramientas.length],
+    );
     return lista.map((nombre, i) => {
       const angulo = i * 2.39996 + azar() * 0.4; // ángulo áureo: sin huecos
       const radio = 0.62 + azar() * 0.5;

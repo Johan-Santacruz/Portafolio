@@ -5,6 +5,7 @@ import AxeBuilder from "@axe-core/playwright";
 // de tipos, y se borra al compilar.
 import { trabajos } from "../src/datos/trabajos";
 import { reconocimientos } from "../src/datos/reconocimientos";
+import { stack } from "../src/datos/stack";
 
 /** La pantalla de carga tapa y bloquea el scroll hasta que la portada está
  *  lista: los tests que se mueven por la página esperan a que se retire. */
@@ -294,7 +295,7 @@ test("las herramientas pasan por el lector una categoría cada vez", async ({
   await page.evaluate(() => document.fonts.ready);
   const seccion = page.locator("#herramientas");
   const grupos = page.locator(".herr-grupo");
-  await expect(grupos).toHaveCount(7);
+  await expect(grupos).toHaveCount(stack.length);
   // Todas las herramientas llevan logo.
   const placas = await page.locator(".herr-placa").count();
   expect(placas).toBeGreaterThan(20);
@@ -516,11 +517,11 @@ test("la línea de comandos de la portada teclea el perfil al bajar", async ({
     window.scrollTo(0, h.getBoundingClientRect().height - innerHeight);
   });
   const total = await letras.count();
-  expect(total).toBeGreaterThan(200);
+  expect(total).toBeGreaterThan(100);
   await expect.poll(escritas).toBe(total);
   // Quien no ve la pantalla oye el párrafo entero, y el nombre es el título.
   await expect(page.locator(".cli-perfil .solo-lector")).toContainText(
-    "Johan Camilo Balanta, estudiante de octavo semestre",
+    "Johan Camilo Balanta, estudiante de Ingeniería de Sistemas",
   );
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Johan Camilo Balanta Santacruz",

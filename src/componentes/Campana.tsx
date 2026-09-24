@@ -47,7 +47,7 @@ export function Campana() {
                 texto={di(perfil.presentacion)}
                 enfasis={di(perfil.presentacionEnfasis)}
                 ini={0.62}
-                fin={0.86}
+                fin={0.8}
               />
               <p className="cli-rol">
                 <span aria-hidden="true">// </span>

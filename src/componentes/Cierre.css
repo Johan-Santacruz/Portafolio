@@ -231,7 +231,7 @@
 .cierre-copiar:hover {
   border-bottom-color: var(--accent);
 }
-/* Hoja de vida y GitHub, en una línea bajo el correo. */
+/* Hoja de vida, GitHub y LinkedIn, en una línea bajo el correo. */
 .cierre-enlaces {
   --entrada: clamp(0, (var(--avance) - 0.78) / 0.14, 1);
   display: flex;
@@ -347,11 +347,15 @@
      página desde el que se abren. */
   .cierre-enlaces {
     margin-top: 4px;
-    gap: 4px 24px;
+    gap: 4px 18px;
   }
+  /* Menos espaciado entre letras para que los tres enlaces quepan en una
+     línea: en dos, el texto subía hasta la cara. */
   .cierre-enlace {
+    gap: 8px;
     min-height: 40px;
     font-size: 12px;
+    letter-spacing: 0.1em;
   }
   .cierre-pie {
     left: 22px;
@@ -361,18 +365,35 @@
   }
 }
 
+@media (max-width: 370px) {
+  .cierre-enlaces {
+    gap: 4px 12px;
+  }
+  .cierre-enlace {
+    gap: 5px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+  .cierre-enlace .icono {
+    width: 13px;
+    height: 13px;
+  }
+}
+
 /* Teléfonos bajos en vertical: el texto se aprieta para que a la figura le
    quede sitio por encima. */
 @media (max-width: 860px) and (max-height: 620px) and (orientation: portrait) {
   .cierre-niebla,
   .cierre-video {
-    height: calc(100% - 340px);
+    height: calc(100% - 352px);
   }
   .cierre-fijo::after {
-    height: 384px;
+    height: 396px;
   }
   .cierre-texto {
-    bottom: 52px;
+    /* Por encima del pie, que aquí ocupa tres líneas con el aviso de
+       derechos. */
+    bottom: 64px;
   }
   .cierre-texto h2 {
     margin-top: 10px;
@@ -450,8 +471,10 @@
   }
   .cierre-enlace {
     display: inline-flex;
+    gap: 8px;
     min-height: 36px;
     font-size: 12px;
+    letter-spacing: 0.1em;
   }
   .cierre-pie {
     bottom: 10px;
