@@ -202,22 +202,16 @@ placa aclara y el filo engorda. Como las placas ya son oscuras, cuando el
 agujero se traga la sección no hace falta aclarar su texto: solo la cabecera
 y la consola, que siguen sobre el blanco.
 
-**El armado.** Las casillas no aparecen con un fundido: nacen del centro de
-la pantalla, justo donde se retira la luz del corte, y salen girando y
-creciendo hasta su sitio, cada una a su turno, mientras su esquema se dibuja
-trazo a trazo. Todo sale de `--arma` (0 a 1), que `Herramientas.tsx` calcula
-con el scroll en el tramo entre el corte y el agujero; subiendo, vuelven al
-centro y se desdibujan. Es el camino inverso al del agujero negro, que luego
-se las traga al mismo centro: nacen de la luz y mueren en la oscuridad.
-
-El vector de cada casilla hasta el centro no se mide: va en tamaños de
-casilla (el % de `translate` es el de la propia casilla), con su columna y
-su fila en la rejilla de 4 × 2 y en la de 2 × 4 (`--c4`, `--f4`, `--c2`,
-`--f2`, que pone el marcado). Así vale durante el propio armado, cuando las
-casillas están desplazadas y medirlas daría un vector falso. Cada trazo del
-esquema lleva `pathLength` 1 para que el mismo `stroke-dasharray` valga para
-todas las líneas, y --j dice su turno: la pieza en lima llega la última, justo
-cuando la casilla se posa.
+**La entrada.** Las casillas aparecen a su turno: cada una se funde y sube
+24 px hasta su sitio mientras su esquema se dibuja trazo a trazo. Todo sale de
+`--arma` (0 a 1), que `Herramientas.tsx` calcula con el scroll en el tramo
+entre el corte y el agujero (en el teléfono, sin corte, termina justo al
+asentarse «Cómo trabajo»); subiendo, se desvanecen. Antes nacían del centro
+de la pantalla girando y creciendo, y después del paso tranquilo de las
+categorías técnicas se veía extraño. Cada trazo del esquema lleva
+`pathLength` 1 para que el mismo `stroke-dasharray` valga para todas las
+líneas, y --j dice su turno: la pieza en lima llega la última, justo cuando la
+casilla se posa.
 
 El disparo automático del corte llega hasta el final del armado: un solo
 gesto reproduce el barrido y la llegada de las casillas. Con movimiento
@@ -450,6 +444,26 @@ La página se revisa en vertical (320 × 568, 360 × 640, 375 × 667, 390 × 844
 Las dos últimas pruebas de `tests/portfolio.spec.ts` lo vigilan: el pase
 abierto entero en horizontal y a 320, y el contacto con la hoja de vida y
 GitHub a mano sin pisar el pie ni la cabecera.
+
+## Vista previa al compartir
+
+Al compartir el enlace (WhatsApp, LinkedIn, X, Slack…), la vista previa sale
+de las etiquetas Open Graph y de Twitter de `index.html`: título,
+descripción e imagen. Tienen que estar escritas en el HTML: los robots que
+arman la vista previa no ejecutan JavaScript, así que React no las puede
+poner. Las direcciones van completas, con el dominio de `workers.dev`; si
+algún día cambia, hay que cambiarlas. Cloudflare no bloquea a esos robots
+(reciben la página con un 200); lo que faltaba eran las etiquetas.
+
+La imagen, `public/vista-previa.jpg` (1200 × 630, unos 100 KB, por debajo de
+los 300 KB que acepta WhatsApp), se compone con
+`node scripts/vista-previa.mjs`: el alter ego de frente, el nombre, el rol y
+la ciudad, con las tipografías, el acero y la lima de la página. Las redes
+guardan la vista previa un tiempo: tras cambiarla, el depurador de cada una
+(el de compartir de Facebook, el Post Inspector de LinkedIn) la refresca.
+
+`public/robots.txt` deja pasar a todos. Sin él, `/robots.txt` devolvía la
+página (la respuesta de reserva de una aplicación de una sola página).
 
 ## Dos idiomas
 

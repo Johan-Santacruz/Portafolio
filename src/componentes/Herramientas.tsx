@@ -532,13 +532,10 @@ export function Herramientas() {
       );
       const p = conReposo(tramo * (total - 1));
       poner("--p", p.toFixed(4), lector, riel);
-      // El armado del criterio: las casillas salen del centro de la pantalla
-      // (donde se apaga la luz del corte) y se reparten hasta su sitio, en el
-      // tramo que queda entre el corte y el agujero. Es el mismo camino
-      // que luego hace el agujero al revés: nacen de la luz y se las traga la
-      // oscuridad, al mismo centro.
+      // La entrada del criterio: las casillas aparecen a su turno (se funden
+      // y suben un poco), en el tramo que queda entre el corte y el agujero.
       // Empieza justo cuando el corte termina: mientras dura, su luz tapa la
-      // pantalla y la primera fila se armaba sin que se viera.
+      // pantalla y la primera fila aparecía sin que se viera.
       const sArmaIni = sinCorte ? sCorte + paso / 2 : sCorte + anchoCorte;
       const trasCorte = Math.max(1, largoLector - sCorte);
       // Sin corte (teléfono) termina justo al asentarse el criterio: si no,
@@ -761,14 +758,8 @@ export function Herramientas() {
                       key={c.id}
                       style={
                         {
+                          // Su turno en la entrada (ver .herr-criterio > li).
                           "--i": i,
-                          // Su sitio en la rejilla de escritorio (4 × 2) y en
-                          // la de móvil (2 × 4): el CSS lo usa para sacarla
-                          // del centro de la pantalla hasta su casilla.
-                          "--c4": i % 4,
-                          "--f4": Math.floor(i / 4),
-                          "--c2": i % 2,
-                          "--f2": Math.floor(i / 2),
                         } as CSSProperties
                       }
                     >

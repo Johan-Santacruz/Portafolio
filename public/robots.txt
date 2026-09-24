@@ -1,0 +1,4 @@
+# Todo el portafolio se puede leer, también por los robots que arman la
+# vista previa al compartir el enlace.
+User-agent: *
+Allow: /

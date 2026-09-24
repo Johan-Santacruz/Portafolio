@@ -872,34 +872,16 @@
   transition:
     background 0.35s ease,
     box-shadow 0.35s ease;
-  /* --- El armado --------------------------------------------------------------
-     Las casillas nacen del centro de la pantalla, donde se apaga la luz del
-     corte, y salen girando y creciendo hasta su sitio, cada una a su turno.
-     Todo sale de --arma (0 a 1), que escribe Herramientas.tsx con el scroll:
-     es el camino inverso al del agujero negro, que luego se las traga al
-     mismo centro. Nacen de la luz y mueren en la oscuridad.
-     El vector hasta el centro va en tamaños de casilla (el % de translate es
-     el de la propia casilla): en la rejilla de 4 × 2 el centro cae entre las
-     columnas 1 y 2 y entre las dos filas. */
-  --col: var(--c4);
-  --fila: var(--f4);
-  --cc: 1.5;
-  --cf: 0.5;
-  --ox: calc((var(--col) - var(--cc)) * -100%);
-  --oy: calc((var(--fila) - var(--cf)) * -100%);
-  /* Su tramo dentro del armado, y ese tramo suavizado al llegar. */
+  /* --- La entrada -------------------------------------------------------------
+     Cada casilla aparece a su turno: se funde y sube un poco hasta su sitio,
+     mientras su esquema se dibuja. Todo sale de --arma (0 a 1), que escribe
+     Herramientas.tsx con el scroll. Antes nacían del centro de la pantalla
+     girando y creciendo, y después del paso tranquilo de las categorías
+     técnicas se veía extraño. */
   --t: clamp(0, (var(--arma, 1) - var(--i) * 0.06) / 0.52, 1);
   --e: calc(var(--t) * var(--t) * (3 - 2 * var(--t)));
-  /* Giran en sentidos alternos, como piezas que caen en su sitio. */
-  --giro: calc((var(--c2) * 2 - 1) * 18deg);
-  transform: translate3d(
-      calc(var(--ox) * (1 - var(--e))),
-      calc(var(--oy) * (1 - var(--e))),
-      0
-    )
-    scale(calc(0.28 + var(--e) * 0.72))
-    rotate(calc((1 - var(--e)) * var(--giro)));
-  opacity: clamp(0, var(--t) * 3, 1);
+  transform: translate3d(0, calc((1 - var(--e)) * 24px), 0);
+  opacity: var(--e);
 }
 /* Al pasar por encima, la placa se enciende: el metal aclara y el filo lima
    engorda, como las placas de herramientas al tocarlas. */
@@ -1163,12 +1145,6 @@
   }
   .herr-grupo .herr-criterio > li {
     padding: clamp(8px, 1.4svh, 16px) 10px clamp(7px, 1.2svh, 14px) 14px;
-    /* Rejilla de 2 × 4: el centro, entre las dos columnas y entre las filas
-       1 y 2. */
-    --col: var(--c2);
-    --fila: var(--f2);
-    --cc: 0.5;
-    --cf: 1.5;
   }
   .herr-criterio h4 {
     font-size: clamp(18px, 5.4vw, 30px);
@@ -1186,12 +1162,6 @@
 @media (max-width: 860px) and (orientation: landscape) and (max-height: 500px) {
   .herr-grupo .herr-criterio {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-  .herr-grupo .herr-criterio > li {
-    --col: var(--c4);
-    --fila: var(--f4);
-    --cc: 1.5;
-    --cf: 0.5;
   }
   .herr-criterio h4 {
     font-size: clamp(18px, 3.2vw, 26px);
