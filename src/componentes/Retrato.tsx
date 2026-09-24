@@ -221,6 +221,10 @@ export function Retrato() {
     let cuadroPintado = -1;
     let cuadroPedido = 0;
     let avanceSecuencia = 0;
+    // Con qué avance se pintó el último: en vertical el recorte depende de
+    // él, pero si no ha cambiado no hay nada que volver a dibujar.
+    let avancePintado = -1;
+    let opacidadPuesta = "";
     const ctxSecuencia = canvasSecuencia.getContext("2d");
 
     const pintarCuadro = (pedido: number) => {
@@ -267,6 +271,7 @@ export function Retrato() {
         dh,
       );
       cuadroPintado = i;
+      avancePintado = avanceSecuencia;
       return true;
     };
     const limpiarSecuencia = () => {
@@ -315,16 +320,22 @@ export function Retrato() {
         cuadroPedido = Math.round(p * (FOTOGRAMAS - 1));
         secuencia.pedir(cuadroPedido);
         // En vertical el recorte cambia con el avance: se repinta siempre.
+        // En vertical el recorte se mueve con el avance, así que también se
+        // repinta si este cambia; si no, dibujar el mismo fotograma en cada
+        // scroll (al final de la portada, con el avance ya en 1) costaba en
+        // los teléfonos lentos justo cuando entra el túnel.
         if (
           cuadroPedido !== cuadroPintado ||
-          canvasSecuencia.clientWidth < canvasSecuencia.clientHeight
+          (canvasSecuencia.clientWidth < canvasSecuencia.clientHeight &&
+            Math.abs(avanceSecuencia - avancePintado) > 0.0005)
         )
           pintarCuadro(cuadroPedido);
         // El vídeo es más blando que la foto: entra con un fundido corto.
-        canvasSecuencia.style.opacity = Math.min(
-          1,
-          (avance - TRAMO_REVELADO) / TRAMO_FUNDIDO,
-        ).toFixed(3);
+        const opacidad = Math.min(1, (avance - TRAMO_REVELADO) / TRAMO_FUNDIDO).toFixed(3);
+        if (opacidad !== opacidadPuesta) {
+          opacidadPuesta = opacidad;
+          canvasSecuencia.style.opacity = opacidad;
+        }
         setFase("secuencia");
       } else {
         limpiarSecuencia();
@@ -338,6 +349,12 @@ export function Retrato() {
       if (pendiente || !cerca) return;
       pendiente = true;
       requestAnimationFrame(medir);
+    };
+    // Con otro tamaño el lienzo cambia y hay que volver a pintar aunque el
+    // fotograma sea el mismo.
+    const alRedimensionar = () => {
+      cuadroPintado = -1;
+      alScroll();
     };
 
     const arrancar = () => {
@@ -354,7 +371,7 @@ export function Retrato() {
       zona.addEventListener("focus", alFoco);
       zona.addEventListener("blur", alDesenfocar);
       window.addEventListener("scroll", alScroll, { passive: true });
-      window.addEventListener("resize", alScroll);
+      window.addEventListener("resize", alRedimensionar);
       medir();
       if (recorrido)
         dejarDeVigilar = vigilarCercania(recorrido, (c) => {
@@ -407,7 +424,7 @@ export function Retrato() {
       zona.removeEventListener("focus", alFoco);
       zona.removeEventListener("blur", alDesenfocar);
       window.removeEventListener("scroll", alScroll);
-      window.removeEventListener("resize", alScroll);
+      window.removeEventListener("resize", alRedimensionar);
       m?.destruir();
       m = null;
     };

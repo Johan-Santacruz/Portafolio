@@ -368,6 +368,29 @@ párrafo de la portada no lleva halo (un desenfoque por letra que se repintaba
 en cada fotograma) y no hay scroll automático: el dedo ya lleva la página, y
 que siguiera bajando sola al soltarlo confundía.
 
+**Las herramientas, sin quedarse pegadas.** En un iPhone reciente la sección
+iba bien, pero en un gama media se quedaba pegada: el dedo movía la página y
+lo animado llegaba tarde. La causa era el recálculo de estilos. Herramientas
+escribía sus variables de scroll (`--p`, `--pt`, `--vel`, `--arma`…) en la raíz
+de la sección, y cada cambio obligaba al navegador a recalcular los 450
+elementos que cuelgan de ella en cada fotograma: con la CPU a un sexto de
+velocidad, 30-100 ms por fotograma solo en eso. Ahora `poner()` escribe cada
+variable en el elemento más pequeño que la usa (`--p` en el lector y el riel,
+`--pt` y `--vel` en el túnel, `--arma` en la rejilla del criterio, `--corte` en
+su lienzo); el túnel, acabado, sale del todo (`display: none`); y las
+categorías inactivas fijan las variables de la raíz que no usan (`--traga`,
+`--llegada`, `--cubre`), así el recálculo se para en su contenedor sin sacarlas
+del árbol de accesibilidad (con `content-visibility` se ganaba lo mismo, pero
+un lector de pantalla dejaba de encontrar esas herramientas). La portada,
+además, ya no redibuja su fotograma en cada scroll si no ha cambiado.
+
+Medido con un teléfono emulado y la CPU a un sexto de velocidad (un gama
+baja), fotogramas de más de 33 ms: túnel del 99 % al 27 %, lector del 59 % al
+0 %, criterio del 89 % al 12 % y agujero del 98 % al 0 %. A un cuarto (un gama
+media), todo va a 60 fotogramas por segundo salvo algún pico en el criterio.
+Las pruebas leen esas variables donde viven ahora (`DONDE` en
+`tests/portfolio.spec.ts`).
+
 La página se revisa en vertical (320 × 568, 360 × 640, 375 × 667, 390 × 844,
 430 × 932), en horizontal (640 × 360, 667 × 375, 740 × 360, 844 × 390,
 932 × 430) y en tableta. Lo que no se ve a simple vista:

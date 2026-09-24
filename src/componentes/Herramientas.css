@@ -417,6 +417,16 @@
   display: grid;
   grid-template-rows: 1fr auto 1fr;
 }
+/* Las categorías que no están activas no usan las variables de la raíz que
+   cambian con el scroll (la llegada, el agujero, la salida), pero las
+   heredaban: en cada fotograma de esos tramos el navegador recalculaba todas
+   sus placas, y en un teléfono de gama media la sección se quedaba pegada.
+   Fijadas aquí, el recálculo se para en el contenedor de cada categoría. */
+.herr-grupo:not([data-estado="activo"]) {
+  --traga: 0;
+  --llegada: 1;
+  --cubre: 0;
+}
 .herr-grupo > ul {
   grid-row: 2;
 }

@@ -74,6 +74,16 @@ export function Herramientas() {
     const palabras = raiz.querySelector<HTMLElement>(".herr-palabras");
     const marca = raiz.querySelector<HTMLElement>(".herr-marca");
     const destino = raiz.querySelector<HTMLElement>(".herr-destino");
+    // Dónde se escribe cada variable del scroll: en el elemento más pequeño
+    // que la usa. Una variable en la raíz obliga a recalcular el estilo de
+    // los 450 elementos de la sección en cada fotograma, y en un teléfono de
+    // gama media eso eran 30-100 ms por fotograma: la sección se quedaba
+    // pegada. `--p` solo la usan el lector y el riel; `--pt` y `--vel`, el
+    // túnel; `--arma`, la rejilla del criterio.
+    const lector = raiz.querySelector<HTMLElement>(".herr-lector");
+    const riel = raiz.querySelector<HTMLElement>(".herr-riel");
+    const tunelCapa = raiz.querySelector<HTMLElement>(".tunel");
+    const rejillaCriterio = raiz.querySelector<HTMLElement>(".herr-criterio");
 
     // El destino («LENGUAJES» al fondo del túnel) acaba exactamente donde está
     // la primera palabra del lector: se mide esa posición y desde dónde sale
@@ -154,13 +164,19 @@ export function Herramientas() {
       raiz.setAttribute("data-fase", nueva);
     };
 
-    // Escribir una variable CSS invalida el estilo de toda la sección, así
-    // que solo se escribe cuando el valor cambia de verdad.
-    const ultimos = new Map<string, string>();
-    const poner = (nombre: string, valor: string) => {
-      if (ultimos.get(nombre) === valor) return;
-      ultimos.set(nombre, valor);
-      raiz.style.setProperty(nombre, valor);
+    // Escribir una variable CSS invalida el estilo de todo lo que cuelga del
+    // elemento, así que solo se escribe cuando el valor cambia de verdad, y
+    // en los elementos que la usan (la raíz si no se dice otra cosa).
+    const ultimos = new WeakMap<HTMLElement, Map<string, string>>();
+    const poner = (nombre: string, valor: string, ...en: (HTMLElement | null)[]) => {
+      for (const el of en.length ? en : [raiz]) {
+        if (!el) continue;
+        let previos = ultimos.get(el);
+        if (!previos) ultimos.set(el, (previos = new Map()));
+        if (previos.get(nombre) === valor) continue;
+        previos.set(nombre, valor);
+        el.style.setProperty(nombre, valor);
+      }
     };
 
     const limitar = (v: number) => Math.min(1, Math.max(0, v));
@@ -351,7 +367,7 @@ export function Herramientas() {
       const cubre = limitar((alto + cola - caja.bottom) / Math.max(1, cola));
       poner("--cubre", cubre.toFixed(4));
       const pt = limitar((alto - caja.top) / (alto + tunel));
-      poner("--pt", pt.toFixed(4));
+      poner("--pt", pt.toFixed(4), tunelCapa, destino);
       const ahora = performance.now();
       const dt = Math.max(16, ahora - ultimoT);
       // Solo cuenta mientras el túnel está en juego.
@@ -360,7 +376,7 @@ export function Herramientas() {
         vel = Math.max(vel, limitar(inst / 0.9));
         if (!rafVel) rafVel = requestAnimationFrame(apagarVel);
       }
-      poner("--vel", vel.toFixed(3));
+      poner("--vel", vel.toFixed(3), tunelCapa);
       // El túnel es el tramo más largo de todos: en cuanto se pide bajar se
       // recorre entero solo.
       if (pt > 0.02 && pt < 0.9) {
@@ -370,8 +386,8 @@ export function Herramientas() {
       ultimoT = ahora;
       // Al fondo del túnel, «LENGUAJES» crece desde el punto de fuga y se
       // desliza a su sitio; entonces aparece el resto de la sección.
-      poner("--acerca", limitar((pt - 0.42) / 0.4).toFixed(4));
-      poner("--asienta", suave(limitar((pt - 0.8) / 0.12)).toFixed(4));
+      poner("--acerca", limitar((pt - 0.42) / 0.4).toFixed(4), destino);
+      poner("--asienta", suave(limitar((pt - 0.8) / 0.12)).toFixed(4), destino);
       poner("--llegada", suave(limitar((pt - 0.9) / 0.08)).toFixed(4));
       // Después, el lector recorre las categorías con el resto del scroll,
       // menos el tramo que se reserva para el corte: así el corte no comparte
@@ -414,7 +430,7 @@ export function Herramientas() {
         Math.max(0, (avance - PAUSA_INICIO) / (1 - PAUSA_INICIO - PAUSA_FINAL)),
       );
       const p = conReposo(tramo * (total - 1));
-      poner("--p", p.toFixed(4));
+      poner("--p", p.toFixed(4), lector, riel);
       // El armado del criterio: las casillas salen del centro de la pantalla
       // (donde se apaga la luz del corte) y se reparten hasta su sitio, en el
       // tramo que queda entre el corte y el agujero. Es el mismo camino
@@ -426,7 +442,7 @@ export function Herramientas() {
       const trasCorte = Math.max(1, largoLector - sCorte);
       const sArmaFin = sArmaIni + trasCorte * 0.62;
       const arma = limitar((s - sArmaIni) / Math.max(1, sArmaFin - sArmaIni));
-      poner("--arma", arma.toFixed(4));
+      poner("--arma", arma.toFixed(4), rejillaCriterio);
       // Al asomar, se reproduce solo hasta el final de su tramo.
       if (corte > 0.002 && corte < 0.9) {
         gestoCorte = lanzar(
@@ -435,7 +451,7 @@ export function Herramientas() {
           gestoCorte,
         );
       } else if (corte <= 0.002) gestoCorte = 0;
-      poner("--corte", corte.toFixed(4));
+      poner("--corte", corte.toFixed(4), lienzoCorte);
       // El criterio es el capítulo de después del corte.
       raiz.toggleAttribute("data-criterio", corte > 0.5);
       const cuadroCorte = Math.round(corte * (CORTES - 1));

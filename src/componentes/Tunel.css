@@ -130,6 +130,11 @@
 .herramientas:not([data-fase="tunel"]) .tunel-aterriza {
   opacity: 0;
 }
+/* Acabado el túnel, fuera del todo: sus 130 elementos seguían recalculándose
+   en cada fotograma de la sección sin verse. */
+.herramientas:not([data-fase="tunel"]) .tunel {
+  display: none;
+}
 
 /* Centro: la orden se teclea mientras la sección entra. */
 .tunel-centro {

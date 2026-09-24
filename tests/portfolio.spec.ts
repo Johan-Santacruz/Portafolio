@@ -7,6 +7,18 @@ import { trabajos } from "../src/datos/trabajos";
 import { reconocimientos } from "../src/datos/reconocimientos";
 import { stack } from "../src/datos/stack";
 
+/**
+ * Dónde escribe Herramientas.tsx cada variable del scroll (ver `poner`): en el
+ * elemento que la usa, no en la raíz de la sección. Las demás, en la raíz.
+ */
+const DONDE: Record<string, string> = {
+  "--p": ".herr-lector",
+  "--pt": ".tunel",
+  "--vel": ".tunel",
+  "--arma": ".herr-criterio",
+  "--corte": ".herr-corte",
+};
+
 /** La pantalla de carga tapa y bloquea el scroll hasta que la portada está
  *  lista: los tests que se mueven por la página esperan a que se retire. */
 const sinCarga = (page) =>
@@ -28,7 +40,8 @@ async function irAlCriterio(page) {
     await page.evaluate((v) => window.scrollTo(0, v), y);
     await page.waitForTimeout(16);
     const puesto = await page.locator("#herramientas").evaluate((s: HTMLElement) => {
-      const corte = Number(getComputedStyle(s).getPropertyValue("--corte")) || 0;
+      const corte =
+        Number(s.querySelector<HTMLElement>(".herr-corte")!.style.getPropertyValue("--corte")) || 0;
       return (
         corte >= 1 &&
         !!s.querySelector('.herr-grupo[data-estado="activo"] .herr-criterio')
@@ -329,7 +342,13 @@ test("las herramientas pasan por el lector una categoría cada vez", async ({
   await expect(page.locator(".herr-cabecera h2 .herr-r2")).toBeVisible();
   await expect(page.locator(".herr-cabecera h2 .herr-r1")).toBeHidden();
   // El corte entre lo técnico y el criterio ya ha terminado.
-  await expect.poll(() => seccion.evaluate((s) => Number(s.style.getPropertyValue("--corte")))).toBe(1);
+  await expect
+    .poll(() =>
+      seccion.evaluate((s) =>
+        Number(s.querySelector<HTMLElement>(".herr-corte")!.style.getPropertyValue("--corte")),
+      ),
+    )
+    .toBe(1);
   await expect(page.locator(".herr-corte")).toHaveCSS("opacity", "0");
   const anchos = await page.evaluate(() => ({
     bandeja: document.querySelector(".herr-bandeja")!.getBoundingClientRect().width,
@@ -544,7 +563,13 @@ test("el túnel lleva a las herramientas sin salir de la pantalla", async ({
     tunel: (s.querySelector(".herr-sonda") as HTMLElement).offsetTop,
   }));
   const v = (n: string) =>
-    seccion.evaluate((s, n) => Number(s.style.getPropertyValue(n)), n);
+    seccion.evaluate(
+      (s, [n, sel]) =>
+        Number(
+          ((sel && s.querySelector<HTMLElement>(sel)) || (s as HTMLElement)).style.getPropertyValue(n),
+        ) || 0,
+      [n, DONDE[n] ?? ""] as const,
+    );
   // Asomando: el túnel ya avanza y las herramientas aún no están; las placas
   // que salen por arriba cruzan el borde de la sección, sobre la portada.
   await page.evaluate((y) => window.scrollTo(0, y), inicio - alto * 0.5);
@@ -630,7 +655,7 @@ test("en escritorio el scroll con la rueda se desliza y el túnel reacciona a la
     const s = document.getElementById("herramientas")!;
     (window as unknown as { maxVel: number }).maxVel = 0;
     const mirar = () => {
-      const v = Number(s.style.getPropertyValue("--vel")) || 0;
+      const v = Number(s.querySelector<HTMLElement>(".tunel")!.style.getPropertyValue("--vel")) || 0;
       const w = window as unknown as { maxVel: number };
       w.maxVel = Math.max(w.maxVel, v);
       requestAnimationFrame(mirar);
@@ -643,7 +668,9 @@ test("en escritorio el scroll con la rueda se desliza y el túnel reacciona a la
     await page.evaluate(() => (window as unknown as { maxVel: number }).maxVel),
   ).toBeGreaterThan(0.1);
   const vel = () =>
-    page.locator("#herramientas").evaluate((s) => Number(s.style.getPropertyValue("--vel")));
+    page
+      .locator("#herramientas .tunel")
+      .evaluate((t: HTMLElement) => Number(t.style.getPropertyValue("--vel")));
   await expect.poll(vel, { timeout: 4000 }).toBe(0);
 });
 
@@ -794,7 +821,13 @@ test("las animaciones largas se reproducen solas al pedir bajar", async ({
   await page.evaluate(() => document.fonts.ready);
   const seccion = page.locator("#herramientas");
   const v = (n: string) =>
-    seccion.evaluate((s, n) => Number(s.style.getPropertyValue(n)), n);
+    seccion.evaluate(
+      (s, [n, sel]) =>
+        Number(
+          ((sel && s.querySelector<HTMLElement>(sel)) || (s as HTMLElement)).style.getPropertyValue(n),
+        ) || 0,
+      [n, DONDE[n] ?? ""] as const,
+    );
   await page.mouse.move(720, 450);
 
   // Cuánto mide cada tramo en píxeles de scroll.
