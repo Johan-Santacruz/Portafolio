@@ -316,6 +316,41 @@ logo original con `scripts/logo.mjs`, que lo recorta y lo aplana a tres tintas
 (el papel de la página, el azul del logo y el lima de la casa): así el PNG pesa
 14 kB en vez de 170 y aparece de inmediato.
 
+## En el teléfono
+
+La página se revisa en vertical (320 × 568, 360 × 640, 375 × 667, 390 × 844,
+430 × 932), en horizontal (640 × 360, 667 × 375, 740 × 360, 844 × 390,
+932 × 430) y en tableta. Lo que no se ve a simple vista:
+
+- **Horizontal** es su propio caso (`orientation: landscape` y menos de
+  500 px de alto), no una versión estrecha del escritorio ni una ancha del
+  móvil. La trayectoria deja las cinco líneas a la izquierda como índice y
+  pone el detalle del pase activo a la derecha, todos en el mismo sitio y
+  cada uno con su `--luz`: apiladas, las cinco bandas no dejaban nada a la
+  abierta. Las habilidades blandas vuelven a 4 × 2, porque en 2 × 4 cada
+  placa medía 50 px y no cabía la frase. El contacto vuelve al reparto de
+  escritorio, con el titular medido por el alto.
+- **Teléfonos bajos en vertical** (hasta 620 px de alto): la trayectoria
+  quita el encabezado (el riel ya dice en qué pase va) y aprieta las bandas
+  cerradas para que quepan las tres notas del pase abierto. Por debajo de
+  400 px de ancho los dos idiomas se apilan, que en una línea pisaban el riel.
+- **Contacto**: la figura ocupa lo que deja libre el texto, medido desde
+  abajo, en vez de un 62 % fijo que en los teléfonos bajos ponía el titular
+  encima de la cara. La hoja de vida y GitHub también salen en el teléfono:
+  es el único sitio desde el que se abren.
+- **Cabecera**: la letra más pequeña del menú (10 px) es solo para 320; a 360
+  y 375 cabe la de 390. El botón de idioma mide al menos 38 px de ancho, que
+  con dos letras se quedaba en 26. Entre 861 y 1400 px la píldora, con los
+  nombres largos, llega hasta el rótulo de las herramientas: el rótulo baja
+  a la franja de debajo.
+- **Fichas**: el botón de cerrar no se encoge (`flex: 0 0 44px`); con un
+  título largo, a 320 quedaba en 12 px. La barra de la hoja de vida, a 320,
+  pasa la descarga a una segunda línea.
+
+Las dos últimas pruebas de `tests/portfolio.spec.ts` lo vigilan: el pase
+abierto entero en horizontal y a 320, y el contacto con la hoja de vida y
+GitHub a mano sin pisar el pie ni la cabecera.
+
 ## Dos idiomas
 
 La página nace en español y el botón de la cabecera (`EN` / `ES`) la pasa a

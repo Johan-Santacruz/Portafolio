@@ -945,7 +945,7 @@
 /* En un teléfono bajo no queda sitio: el esquema encogería hasta ser una
    mancha de pocos píxeles, y es peor que no ponerlo. En los altos (la
    mayoría hoy) sí cabe. */
-@media (max-width: 860px) and (max-height: 780px) {
+@media (max-width: 860px) and (max-height: 780px), (max-height: 560px) {
   .herr-glifo {
     display: none;
   }
@@ -1040,5 +1040,32 @@
     /* En dos columnas estrechas alguna frase se va a tres líneas: se
        reservan para que las palabras sigan cuadrando entre sí. */
     min-height: 3.96em;
+  }
+}
+/* Móvil en horizontal: en 2 × 4 cada placa medía 50 px de alto y la frase
+   no cabía en ninguna. Con el ancho que hay, vuelve la rejilla de 4 × 2. */
+@media (max-width: 860px) and (orientation: landscape) and (max-height: 500px) {
+  .herr-grupo .herr-criterio {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .herr-grupo .herr-criterio > li {
+    --col: var(--c4);
+    --fila: var(--f4);
+    --cc: 1.5;
+    --cf: 0.5;
+  }
+  .herr-criterio h4 {
+    font-size: clamp(18px, 3.2vw, 26px);
+  }
+}
+/* Entre 861 y 1400 px la píldora de la cabecera, con los nombres largos,
+   llega hasta el rótulo de la sección y lo tapa («Habilidades blandas» a
+   1280, los dos a 1024). El rótulo baja a la franja de debajo. */
+@media (min-width: 861px) and (max-width: 1400px) {
+  .herr-cabecera {
+    top: calc(clamp(14px, 2.4vh, 24px) + 60px);
+  }
+  .herr-grupo:has(.herr-criterio) {
+    padding-top: max(clamp(120px, 19svh, 180px), 152px);
   }
 }

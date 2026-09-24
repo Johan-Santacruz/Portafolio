@@ -995,3 +995,79 @@ test("los reconocimientos cierran el capítulo y llevan a su publicación", asyn
     "Winners of Hackathon Colombia 5.0",
   );
 });
+
+test("en el móvil, también apaisado, el pase abierto de la trayectoria se lee entero", async ({
+  page,
+}) => {
+  // 844 × 390 y 667 × 375 son teléfonos en horizontal: antes las cinco
+  // bandas apiladas no dejaban nada a la abierta. 320 × 568 cortaba notas.
+  for (const [width, height] of [
+    [844, 390],
+    [667, 375],
+    [320, 568],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await page.goto("/");
+    await page.evaluate(() => document.fonts.ready);
+    const seccion = page.locator("#trayectoria");
+    await seccion.evaluate((s) => window.scrollTo(0, s.offsetTop + 20));
+    await expect
+      .poll(() => seccion.evaluate((s) => Number(getComputedStyle(s).getPropertyValue("--p"))))
+      .toBeLessThan(0.01);
+    // Cada pieza del pase abierto, entera: ni recortada por la banda o la
+    // pantalla ni debajo de la línea de idiomas.
+    const tapadas = await page.evaluate(() => {
+      const idiomas = document.querySelector(".tray-idiomas")!.getBoundingClientRect();
+      const piezas = [
+        ...document.querySelectorAll(
+          ".tray-pase:first-child :is(.tray-rol, .tray-lugar, .tray-detalle li)",
+        ),
+      ];
+      return piezas
+        .filter((pieza) => {
+          const r = pieza.getBoundingClientRect();
+          for (let e = pieza.parentElement; e; e = e.parentElement) {
+            if (getComputedStyle(e).overflow === "visible") continue;
+            const a = e.getBoundingClientRect();
+            if (r.bottom > a.bottom + 1 || r.right > a.right + 1) return true;
+          }
+          return r.bottom > idiomas.top && r.right > idiomas.left && r.left < idiomas.right;
+        })
+        .map((pieza) => pieza.textContent);
+    });
+    expect(tapadas, `${width} × ${height}`).toEqual([]);
+  }
+});
+
+test("en el teléfono el contacto deja a mano la hoja de vida y GitHub", async ({ page }) => {
+  // Antes se escondían por debajo de 860 px, y es el único sitio de la página
+  // desde el que se abren.
+  for (const [width, height] of [
+    [390, 844],
+    [320, 568],
+    [667, 375],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await page.goto("/");
+    await page.evaluate(() => document.fonts.ready);
+    const cierre = page.locator("#contacto");
+    await cierre.evaluate((s) => window.scrollTo(0, s.offsetTop + s.offsetHeight));
+    await expect(cierre).toHaveAttribute("data-texto", "");
+    const hoja = page.getByRole("button", { name: /Hoja de vida/ });
+    await expect(hoja).toBeVisible();
+    await expect(page.locator(".cierre-enlace", { hasText: "GitHub" })).toBeVisible();
+    // Nada del texto pisa el pie ni queda bajo la cabecera.
+    const choques = await page.evaluate(() => {
+      const caja = (s: string) => document.querySelector(s)!.getBoundingClientRect();
+      const pie = caja(".cierre-pie");
+      const barra = caja(".cabecera nav");
+      const choca = (a: DOMRect, b: DOMRect) =>
+        a.right > b.left && a.left < b.right && a.bottom > b.top && a.top < b.bottom;
+      return [".cierre-rotulo", ".cierre-texto h2", ".cierre-acciones", ".cierre-enlaces"]
+        .filter((s) => choca(caja(s), pie) || choca(caja(s), barra));
+    });
+    expect(choques, `${width} × ${height}`).toEqual([]);
+    await hoja.click();
+    await expect(page.locator("dialog.hoja-ventana .hoja-paginas img").first()).toBeVisible();
+  }
+});

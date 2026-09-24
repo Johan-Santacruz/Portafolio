@@ -275,6 +275,9 @@
 .proy-cerrar {
   display: grid;
   place-items: center;
+  /* Sin encogerse: con un título largo, en un teléfono de 320 la barra lo
+     dejaba en 12 px de ancho. */
+  flex: 0 0 44px;
   width: 44px;
   height: 44px;
   color: #eef0f2;
@@ -282,7 +285,10 @@
 .proy-cerrar:hover {
   color: var(--accent);
 }
-.proy-cerrar:focus-visible,
+.proy-cerrar:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
 /* Ficha a la izquierda; la landing a la derecha, con su propio scroll. */
 .proy-ventana-cuerpo {
   flex: 1;

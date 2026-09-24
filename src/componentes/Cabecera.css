@@ -160,19 +160,24 @@
     letter-spacing: 0.02em;
   }
   .cabecera-idioma {
+    /* Dos letras dan un botón de 29 px de ancho: poco para un dedo. */
+    min-width: 38px;
     min-height: 36px;
     padding: 0 8px;
     font-size: 10px;
     letter-spacing: 0.04em;
   }
 }
-@media (max-width: 380px) {
+/* Solo los teléfonos de 320 necesitan la letra más pequeña: a 360 y 375 la
+   píldora de 390 cabe con margen. */
+@media (max-width: 350px) {
   .cabecera a {
     padding: 0 7px;
     font-size: 10px;
     letter-spacing: 0;
   }
   .cabecera-idioma {
+    min-width: 34px;
     padding: 0 7px;
     letter-spacing: 0;
   }
