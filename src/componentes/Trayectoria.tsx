@@ -5,6 +5,7 @@ import { useIdioma } from "../idioma/idioma";
 import { textos } from "../idioma/textos";
 import { vigilarCercania } from "../retrato/cercania";
 import { SecuenciaFotogramas } from "../retrato/secuencia";
+import { esCelular } from "../retrato/telefono";
 import "./Trayectoria.css";
 
 /** Fotogramas de la niebla de salida (de `video7.mp4`). Ver README. */
@@ -113,9 +114,9 @@ export function Trayectoria() {
       }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       // Como object-fit: cover, anclado abajo: la niebla entra por ahí.
-      const escala = Math.max(ancho / img.naturalWidth, alto / img.naturalHeight);
-      const dw = img.naturalWidth * escala;
-      const dh = img.naturalHeight * escala;
+      const escala = Math.max(ancho / img.width, alto / img.height);
+      const dw = img.width * escala;
+      const dh = img.height * escala;
       ctx.drawImage(img, (ancho - dw) / 2, alto - dh, dw, dh);
       pintado = quiero;
     };
@@ -132,7 +133,9 @@ export function Trayectoria() {
       ([e]) => {
         if (!e.isIntersecting) return;
         vigiaNiebla.disconnect();
-        secuencia.empezar();
+        // En el celular no hay niebla: el paso al blanco del cierre lo hace
+        // el propio fondo, que ya vira al blanco (ver --fin en el CSS).
+        if (!esCelular()) secuencia.empezar();
       },
       { rootMargin: "0px" },
     );

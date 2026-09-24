@@ -367,6 +367,33 @@ logo original con `scripts/logo.mjs`, que lo recorta y lo aplana a tres tintas
 
 ## En el teléfono
 
+**Modo celular.** En una pantalla táctil de hasta 960 px por lado
+(`src/retrato/telefono.ts`, y la misma consulta en el CSS: busca «Modo
+celular»), la página quita lo decorativo que más pesa y se queda con lo que
+importa:
+
+- Sin túnel: las herramientas entran directamente con su cabecera y el
+  lector (`--tunel: 0`, la fase es siempre «lector»).
+- Sin agujero negro: en su tramo, la pantalla funde a negro (la capa del
+  agujero es solo su fondo, con `opacity: var(--traga)`) y las piezas se
+  apagan en su sitio; sobre ese negro se teclea `ls ./proyectos` y emergen
+  los proyectos, como en escritorio, sin bajar sus 52 fotogramas.
+- Sin niebla en la salida de la trayectoria: el fondo ya vira al blanco, y el
+  tramo es más corto. El velo del contacto se retira antes, para que la
+  figura suba a la vista en vez de dejar un rato la pantalla en blanco.
+- El contacto enseña la figura ya salida: un fotograma, no los 120.
+- El vídeo de fondo de los proyectos se queda en su imagen fija.
+
+La portada se queda entera, que es lo primero que se ve, pero más ligera: el
+párrafo que se teclea ya no hereda `--avance` (Campana.tsx escribe `--k`, las
+letras escritas, solo cuando cambia, a partir del evento `avance` que emite
+Retrato.tsx), y en modo ligero los fotogramas llegan como `ImageBitmap` hechos
+del archivo con `fetch` y `createImageBitmap`, que Chrome descomprime en otro
+hilo: con `<img>` los volvía a descomprimir al pintarlos. Medido con un
+teléfono emulado y la CPU a un cuarto de velocidad (un gama media): todas las
+secciones a 60 fotogramas por segundo; a un sexto (gama baja), solo la
+portada tiene algún pico (14 % de fotogramas lentos, antes 55 %).
+
 **Rendimiento en gama baja.** Las cinco secuencias de fotogramas (retrato,
 corte, agujero, niebla y cierre) suman 361 imágenes de 1280 × 720 o más; el
 cargador (`src/retrato/secuencia.ts`) las descomprimía todas y las guardaba,

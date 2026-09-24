@@ -8,6 +8,7 @@ import { useIdioma } from "../idioma/idioma";
 import { textos } from "../idioma/textos";
 import { Icono } from "./Icono";
 import { vigilarCercania } from "../retrato/cercania";
+import { esCelular } from "../retrato/telefono";
 import "./Proyectos.css";
 
 const ICONOS = `${import.meta.env.BASE_URL}iconos/`;
@@ -116,8 +117,11 @@ export function Proyectos() {
     const video = fondo.current;
     if (!raiz || !video) return;
     const reducido = window.matchMedia("(prefers-reduced-motion: reduce)");
+    // En el celular se queda en su imagen fija (el póster): descodificar
+    // vídeo detrás de todo gastaba batería y fluidez sin aportar tanto.
+    const celular = esCelular();
     const observador = new IntersectionObserver(([entrada]) => {
-      if (entrada.isIntersecting && !reducido.matches)
+      if (entrada.isIntersecting && !reducido.matches && !celular)
         void video.play().catch(() => {});
       else video.pause();
     });

@@ -62,10 +62,8 @@
   width: calc(var(--t) * var(--letras) * 1ch);
   width: round(down, calc(var(--t) * var(--letras) * 1ch), 1ch);
 }
-/* El perfil, como salida de `whoami`. --k es cuántas letras van escritas. */
+/* El perfil, como salida de `whoami`. */
 .cli-perfil {
-  --t: clamp(0, (var(--avance) - var(--ini)) / (var(--fin) - var(--ini)), 1);
-  --k: calc(var(--t) * var(--n));
   /* Hasta donde empieza la cara, que se va a la derecha mientras se teclea. */
   max-width: min(36vw, 30em);
   margin-top: 12px;
@@ -76,6 +74,14 @@
   line-height: 1.62;
   letter-spacing: -0.01em;
   opacity: clamp(0, (var(--avance) - var(--ini)) * 400, 1);
+}
+/* Las letras. --k (cuántas van escritas) lo escribe Campana.tsx solo cuando
+   cambia, y aquí se corta la herencia de --avance: sin ella, las casi 200
+   letras se recalculaban en cada fotograma de la portada aunque ninguna
+   cambiara. */
+.cli-perfil > [aria-hidden] {
+  --avance: 0;
+  --k: 0;
 }
 .cli-perfil > [aria-hidden] > span {
   /* d < 0: ya escrita. 0 ≤ d < 1: la siguiente, que hace de cursor. */
@@ -112,7 +118,7 @@
   vertical-align: -0.2em;
   background: var(--accent);
   box-shadow: 0 0 0 1px rgba(23, 24, 21, 0.25);
-  opacity: clamp(0, (var(--t) - 0.999) * 1000, 1);
+  opacity: clamp(0, (var(--k) - var(--n) + 0.5) * 1000, 1);
   animation: hero-latido 1s steps(2, jump-none) infinite;
 }
 .cli-rol {

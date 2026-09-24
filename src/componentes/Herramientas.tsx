@@ -6,6 +6,7 @@ import { textos } from "../idioma/textos";
 import { vigilarCercania } from "../retrato/cercania";
 import { deslizando, deslizarHasta, irSuave } from "../retrato/suave";
 import { SecuenciaFotogramas } from "../retrato/secuencia";
+import { esCelular } from "../retrato/telefono";
 import { Tunel } from "./Tunel";
 import { Glifo } from "./Glifo";
 import "./Herramientas.css";
@@ -157,6 +158,9 @@ export function Herramientas() {
     let activo = -1;
     let pendiente = false;
     const reducido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // En el celular no hay túnel (ver telefono.ts): la sección entra
+    // directamente con el lector; y el agujero negro es un fundido a negro.
+    const celular = esCelular();
     // Fase de las placas del primer grupo: «tunel» mientras vuelan, «aterrizado»
     // recién llegadas (relevo sin transición) y «lector» en cuanto se mueve
     // la lista; al volver a subir al túnel se reinicia.
@@ -258,8 +262,8 @@ export function Herramientas() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       // Como object-fit: cover, centrado: el agujero nace en el centro de la
       // pantalla y acaba cubriéndola entera.
-      const iw = img.naturalWidth;
-      const ih = img.naturalHeight;
+      const iw = img.width;
+      const ih = img.height;
       const escala = Math.max(ancho / iw, alto / ih);
       const dw = iw * escala;
       const dh = ih * escala;
@@ -299,9 +303,9 @@ export function Herramientas() {
         lienzoCorte.height = h;
       }
       ctxCorte.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const escala = Math.max(ancho / img.naturalWidth, alto / img.naturalHeight);
-      const dw = img.naturalWidth * escala;
-      const dh = img.naturalHeight * escala;
+      const escala = Math.max(ancho / img.width, alto / img.height);
+      const dw = img.width * escala;
+      const dh = img.height * escala;
       ctxCorte.drawImage(img, (ancho - dw) / 2, (alto - dh) / 2, dw, dh);
       pintadoCorte = quiero;
     };
@@ -332,7 +336,9 @@ export function Herramientas() {
       ([e]) => {
         if (!e.isIntersecting) return;
         vigiaAgujero.disconnect();
-        secuencia.empezar();
+        // Sin tramo para el agujero (movimiento reducido) o en el celular,
+        // que en su lugar funde a negro sin fotogramas, nada que descargar.
+        if (!celular && (sondaAgujero?.offsetHeight ?? 0) >= 1) secuencia.empezar();
       },
       { rootMargin: "0px 0px 100% 0px" },
     );
@@ -593,7 +599,9 @@ export function Herramientas() {
       const nuevo = corte > 0.5 ? total - 1 : Math.round(p);
       if (nuevo > 0) movido = true;
       if (pt < 1) movido = false;
-      ponerFase(reducido ? "lector" : pt < 1 ? "tunel" : movido ? "lector" : "aterrizado");
+      ponerFase(
+        reducido || celular ? "lector" : pt < 1 ? "tunel" : movido ? "lector" : "aterrizado",
+      );
       if (nuevo === activo) return;
       activo = nuevo;
       grupos.forEach((g, i) =>

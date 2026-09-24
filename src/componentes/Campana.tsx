@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import { perfil } from "../datos/perfil";
 import { useIdioma } from "../idioma/idioma";
@@ -91,13 +92,35 @@ function Salida({
   const letras = Array.from(texto);
   const desde = enfasis ? texto.indexOf(enfasis) : -1;
   const hasta = desde < 0 ? -1 : desde + (enfasis?.length ?? 0);
+  const total = letras.length;
+  // Cuántas letras van escritas (--k), escrito solo cuando cambia. Si cada
+  // letra lo calculara a partir de --avance, las casi 200 se recalculaban en
+  // cada fotograma de la portada, y en un teléfono de gama media eso era
+  // la mitad del tiempo de cada fotograma.
+  const escritas = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const capa = escritas.current;
+    const portada = capa?.closest("[data-recorrido]");
+    if (!capa || !portada) return;
+    let k = -1;
+    const alAvanzar = (e: Event) => {
+      const avance = (e as CustomEvent<number>).detail;
+      const t = Math.min(1, Math.max(0, (avance - ini) / (fin - ini)));
+      const nuevo = Math.ceil(t * total);
+      if (nuevo === k) return;
+      k = nuevo;
+      capa.style.setProperty("--k", String(k));
+    };
+    portada.addEventListener("avance", alAvanzar);
+    return () => portada.removeEventListener("avance", alAvanzar);
+  }, [ini, fin, total]);
   return (
     <p
       className="cli-perfil"
-      style={{ "--ini": ini, "--fin": fin, "--n": letras.length } as CSSProperties}
+      style={{ "--ini": ini, "--fin": fin, "--n": total } as CSSProperties}
     >
       <span className="solo-lector">{texto}</span>
-      <span aria-hidden="true">
+      <span aria-hidden="true" ref={escritas}>
         {letras.map((letra, i) => (
           <span
             key={i}

@@ -256,11 +256,11 @@ export function Retrato() {
       // pantallas verticales el recorte se desliza con la figura, que en el
       // vídeo acaba en el lado derecho: si no, se saldría de cuadro.
       const escala = Math.max(
-        ancho / img.naturalWidth,
-        alto / img.naturalHeight,
+        ancho / img.width,
+        alto / img.height,
       );
-      const dw = img.naturalWidth * escala;
-      const dh = img.naturalHeight * escala;
+      const dw = img.width * escala;
+      const dh = img.height * escala;
       const vertical = ancho < alto;
       const focoX = vertical ? FOCO.x + 0.13 * avanceSecuencia : FOCO.x;
       ctxSecuencia.drawImage(
@@ -310,6 +310,10 @@ export function Retrato() {
       const base = Math.min(1, avance / TRAMO_REVELADO);
       // El CSS de la portada deriva de aquí lo que aparece con el scroll.
       recorrido.style.setProperty("--avance", avance.toFixed(4));
+      // Y lo avisa: quien solo necesita saber cuándo cambia algo (el párrafo
+      // de la portada, letra a letra) no tiene que heredar --avance y
+      // recalcularse en cada fotograma.
+      recorrido.dispatchEvent(new CustomEvent("avance", { detail: avance }));
       m.avanzar(base);
       const antes = enSecuencia;
       enSecuencia = avance > TRAMO_REVELADO;

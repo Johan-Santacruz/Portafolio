@@ -5,6 +5,7 @@ import { useIdioma } from "../idioma/idioma";
 import { textos } from "../idioma/textos";
 import { Icono } from "./Icono";
 import { SecuenciaFotogramas } from "../retrato/secuencia";
+import { esCelular } from "../retrato/telefono";
 import { vigilarCercania } from "../retrato/cercania";
 import "./Cierre.css";
 
@@ -66,21 +67,24 @@ export function Cierre() {
       }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       // Como object-fit: cover, anclado arriba para no cortar la cabeza.
-      const escala = Math.max(ancho / img.naturalWidth, alto / img.naturalHeight);
-      const dw = img.naturalWidth * escala;
-      const dh = img.naturalHeight * escala;
+      const escala = Math.max(ancho / img.width, alto / img.height);
+      const dw = img.width * escala;
+      const dh = img.height * escala;
       ctx.drawImage(img, (ancho - dw) / 2, (alto - dh) * 0.2, dw, dh);
       pintado = i;
     };
 
+    // En el celular, la figura ya salida: solo el último fotograma, en vez de
+    // los 120 de la secuencia. La niebla de CSS se sigue abriendo delante.
+    const celular = esCelular();
     const secuencia = new SecuenciaFotogramas(
-      FOTOGRAMAS,
-      fotograma,
+      celular ? 1 : FOTOGRAMAS,
+      celular ? () => fotograma(FOTOGRAMAS - 1) : fotograma,
       (i) => {
         if (pintado < 0 || Math.abs(i - pedido) <= 2) pintar(pedido);
       },
       8,
-      (i) => `${CIERRE_MINI}f${String(i).padStart(3, "0")}.jpg`,
+      celular ? undefined : (i) => `${CIERRE_MINI}f${String(i).padStart(3, "0")}.jpg`,
     );
     const vigia = new IntersectionObserver(
       ([entrada]) => {
@@ -109,7 +113,7 @@ export function Cierre() {
       raiz.toggleAttribute("data-texto", avance > 0.62);
       // El vídeo ocupa el 85 % del recorrido; el resto, quieto al final.
       const t = Math.min(1, avance / 0.85);
-      pedido = Math.round(t * (FOTOGRAMAS - 1));
+      pedido = celular ? 0 : Math.round(t * (FOTOGRAMAS - 1));
       secuencia.pedir(pedido);
       if (pedido !== pintado) pintar(pedido);
     };

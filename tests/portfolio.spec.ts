@@ -1174,6 +1174,39 @@ test.describe("en el teléfono", () => {
     expect(await page.evaluate(() => window.scrollY)).toBe(inicio - 100);
   });
 
+  test("en el celular no hay túnel, agujero, niebla ni vídeo, y no se bajan sus fotogramas", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => performance.setResourceTimingBufferSize(5000));
+    await page.goto("/");
+    await sinCarga(page);
+    await page.evaluate(() => document.fonts.ready);
+    await expect(page.locator(".tunel")).toBeHidden();
+    // La página entera, de arriba abajo.
+    await page.evaluate(async () => {
+      for (let y = 0; y < document.body.scrollHeight; y += 60) {
+        window.scrollTo({ top: y, behavior: "instant" });
+        await new Promise((r) => requestAnimationFrame(() => r(null)));
+      }
+    });
+    await page.waitForTimeout(800);
+    const bajadas = await page.evaluate(() =>
+      performance.getEntriesByType("resource").map((r) => r.name),
+    );
+    const de = (carpeta: string) => bajadas.filter((n) => n.includes(`/imagenes/${carpeta}`)).length;
+    expect(de("agujero"), "fotogramas del agujero").toBe(0);
+    expect(de("corte"), "fotogramas del corte").toBe(0);
+    expect(de("niebla"), "fotogramas de la niebla").toBe(0);
+    // Del cierre, solo la figura ya salida.
+    expect(de("cierre"), "fotogramas del cierre").toBe(1);
+    expect(
+      await page.locator(".proy-fondo video").evaluate((v: HTMLVideoElement) => v.paused),
+    ).toBe(true);
+    // Y el contacto llega igual.
+    await expect(page.locator("#contacto")).toHaveAttribute("data-texto", "");
+    await expect(page.getByRole("link", { name: /Escríbeme/ })).toBeVisible();
+  });
+
   test("en el teléfono, tocar una palabra del lector lleva a su categoría", async ({ page }) => {
     await page.goto("/");
     await sinCarga(page);

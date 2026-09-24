@@ -39,8 +39,16 @@ const RADIO = 8;
  *  subir y bajar un poco soltaba y volvía a pedir los mismos. */
 const HOLGURA = 4;
 
+/**
+ * Un fotograma listo para pintar. En modo ligero es un `ImageBitmap`: ya
+ * descomprimido fuera del hilo principal, así pintarlo no cuesta volver a
+ * descomprimirlo (en un teléfono de gama media eran varios milisegundos por
+ * fotograma en plena portada). Los dos tienen `width` y `height`.
+ */
+export type Fotograma = HTMLImageElement | ImageBitmap;
+
 export class SecuenciaFotogramas {
-  readonly cuadros: (HTMLImageElement | null)[];
+  readonly cuadros: (Fotograma | null)[];
   private cola: number[];
   private cargando = 0;
   private activa = false;
@@ -55,6 +63,9 @@ export class SecuenciaFotogramas {
   private limite: number;
   /** Soltada por `soltar()`: lo siguiente que se pida la vuelve a cargar. */
   private suelta = false;
+  /** En modo ligero, los que están llegando (una marca por fotograma): si se
+   *  sueltan antes de llegar, al llegar se descartan. */
+  private enCamino: (object | null)[];
 
   constructor(
     private total: number,
@@ -67,6 +78,7 @@ export class SecuenciaFotogramas {
     this.cuadros = Array(total).fill(null);
     this.minis = Array(total).fill(null);
     this.limite = LIGERO ? Math.min(concurrencia, 3) : concurrencia;
+    this.enCamino = Array(total).fill(null);
     this.cola = LIGERO ? this.ventana() : SecuenciaFotogramas.orden(total);
     this.colaMini = urlMini ? SecuenciaFotogramas.orden(total) : [];
   }
@@ -76,7 +88,8 @@ export class SecuenciaFotogramas {
     const r: number[] = [];
     for (let d = 0; d <= RADIO; d++) {
       for (const n of d ? [this.centro + d, this.centro - d] : [this.centro]) {
-        if (n >= 0 && n < this.total && this.cuadros[n] === null) r.push(n);
+        if (n >= 0 && n < this.total && this.cuadros[n] === null && !this.enCamino[n])
+          r.push(n);
       }
     }
     return r;
@@ -89,8 +102,7 @@ export class SecuenciaFotogramas {
    */
   soltar() {
     if (!LIGERO) return;
-    this.cuadros.fill(null);
-    this.decodificados.clear();
+    for (let n = 0; n < this.total; n++) this.quitar(n);
     this.minis.fill(null);
     this.minisListos.clear();
     // Nada en cola: lo que esté llegando termina y se descarta, y no se
@@ -142,10 +154,8 @@ export class SecuenciaFotogramas {
       // Los buenos que se han quedado lejos, fuera: así la memoria no crece
       // con lo que se va viendo.
       for (let n = 0; n < this.total; n++) {
-        if (this.cuadros[n] !== null && Math.abs(n - i) > RADIO + HOLGURA) {
-          this.cuadros[n] = null;
-          this.decodificados.delete(n);
-        }
+        if ((this.cuadros[n] !== null || this.enCamino[n]) && Math.abs(n - i) > RADIO + HOLGURA)
+          this.quitar(n);
       }
       this.cola = this.ventana();
       this.seguir();
@@ -163,7 +173,16 @@ export class SecuenciaFotogramas {
    * La mejor imagen disponible para `i`: el fotograma bueno; si no, el bueno
    * de un vecino muy próximo; si no, el mini; si no, lo más cercano que haya.
    */
-  mejor(i: number): HTMLImageElement | null {
+  /** Suelta el fotograma `n`; si es un `ImageBitmap`, su memoria al momento. */
+  private quitar(n: number) {
+    const cuadro = this.cuadros[n];
+    if (cuadro && "close" in cuadro) cuadro.close();
+    this.cuadros[n] = null;
+    this.enCamino[n] = null;
+    this.decodificados.delete(n);
+  }
+
+  mejor(i: number): Fotograma | null {
     // Al volver a necesitarla tras soltarla, se recarga sola.
     if (this.suelta) this.pedir(i);
     if (this.listo(i)) return this.cuadros[i];
@@ -220,7 +239,37 @@ export class SecuenciaFotogramas {
       }
       const i = this.cola.shift();
       if (i === undefined) return;
-      if (this.cuadros[i] !== null) continue;
+      if (this.cuadros[i] !== null || this.enCamino[i]) continue;
+      if (LIGERO && typeof createImageBitmap === "function") {
+        // Del archivo a un ImageBitmap, sin pasar por <img>: Chrome lo
+        // descomprime en otro hilo, y pintarlo después no cuesta nada. Con
+        // un <img> de por medio lo volvía a descomprimir en el principal.
+        // El archivo sale de la caché del navegador si ya se había bajado.
+        const marca = {};
+        this.enCamino[i] = marca;
+        this.cargando++;
+        fetch(this.url(i))
+          .then((r) => (r.ok ? r.blob() : Promise.reject(r.status)))
+          .then((b) => createImageBitmap(b))
+          .then((mapa) => {
+            if (this.enCamino[i] !== marca) {
+              mapa.close();
+              return;
+            }
+            this.enCamino[i] = null;
+            this.cuadros[i] = mapa;
+            this.decodificados.add(i);
+            if (this.activa) this.alCargar(i);
+          })
+          .catch(() => {
+            if (this.enCamino[i] === marca) this.enCamino[i] = null;
+          })
+          .finally(() => {
+            this.cargando--;
+            this.seguir();
+          });
+        continue;
+      }
       const img = new Image();
       img.decoding = "async";
       this.cuadros[i] = img;
