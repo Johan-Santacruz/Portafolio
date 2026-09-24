@@ -19,28 +19,38 @@ export function Cabecera() {
   const [marca, setMarca] = useState({ x: 0, ancho: 0 });
 
   useEffect(() => {
-    let pendiente = false;
+    const secciones = APARTADOS.map(a => document.getElementById(a.id));
+    let posiciones: number[] = [];
+    let raf = 0;
     const medir = () => {
-      pendiente = false;
-      const limite = window.innerHeight * 0.4;
+      raf = 0;
+      const limite = window.scrollY + window.innerHeight * 0.4;
       let i = 0;
-      APARTADOS.forEach((a, n) => {
-        const el = document.getElementById(a.id);
-        if (el && el.getBoundingClientRect().top <= limite) i = n;
+      posiciones.forEach((top, n) => {
+        if (top <= limite) i = n;
       });
       setActivo(i);
     };
     const alScroll = () => {
-      if (pendiente) return;
-      pendiente = true;
-      requestAnimationFrame(medir);
+      if (!raf) raf = requestAnimationFrame(medir);
     };
-    medir();
+    // Las secciones conservan su altura durante el recorrido. Solo volver a
+    // medir al cambiar el diseño (fuentes, idioma, tamaño u orientación).
+    const colocar = () => {
+      const y = window.scrollY;
+      posiciones = secciones.map(el => el ? el.getBoundingClientRect().top + y : Infinity);
+      alScroll();
+    };
+    const observador = new ResizeObserver(colocar);
+    secciones.forEach(el => { if (el) observador.observe(el); });
+    colocar();
     window.addEventListener("scroll", alScroll, { passive: true });
-    window.addEventListener("resize", alScroll);
+    window.addEventListener("resize", colocar);
     return () => {
+      cancelAnimationFrame(raf);
+      observador.disconnect();
       window.removeEventListener("scroll", alScroll);
-      window.removeEventListener("resize", alScroll);
+      window.removeEventListener("resize", colocar);
     };
   }, []);
 

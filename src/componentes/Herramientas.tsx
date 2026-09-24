@@ -470,6 +470,8 @@ export function Herramientas() {
       const agujero = sondaAgujero?.offsetHeight ?? 0;
       // Cubierta: de 0 cuando Proyectos asoma por abajo a 1 cuando tapa la
       // pantalla; la sección se hunde un poco y se oscurece por debajo.
+      const anchoCorte = sondaCorte?.offsetHeight ?? 0;
+      const inicio = raiz.offsetTop;
       const cubre = limitar((alto + cola - caja.bottom) / Math.max(1, cola));
       poner("--cubre", cubre.toFixed(4));
       const pt = limitar((alto - caja.top) / (alto + tunel));
@@ -501,7 +503,6 @@ export function Herramientas() {
       // sitio con el paso de una categoría a otra y no se puede pasar de
       // largo por bajar deprisa.
       const largo = caja.height - alto - tunel - cola - agujero;
-      const anchoCorte = sondaCorte?.offsetHeight ?? 0;
       const largoLector = Math.max(1, largo - anchoCorte);
       const s = -caja.top - tunel;
       // Dónde queda el lector al llegar a la penúltima categoría: ahí se
@@ -552,7 +553,7 @@ export function Herramientas() {
       // Al asomar, se reproduce solo hasta el final de su tramo.
       if (corte > 0.002 && corte < 0.9) {
         gestoCorte = lanzar(
-          raiz.offsetTop + tunel + sArmaFin,
+          inicio + tunel + sArmaFin,
           DURACION_CORTE,
           gestoCorte,
         );
@@ -576,7 +577,7 @@ export function Herramientas() {
       if (traga > 0 && !medidas) medirSuccion();
       if (traga > 0.002 && traga < 0.9) {
         gestoAgujero = lanzar(
-          raiz.offsetTop + tunel + largo + agujero,
+          inicio + tunel + largo + agujero,
           DURACION_AGUJERO,
           gestoAgujero,
         );
@@ -646,7 +647,8 @@ export function Herramientas() {
       if (y !== yPrevio) direccion = y > yPrevio ? 1 : -1;
       yPrevio = y;
       window.clearTimeout(relojAsentar);
-      if (cerca) relojAsentar = window.setTimeout(asentar, 200);
+      if (cerca && fino.matches && !reducidoMedia.matches)
+        relojAsentar = window.setTimeout(asentar, 200);
       if (pendiente || !cerca) return;
       pendiente = true;
       requestAnimationFrame(pintar);

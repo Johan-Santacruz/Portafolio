@@ -312,6 +312,9 @@ export function Retrato() {
       const avance =
         largo > 0 ? Math.min(1, Math.max(0, -caja.top / largo)) : 0;
       const base = Math.min(1, avance / TRAMO_REVELADO);
+      // La foto se ve primero. Preparar la secuencia solo cuando el scroll
+      // se acerca al cambio evita descargarla si la persona usa el menú.
+      if (avance > TRAMO_REVELADO * 0.4) secuencia.empezar();
       // El CSS de la portada deriva de aquí lo que aparece con el scroll.
       recorrido.style.setProperty("--avance", avance.toFixed(4));
       // Y lo avisa: quien solo necesita saber cuándo cambia algo (el párrafo
@@ -405,9 +408,6 @@ export function Retrato() {
       temporizadorInsinuar = window.setTimeout(() => {
         if (!zona.matches(":hover") && !enSecuencia) m?.insinuar();
       }, 1400);
-      // Los fotogramas, en cuanto la portada está lista: quien baja deprisa
-      // tiene que encontrarlos ya en camino.
-      secuencia.empezar();
     };
 
     if (imagen.complete && imagen.naturalWidth) arrancar();

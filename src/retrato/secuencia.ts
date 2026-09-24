@@ -1,40 +1,17 @@
 /**
- * Carga de una secuencia de fotogramas que se reproduce con el scroll.
- *
- * En producción cada imagen tarda lo suyo en llegar, y quien baja deprisa
- * pide fotogramas que aún no están. Para que siempre haya algo que enseñar:
- *
- * - el orden es de grueso a fino: primero uno de cada 8 (una muestra de todo
- *   el vídeo), luego los intermedios, hasta completar;
- * - el fotograma pedido, si no está, se adelanta en la cola;
- * - `cercano(i)` devuelve el fotograma cargado más próximo al pedido, para
- *   pintarlo mientras llega el exacto;
- * - cada imagen se descomprime (`decode()`) antes de darla por lista, así el
- *   scroll no se atasca descomprimiendo JPEG al pintar.
- *
- * Si se da una `urlMini`, antes que nada se descarga una versión diminuta de
- * todos los fotogramas (~8 KB cada uno): en un par de segundos hay imagen
- * para cualquier punto del vídeo, borrosa hasta que llega la buena.
- *
- * No descarga nada hasta `empezar()`; `pedir()` antes de eso solo reordena.
- *
- * En un teléfono, o en un equipo con poca memoria, no se guardan todos los
- * fotogramas descomprimidos: las cinco secuencias de la página suman 361
- * imágenes de 1280 × 720 o más, cerca de 1,6 GB en memoria, y un teléfono de
- * gama baja tiene 2 o 3 en total. El navegador acababa tirándolas y
- * volviéndolas a descomprimir al pintar, en pleno scroll: eso eran los
- * tirones. En ese modo (`LIGERO`) solo se guardan los buenos a `RADIO`
- * fotogramas del que se está viendo, se descomprimen como mucho tres a la
- * vez, y `soltar()` lo libera todo cuando la sección se aleja; al volver se
- * piden de nuevo, de la caché del navegador y sin descargarlos otra vez.
+ * Secuencias por scroll: prioriza el cuadro visible, guarda una ventana de
+ * cuadros nítidos a su alrededor y usa muestras pequeñas para saltos largos.
+ * Mantiene la resolución original sin retener toda la película en memoria.
+ * `soltar()` descarta imágenes y bitmaps al alejarse de la sección;
+ * `pedir()` los recupera al volver. Las descargas tardías se descartan.
  */
 const LIGERO =
   typeof window !== "undefined" &&
   (window.matchMedia("(pointer: coarse)").matches ||
     ((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8) <= 4 ||
     (navigator.hardwareConcurrency ?? 8) <= 4);
-/** Buenos que se guardan a cada lado del que se ve (en modo ligero). */
-const RADIO = 8;
+/** Cuadros nítidos a cada lado del visible: menos en equipos limitados. */
+const RADIO = LIGERO ? 8 : 16;
 /** Y cuánto más lejos tiene que quedar uno para soltarlo: sin ese margen,
  *  subir y bajar un poco soltaba y volvía a pedir los mismos. */
 const HOLGURA = 4;
@@ -77,10 +54,18 @@ export class SecuenciaFotogramas {
   ) {
     this.cuadros = Array(total).fill(null);
     this.minis = Array(total).fill(null);
-    this.limite = LIGERO ? Math.min(concurrencia, 3) : concurrencia;
+    this.limite = Math.min(concurrencia, LIGERO ? 3 : 4);
     this.enCamino = Array(total).fill(null);
-    this.cola = LIGERO ? this.ventana() : SecuenciaFotogramas.orden(total);
-    this.colaMini = urlMini ? SecuenciaFotogramas.orden(total) : [];
+    this.cola = this.ventana();
+    this.colaMini = this.muestras();
+  }
+
+  // Una muestra cada ocho fotogramas basta como respaldo para saltos largos.
+  // Descargar todos los minis retrasaba el cuadro nítido que se está mirando.
+  private muestras() {
+    return this.urlMini
+      ? SecuenciaFotogramas.orden(this.total).filter(i => i % 8 === 0 || i === this.total - 1)
+      : [];
   }
 
   /** Los buenos que faltan alrededor del centro, del más cercano al más lejano. */
@@ -95,13 +80,8 @@ export class SecuenciaFotogramas {
     return r;
   }
 
-  /**
-   * En modo ligero, suelta todo lo cargado (buenos y minis) para que el
-   * navegador recupere la memoria. Se llama cuando la sección se aleja; el
-   * siguiente `pedir()` vuelve a cargar lo que haga falta.
-   */
+  /** Libera los cuadros al salir de la sección, también en escritorio. */
   soltar() {
-    if (!LIGERO) return;
     for (let n = 0; n < this.total; n++) this.quitar(n);
     this.minis.fill(null);
     this.minisListos.clear();
@@ -137,6 +117,7 @@ export class SecuenciaFotogramas {
 
   detener() {
     this.activa = false;
+    this.soltar();
   }
 
   listo(i: number) {
@@ -145,27 +126,18 @@ export class SecuenciaFotogramas {
 
   /** Adelanta `i` (y sus vecinos) en la cola si aún no se han pedido. */
   pedir(i: number) {
-    if (LIGERO) {
-      if (this.suelta) {
-        this.suelta = false;
-        this.colaMini = this.urlMini ? SecuenciaFotogramas.orden(this.total) : [];
-      }
-      this.centro = i;
-      // Los buenos que se han quedado lejos, fuera: así la memoria no crece
-      // con lo que se va viendo.
-      for (let n = 0; n < this.total; n++) {
-        if ((this.cuadros[n] !== null || this.enCamino[n]) && Math.abs(n - i) > RADIO + HOLGURA)
-          this.quitar(n);
-      }
-      this.cola = this.ventana();
-      this.seguir();
-      return;
+    if (this.suelta) {
+      this.suelta = false;
+      this.colaMini = this.muestras();
     }
-    const urgentes = [i, i - 1, i + 1, i - 2, i + 2].filter(
-      (n) => n >= 0 && n < this.total && this.cuadros[n] === null,
-    );
-    if (!urgentes.length) return;
-    this.cola = [...urgentes, ...this.cola.filter((n) => !urgentes.includes(n))];
+    this.centro = i;
+    // Los buenos que se han quedado lejos, fuera: así la memoria no crece
+    // con lo que se va viendo.
+    for (let n = 0; n < this.total; n++) {
+      if ((this.cuadros[n] !== null || this.enCamino[n]) && Math.abs(n - i) > RADIO + HOLGURA)
+        this.quitar(n);
+    }
+    this.cola = this.ventana();
     this.seguir();
   }
 
@@ -215,7 +187,9 @@ export class SecuenciaFotogramas {
 
   private seguir() {
     while (this.activa && this.cargando < this.limite) {
-      const m = this.colaMini.shift();
+      // El cuadro exacto siempre tiene prioridad, incluso sobre los minis.
+      const urgente = this.cola[0] === this.centro;
+      const m = urgente ? undefined : this.colaMini.shift();
       if (m !== undefined && this.urlMini) {
         const img = new Image();
         img.decoding = "async";
@@ -240,7 +214,7 @@ export class SecuenciaFotogramas {
       const i = this.cola.shift();
       if (i === undefined) return;
       if (this.cuadros[i] !== null || this.enCamino[i]) continue;
-      if (LIGERO && typeof createImageBitmap === "function") {
+      if (typeof createImageBitmap === "function") {
         // Del archivo a un ImageBitmap, sin pasar por <img>: Chrome lo
         // descomprime en otro hilo, y pintarlo después no cuesta nada. Con
         // un <img> de por medio lo volvía a descomprimir en el principal.

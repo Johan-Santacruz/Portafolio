@@ -12,3 +12,9 @@ playwright-report
 # origen, no hacen falta para construir el sitio: las versiones comprimidas
 # que sí se publican viven en public/imagenes/.
 capturas
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example

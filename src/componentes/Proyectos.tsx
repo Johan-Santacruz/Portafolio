@@ -57,6 +57,7 @@ export function Proyectos() {
       raiz.querySelectorAll<HTMLElement>(".recon-lista li"),
     );
     let pendiente = false;
+    const luces = new WeakMap<HTMLElement, string>();
 
     const medir = () => {
       pendiente = false;
@@ -67,26 +68,22 @@ export function Proyectos() {
       // Cubierta: la sección se desliza sobre la anterior; de 0 al asomar por
       // abajo a 1 al llenar la pantalla (las estelas se encienden con ella).
       const cubre = limitar(1 - caja.top / alto);
+      // Leer todas las cajas antes de tocar estilos: alternar lectura y
+      // escritura por fila forzaba un recálculo por cada proyecto.
+      const medidas = [...filas, ...reconocidos].map((fila, i) => {
+        const cajaFila = fila.getBoundingClientRect();
+        const alcance = alto * (i < filas.length ? 0.22 : 0.34);
+        const d = Math.abs(cajaFila.top + cajaFila.height / 2 - centro);
+        return { fila, luz: Math.max(0, 1 - d / alcance).toFixed(3) };
+      });
       raiz.style.setProperty("--cubre", cubre.toFixed(4));
       // Mientras entra, el contenido se queda quieto en la pantalla y crece
       // desde el centro: parece que sale del fondo del agujero negro.
       raiz.toggleAttribute("data-emerge", cubre > 0 && cubre < 0.999);
-      // Alcance: a qué distancia del centro una fila ya está apagada del todo.
-      const alcance = alto * 0.22;
-      for (const fila of filas) {
-        const caja = fila.getBoundingClientRect();
-        const d = Math.abs(caja.top + caja.height / 2 - centro);
-        const luz = Math.max(0, 1 - d / alcance);
-        fila.style.setProperty("--luz", luz.toFixed(3));
-      }
-      // Las filas de reconocimientos son más bajas y van seguidas: con el
-      // alcance de los proyectos se encendían de una en una y a tirones.
-      const alcanceRecon = alto * 0.34;
-      for (const fila of reconocidos) {
-        const caja = fila.getBoundingClientRect();
-        const d = Math.abs(caja.top + caja.height / 2 - centro);
-        const luz = Math.max(0, 1 - d / alcanceRecon);
-        fila.style.setProperty("--luz", luz.toFixed(3));
+      for (const { fila, luz } of medidas) {
+        if (luces.get(fila) === luz) continue;
+        luces.set(fila, luz);
+        fila.style.setProperty("--luz", luz);
       }
     };
     // Solo se mide con la sección a la vista (ver cercania.ts).
@@ -121,8 +118,10 @@ export function Proyectos() {
     // vídeo detrás de todo gastaba batería y fluidez sin aportar tanto.
     const celular = esCelular();
     const observador = new IntersectionObserver(([entrada]) => {
-      if (entrada.isIntersecting && !reducido.matches && !celular)
+      if (entrada.isIntersecting && !reducido.matches && !celular) {
+        if (!video.getAttribute("src")) video.src = `${MEDIA}estelas.mp4`;
         void video.play().catch(() => {});
+      }
       else video.pause();
     });
     observador.observe(raiz);
@@ -158,12 +157,11 @@ export function Proyectos() {
       <div className="proy-fondo" aria-hidden="true">
         <video
           ref={fondo}
-          src={`${MEDIA}estelas.mp4`}
           poster={`${MEDIA}estelas-poster.jpg`}
           muted
           loop
           playsInline
-          preload="metadata"
+          preload="none"
         />
       </div>
 
