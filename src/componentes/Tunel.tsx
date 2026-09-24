@@ -70,7 +70,9 @@ export function Tunel() {
     );
     return lista.map((nombre, i) => {
       const angulo = i * 2.39996 + azar() * 0.4; // ángulo áureo: sin huecos
-      const radio = 0.62 + azar() * 0.5;
+      // Pegadas a las paredes: el centro queda libre para la orden y para
+      // «LENGUAJES», que nace ahí.
+      const radio = 0.72 + azar() * 0.34;
       return {
         nombre,
         logo: iconos[nombre],
@@ -102,6 +104,9 @@ export function Tunel() {
   return (
     <div className="tunel" aria-hidden="true">
       <div className="tunel-rayos" />
+      {/* La estructura del túnel: marcos que se acercan, en un solo lienzo
+          que pinta Herramientas.tsx con el avance (--pt no llega a canvas). */}
+      <canvas className="tunel-lineas" />
       <div className="tunel-escena">
         {placas.map((p, i) => (
           <span

@@ -1173,4 +1173,72 @@ test.describe("en el teléfono", () => {
     await page.waitForTimeout(1500);
     expect(await page.evaluate(() => window.scrollY)).toBe(inicio - 100);
   });
+
+  test("en el teléfono, tocar una palabra del lector lleva a su categoría", async ({ page }) => {
+    await page.goto("/");
+    await sinCarga(page);
+    await page.evaluate(() => document.fonts.ready);
+    const seccion = page.locator("#herramientas");
+    await seccion.evaluate((s) =>
+      window.scrollTo({
+        top: s.offsetTop + (s.querySelector(".herr-sonda") as HTMLElement).offsetTop + 10,
+        behavior: "instant",
+      }),
+    );
+    const activa = () =>
+      seccion.locator('.herr-grupo[data-estado="activo"] .herr-titulo').textContent();
+    await expect.poll(activa).toBe("Lenguajes");
+    await page
+      .getByRole("navigation", { name: "Categorías de herramientas" })
+      .getByRole("button", { name: "Desarrollo web" })
+      .tap();
+    await expect.poll(activa, { timeout: 5000 }).toBe("Desarrollo web");
+  });
+});
+
+test.describe("navegar por las herramientas", () => {
+  test.use({ reducedMotion: "no-preference" });
+
+  test("cada categoría se puede pulsar y, a medias entre dos, el lector se asienta", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await sinCarga(page);
+    await page.evaluate(() => document.fonts.ready);
+    const seccion = page.locator("#herramientas");
+    const p = () =>
+      seccion.evaluate(
+        (s) => Number(s.querySelector<HTMLElement>(".herr-lector")!.style.getPropertyValue("--p")) || 0,
+      );
+    const activa = () =>
+      seccion.locator('.herr-grupo[data-estado="activo"] .herr-titulo').textContent();
+    // Al lector, recién llegado del túnel.
+    await seccion.evaluate((s) =>
+      window.scrollTo({
+        top: s.offsetTop + (s.querySelector(".herr-sonda") as HTMLElement).offsetTop + 10,
+        behavior: "instant",
+      }),
+    );
+    await expect.poll(activa).toBe("Lenguajes");
+
+    // Cada palabra del lector lleva a su categoría, y queda marcada.
+    const indice = page.getByRole("navigation", { name: "Categorías de herramientas" });
+    await indice.getByRole("button", { name: "IA y datos" }).click();
+    await expect.poll(activa, { timeout: 5000 }).toBe("Inteligencia artificial y datos");
+    await expect.poll(p, { timeout: 5000 }).toBe(2);
+    await expect(indice.getByRole("button", { name: "IA y datos" })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+
+    // Un poco de rueda deja el lector a medias; al soltar, se asienta en
+    // una categoría entera (la siguiente, que ya se había pasado de un tercio).
+    await page.mouse.move(640, 360);
+    for (let i = 0; i < 3; i++) await page.mouse.wheel(0, 70);
+    await expect.poll(async () => { const v = await p(); return v > 2.02 && v < 2.98; }).toBe(true);
+    await expect
+      .poll(async () => { const v = await p(); return Math.abs(v - Math.round(v)) < 0.001; }, { timeout: 4000 })
+      .toBe(true);
+    expect(await p()).toBe(3);
+  });
 });

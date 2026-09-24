@@ -39,6 +39,15 @@
   will-change: transform, opacity;
 }
 
+/* Los marcos del túnel (ver Herramientas.tsx, pintarLineas). */
+.tunel-lineas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
 .tunel-escena {
   position: absolute;
   inset: 0;
@@ -69,17 +78,22 @@
   translate: -50% -50%;
   /* A más velocidad, las placas se estiran un poco en horizontal: sensación
      de avance sin desenfoques caros. */
+  /* Sobre las paredes: cada placa mira hacia el eje del túnel (gira según
+     el lado en que está), así se lee que van por dentro de un tubo y no que
+     flotan sueltas. */
   transform: translate3d(
       calc(var(--cx) * var(--ex)),
       calc(var(--cy) * var(--ey)),
       calc(var(--zn) * 1px)
     )
+    rotateY(calc(var(--cx) * -32deg))
+    rotateX(calc(var(--cy) * 26deg))
     scale(calc(1 + var(--vel) * 0.35), calc(1 - var(--vel) * 0.12));
-  /* Aparece desde la niebla del fondo y solo se apaga al pasar junto a la
-     cámara, cuando ya ha salido por los bordes de la pantalla (así se ve
-     salir en 3D, también por encima de la portada). */
+  /* Aparece a media distancia (más al fondo eran motas que no se leían) y
+     solo se apaga al pasar junto a la cámara, cuando ya ha salido por los
+     bordes de la pantalla (así se ve salir en 3D, también sobre la portada). */
   opacity: min(
-    clamp(0, (var(--zn) + 3000) / 1500, 1),
+    clamp(0, (var(--zn) + 2300) / 1100, 1),
     clamp(0, (620 - var(--zn)) / 120, 1)
   );
   will-change: transform, opacity;
@@ -120,6 +134,9 @@
       calc(var(--cy) * var(--ey) * (1 - var(--ab)) + var(--ty, 0px) * var(--ab)),
       calc(var(--zn) * 1px)
     )
+    /* Se endereza al aterrizar: en su casilla va de frente. */
+    rotateY(calc(var(--cx) * -32deg * (1 - var(--a))))
+    rotateX(calc(var(--cy) * 26deg * (1 - var(--a))))
     scale(
       calc(1 + var(--vel) * 0.35 * (1 - var(--a))),
       calc(1 - var(--vel) * 0.12 * (1 - var(--a)))

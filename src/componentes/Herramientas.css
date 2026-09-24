@@ -379,6 +379,8 @@
 }
 .herr-palabras li::after {
   content: attr(data-texto);
+  /* Sin texto alternativo: el nombre ya lo lee el botón. */
+  content: attr(data-texto) / "";
   position: absolute;
   inset: 0;
   display: flex;
@@ -387,6 +389,26 @@
   -webkit-text-stroke: 1.2px #1d1f22;
   opacity: var(--luz);
   will-change: opacity;
+  /* El clic, al botón de debajo. */
+  pointer-events: none;
+}
+/* Cada palabra es un botón que lleva a su categoría: se ve igual que la
+   palabra (hereda el contorno y el tamaño) y se enciende al señalarla. */
+.herr-ir {
+  all: unset;
+  cursor: pointer;
+}
+.herr-ir:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 6px;
+}
+.herr-palabras li:has(.herr-ir:hover),
+.herr-palabras li:has(.herr-ir:focus-visible) {
+  opacity: 1;
+}
+.herr-palabras li:has(.herr-ir:hover)::after,
+.herr-palabras li:has(.herr-ir:focus-visible)::after {
+  opacity: max(var(--luz), 0.55);
 }
 /* Cabezal de lectura: fijo en el centro; las palabras pasan por él. */
 .herr-marca {
@@ -748,6 +770,12 @@
 .herramientas[data-criterio] .herr-lector {
   transform: translate3d(-34%, 0, 0);
   opacity: 0;
+  /* Apagado, sus palabras no se llevan los clics de las casillas. */
+  pointer-events: none;
+}
+/* Y mientras dura el túnel, que aún no ha llegado. */
+.herramientas[data-fase="tunel"] .herr-lector {
+  pointer-events: none;
 }
 .herr-lector {
   transition:

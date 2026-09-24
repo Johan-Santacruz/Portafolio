@@ -139,6 +139,27 @@ automatización y control de versiones, y al final las habilidades blandas.
 Añadir una herramienta es añadirla a su lista y su logo a `iconos`; una
 categoría nueva entra sola en el lector, el túnel y el riel.
 
+**El túnel.** Las placas de todas las herramientas vienen del fondo por un
+túnel en 3D (`Tunel.tsx`, `Tunel.css`). Lo que hace que se lea como túnel son
+sus marcos: rectángulos achaflanados, como las placas, que se acercan, crecen
+y giran un poco al avanzar, uno de cada cuatro en lima. Van en un solo lienzo
+(`.tunel-lineas`) que pinta `pintarLineas` en `Herramientas.tsx` con el mismo
+avance, la misma perspectiva (700) y el mismo recorrido (4600) que las placas;
+en el teléfono, a densidad 1, que a doble subirlo a la GPU en cada fotograma
+costaba más que el resto del túnel. Las placas van pegadas a las paredes y
+giradas hacia el eje (rotateY y rotateX según el lado), y aparecen a media
+distancia: más al fondo eran motas que no se leían. Las que aterrizan en
+«Lenguajes» se enderezan al llegar.
+
+**Moverse por las categorías.** El lector también es el índice: cada palabra
+es un botón (`.herr-ir`, dentro de un `nav`) que lleva al reposo de su
+categoría (`destinoDe`, el cálculo de `pintar` al revés), y la activa lleva
+`aria-current`. En escritorio, si se deja de hacer scroll a medias entre dos
+categorías, la página se asienta en la más cercana (hacia la que se iba, si
+ya se había pasado de un tercio) con un deslizamiento corto sin cerrojo
+(`irSuave`), que la rueda interrumpe en cuanto se mueve. En el teléfono no se
+asienta sola: el dedo ya lleva la página.
+
 Los logos (`public/iconos/`) son de Simple Icons, salvo los que dice el
 comentario de `iconos`: Codex no tiene logo propio y lleva una terminal,
 ChatGPT lleva el de OpenAI y Llama el de Meta. Por el túnel pasan siempre 50

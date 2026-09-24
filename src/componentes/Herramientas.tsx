@@ -4,7 +4,7 @@ import { iconos, stack } from "../datos/stack";
 import { useIdioma } from "../idioma/idioma";
 import { textos } from "../idioma/textos";
 import { vigilarCercania } from "../retrato/cercania";
-import { deslizando, deslizarHasta } from "../retrato/suave";
+import { deslizando, deslizarHasta, irSuave } from "../retrato/suave";
 import { SecuenciaFotogramas } from "../retrato/secuencia";
 import { Tunel } from "./Tunel";
 import { Glifo } from "./Glifo";
@@ -59,11 +59,15 @@ function conReposo(x: number) {
 export function Herramientas() {
   const { di } = useIdioma();
   const seccion = useRef<HTMLElement>(null);
+  // Ir a una categoría al pulsar su palabra en el lector. Lo rellena el
+  // efecto, que es quien sabe dónde queda cada una.
+  const irA = useRef<(i: number) => void>(() => {});
 
   useEffect(() => {
     const raiz = seccion.current;
     if (!raiz) return;
     const grupos = Array.from(raiz.querySelectorAll<HTMLElement>(".herr-grupo"));
+    const botones = Array.from(raiz.querySelectorAll<HTMLElement>(".herr-ir"));
     // Mide --tunel en px (svh no se puede leer desde CSS).
     const sonda = raiz.querySelector<HTMLElement>(".herr-sonda");
     const sondaAgujero = raiz.querySelector<HTMLElement>(".herr-sonda-agujero");
@@ -334,6 +338,77 @@ export function Herramientas() {
     );
     if (sondaAgujero) vigiaAgujero.observe(sondaAgujero);
 
+    // --- La estructura del túnel -------------------------------------------
+    // Marcos achaflanados, como las placas, repartidos a lo largo del túnel:
+    // al avanzar la cámara se acercan, crecen, giran un poco y pasan por los
+    // lados. Son los que dan la profundidad: sin ellos, las placas lejanas
+    // eran motas sobre blanco y no se leía que aquello fuera un túnel. Un
+    // solo lienzo y una veintena de trazos por fotograma; misma perspectiva
+    // y mismo recorrido que las placas (Tunel.css), para que avancen juntos.
+    const lineas = raiz.querySelector<HTMLCanvasElement>(".tunel-lineas");
+    const ctxLineas = lineas?.getContext("2d") ?? null;
+    let lineasPintadas = "";
+    const PERSPECTIVA = 700;
+    const VIAJE = 4600;
+    const pintarLineas = (pt: number, vel: number) => {
+      if (!lineas || !ctxLineas) return;
+      const clave = `${pt.toFixed(4)}|${vel.toFixed(2)}`;
+      if (clave === lineasPintadas) return;
+      lineasPintadas = clave;
+      const ancho = lineas.clientWidth;
+      const alto = lineas.clientHeight;
+      if (!ancho || !alto) return;
+      // En el teléfono, a densidad 1: son líneas finas y tenues, y a doble
+      // densidad subir el lienzo a la GPU en cada fotograma costaba más que
+      // el resto del túnel en uno de gama media.
+      const dpr = tactil.matches ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+      const w = Math.round(ancho * dpr);
+      const h = Math.round(alto * dpr);
+      if (lineas.width !== w || lineas.height !== h) {
+        lineas.width = w;
+        lineas.height = h;
+      }
+      const c = ctxLineas;
+      c.setTransform(dpr, 0, 0, dpr, 0, 0);
+      c.clearRect(0, 0, ancho, alto);
+      // Aparece al entrar y se va mientras «LENGUAJES» se asienta.
+      const presencia = limitar(pt / 0.06) * limitar((0.9 - pt) / 0.14);
+      if (presencia <= 0) return;
+      for (let k = 0; k < 20; k++) {
+        const z = -k * 420 + pt * VIAJE;
+        if (z < -3600 || z > PERSPECTIVA * 0.86) continue;
+        const escala = PERSPECTIVA / (PERSPECTIVA - z);
+        const a =
+          limitar((z + 3600) / 1900) *
+          limitar((PERSPECTIVA * 0.86 - z) / 240) *
+          presencia *
+          (0.75 + vel * 0.5);
+        if (a < 0.01) continue;
+        const mw = ancho * 0.52 * escala;
+        const mh = alto * 0.52 * escala;
+        const chaflan = Math.min(mw, mh) * 0.14;
+        c.save();
+        c.translate(ancho / 2, alto / 2);
+        c.rotate(k * 0.085 + pt * 0.5);
+        c.beginPath();
+        c.moveTo(-mw, -mh);
+        c.lineTo(mw - chaflan, -mh);
+        c.lineTo(mw, -mh + chaflan);
+        c.lineTo(mw, mh);
+        c.lineTo(-mw + chaflan, mh);
+        c.lineTo(-mw, mh - chaflan);
+        c.closePath();
+        c.lineWidth = Math.min(3, 0.6 + escala * 0.9);
+        // Uno de cada cuatro en lima: marca el ritmo del avance.
+        c.strokeStyle =
+          k % 4 === 0
+            ? `rgba(140, 194, 26, ${Math.min(1, a * 0.95).toFixed(3)})`
+            : `rgba(23, 24, 21, ${(a * 0.28).toFixed(3)})`;
+        c.stroke();
+        c.restore();
+      }
+    };
+
     // Velocidad del túnel (0 a 1): sube de golpe al bajar rápido y se
     // apaga sola en unos cientos de ms cuando el scroll se detiene.
     let vel = 0;
@@ -352,6 +427,31 @@ export function Herramientas() {
       } else rafVel = requestAnimationFrame(apagarVel);
       if (!pendiente) pintar();
     };
+    // Dónde queda en la página el reposo de cada categoría: el mismo cálculo
+    // que hace `pintar` al revés. El del criterio va detrás del corte.
+    const destinoDe = (i: number) => {
+      const alto = window.innerHeight;
+      const tunel = sonda?.offsetTop ?? 0;
+      const cola = sonda?.offsetHeight ?? 0;
+      const agujero = sondaAgujero?.offsetHeight ?? 0;
+      const largo = raiz.offsetHeight - alto - tunel - cola - agujero;
+      const anchoCorte = sondaCorte?.offsetHeight ?? 0;
+      const largoLector = Math.max(1, largo - anchoCorte);
+      const avance =
+        PAUSA_INICIO + (i / (total - 1)) * (1 - PAUSA_INICIO - PAUSA_FINAL);
+      let s = avance * largoLector;
+      if (i === total - 1 && anchoCorte >= 1) s += anchoCorte;
+      return raiz.offsetTop + tunel + s;
+    };
+    // Lo último que pintó `pintar`: para saber si el lector está a medias.
+    let ultimoP = 0;
+    let ultimoCorte = 0;
+    let ultimaTraga = 0;
+    irA.current = (i: number) => {
+      const pasos = Math.abs(i - ultimoP);
+      irSuave(destinoDe(i), Math.min(1400, 450 + 160 * pasos));
+    };
+
     const pintar = () => {
       pendiente = false;
       const caja = raiz.getBoundingClientRect();
@@ -377,6 +477,7 @@ export function Herramientas() {
         if (!rafVel) rafVel = requestAnimationFrame(apagarVel);
       }
       poner("--vel", vel.toFixed(3), tunelCapa);
+      if (pt > 0 && pt < 1) pintarLineas(pt, vel);
       // El túnel es el tramo más largo de todos: en cuanto se pide bajar se
       // recorre entero solo.
       if (pt > 0.02 && pt < 0.9) {
@@ -440,7 +541,9 @@ export function Herramientas() {
       // pantalla y la primera fila se armaba sin que se viera.
       const sArmaIni = sinCorte ? sCorte + paso / 2 : sCorte + anchoCorte;
       const trasCorte = Math.max(1, largoLector - sCorte);
-      const sArmaFin = sArmaIni + trasCorte * 0.62;
+      // Sin corte (teléfono) termina justo al asentarse el criterio: si no,
+      // al ir a «Cómo trabajo» las casillas llegaban a medio armar.
+      const sArmaFin = sinCorte ? sCorte + paso : sArmaIni + trasCorte * 0.62;
       const arma = limitar((s - sArmaIni) / Math.max(1, sArmaFin - sArmaIni));
       poner("--arma", arma.toFixed(4), rejillaCriterio);
       // Al asomar, se reproduce solo hasta el final de su tramo.
@@ -484,6 +587,9 @@ export function Herramientas() {
       }
       if (traga > 0 && pedido !== pintadoAgujero) pintarAgujero(pedido);
       ultimoY = window.scrollY;
+      ultimoP = p;
+      ultimoCorte = corte;
+      ultimaTraga = traga;
       // Durante el corte el lector se queda en la penúltima categoría, pero
       // lo que hay detrás ya tiene que ser el criterio: si no, al aclararse
       // el barrido se ven todavía las placas de la anterior.
@@ -499,16 +605,49 @@ export function Herramientas() {
           i < activo ? "antes" : i > activo ? "despues" : "activo",
         ),
       );
+      botones.forEach((b, i) =>
+        i === activo ? b.setAttribute("aria-current", "true") : b.removeAttribute("aria-current"),
+      );
 
     };
+    // --- Asentar el lector ---------------------------------------------------
+    // Cada categoría pide un tramo de scroll, y quien se paraba a medias veía
+    // dos palabras encendidas a medias y las placas de las dos cruzándose. En
+    // escritorio, al dejar de hacer scroll entre dos, la página se desliza a
+    // la más cercana (hacia la que se iba, si ya se había pasado de un
+    // tercio). Sin cerrojo: la rueda manda en cuanto se mueve. En el teléfono
+    // no, que el dedo ya lleva la página y moverla sola confunde.
+    const fino = window.matchMedia("(hover: hover) and (pointer: fine)");
+    let relojAsentar = 0;
+    let yPrevio = window.scrollY;
+    let direccion = 1;
+    const asentar = () => {
+      if (!fino.matches || reducidoMedia.matches || deslizando()) return;
+      // Solo en el lector: ni en el túnel, ni en el corte, ni en el agujero.
+      if (ultimoPt < 1 || ultimaTraga > 0 || (ultimoCorte > 0 && ultimoCorte < 1)) return;
+      const base = Math.floor(ultimoP);
+      const fraccion = ultimoP - base;
+      if (fraccion < 0.01 || fraccion > 0.99) return;
+      let i = fraccion > (direccion > 0 ? 0.35 : 0.65) ? base + 1 : base;
+      // Pasado el corte ya se está en el criterio: volver atrás lo repetiría.
+      if (ultimoCorte >= 1 && (sondaCorte?.offsetHeight ?? 0) >= 1) i = total - 1;
+      irSuave(destinoDe(i), 420);
+    };
+
     // Solo se mide con la sección a la vista (ver cercania.ts).
     let cerca = true;
     const alScroll = () => {
+      const y = window.scrollY;
+      if (y !== yPrevio) direccion = y > yPrevio ? 1 : -1;
+      yPrevio = y;
+      window.clearTimeout(relojAsentar);
+      if (cerca) relojAsentar = window.setTimeout(asentar, 200);
       if (pendiente || !cerca) return;
       pendiente = true;
       requestAnimationFrame(pintar);
     };
     const alRedimensionar = () => {
+      lineasPintadas = "";
       colocarDestino();
       medidas = false;
       alScroll();
@@ -539,6 +678,7 @@ export function Herramientas() {
       cancelAnimationFrame(rafVel);
       window.removeEventListener("scroll", alScroll);
       window.removeEventListener("resize", alRedimensionar);
+      window.clearTimeout(relojAsentar);
     };
   }, []);
 
@@ -581,8 +721,9 @@ export function Herramientas() {
         </header>
 
         {/* Decorativa: los nombres reales están en los h3 de cada grupo. */}
-        <div className="herr-lector" aria-hidden="true">
-          <span className="herr-marca" />
+        {/* El lector también es el índice: cada palabra lleva a su categoría. */}
+        <nav className="herr-lector" aria-label={di(textos.categorias)}>
+          <span className="herr-marca" aria-hidden="true" />
           <ul className="herr-palabras">
             {stack.map((grupo, i) => (
               <li
@@ -590,11 +731,18 @@ export function Herramientas() {
                 style={{ "--i": i } as CSSProperties}
                 data-texto={di(grupo.palabra ?? grupo.titulo)}
               >
-                {di(grupo.palabra ?? grupo.titulo)}
+                <button
+                  type="button"
+                  className="herr-ir"
+                  aria-current={i === 0 ? "true" : undefined}
+                  onClick={() => irA.current(i)}
+                >
+                  {di(grupo.palabra ?? grupo.titulo)}
+                </button>
               </li>
             ))}
           </ul>
-        </div>
+        </nav>
 
         <div className="herr-bandeja">
           {stack.map((grupo, g) => (

@@ -110,6 +110,8 @@ export const textos = {
   },
   escribeme: { es: "Escríbeme", en: "Email me" },
   copiado: { es: "Copiado", en: "Copied" },
+  // El lector de las herramientas: cada categoría es un botón que lleva a ella.
+  categorias: { es: "Categorías de herramientas", en: "Tool categories" },
   // El pie: la página es obra propia y está protegida por derechos de autor.
   derechos: { es: "Todos los derechos reservados", en: "All rights reserved" },
   obraPropia: { es: "Diseño y código originales", en: "Original design and code" },

@@ -106,6 +106,21 @@ export function deslizarHasta(y: number, ms: number) {
   return true;
 }
 
+/**
+ * Lleva la página a `y` con un deslizamiento corto que se puede interrumpir
+ * en cualquier momento: sin cerrojo, la rueda o el dedo mandan en cuanto se
+ * mueven. Es para lo que pide quien lee (ir a una categoría) o para asentar el
+ * lector en la categoría más cercana, no para las animaciones largas.
+ */
+export function irSuave(y: number, ms: number) {
+  if (lenis) {
+    lenis.scrollTo(y, { duration: ms / 1000, easing: suave });
+    return;
+  }
+  const reducido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  window.scrollTo({ top: y, behavior: reducido ? "instant" : "smooth" });
+}
+
 /** Si hay un deslizamiento automático en marcha. */
 export function deslizando() {
   return enCurso;
