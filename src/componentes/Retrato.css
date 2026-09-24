@@ -68,29 +68,54 @@
       )
       top / 100% 46px no-repeat;
   opacity: 0;
-  animation: retrato-escanear 1.5s cubic-bezier(0.4, 0, 0.2, 1) 0.35s forwards;
 }
-/* Franja del cyborg detrás de la línea: mismo ritmo que el escaneo (una sola
-   curva de 0 % a 100 %), así el borde inferior de la franja va pegado a la
-   línea. Recorte: de [y − 24 %, y] con y bajando de 0 a 100 %. */
+/* Franja de altura fija: su ventana baja y la imagen se mueve exactamente
+   al revés dentro. El rostro permanece alineado sin animar un clip-path de
+   pantalla completa, que obligaba a repintar la fotografía en cada paso. */
 .retrato-intro {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: 24%;
+  overflow: hidden;
   pointer-events: none;
-  clip-path: inset(-24% 0 100% 0);
+  opacity: 0;
+  transform: translate3d(0, -100%, 0);
+}
+.retrato-intro-imagen {
+  display: block;
+  width: 100%;
+  height: calc(100% / 0.24);
+  max-width: none;
+  object-fit: cover;
+  transform: translate3d(0, 24%, 0);
+}
+.retrato[data-listo="true"]:not([data-intro-terminada]) .retrato-intro {
   animation:
-    retrato-intro-barrido 1.5s cubic-bezier(0.4, 0, 0.2, 1) 0.35s forwards,
-    retrato-intro-fundido 1.5s linear 0.35s forwards;
+    retrato-intro-barrido 1.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both,
+    retrato-intro-fundido 1.5s linear 0.2s both;
+}
+.retrato[data-listo="true"]:not([data-intro-terminada]) .retrato-intro-imagen {
+  animation: retrato-intro-compensar 1.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+}
+.retrato[data-listo="true"]:not([data-intro-terminada]) .retrato-escaner {
+  animation: retrato-escanear 1.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
 }
 @keyframes retrato-intro-barrido {
   from {
-    clip-path: inset(-24% 0 100% 0);
+    transform: translate3d(0, -100%, 0);
   }
   to {
-    clip-path: inset(76% 0 0% 0);
+    transform: translate3d(0, calc(100% * 0.76 / 0.24), 0);
+  }
+}
+@keyframes retrato-intro-compensar {
+  from {
+    transform: translate3d(0, 24%, 0);
+  }
+  to {
+    transform: translate3d(0, -76%, 0);
   }
 }
 @keyframes retrato-intro-fundido {

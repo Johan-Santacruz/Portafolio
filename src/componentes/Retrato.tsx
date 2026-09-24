@@ -229,33 +229,42 @@ export function Retrato() {
     // él, pero si no ha cambiado no hay nada que volver a dibujar.
     let avancePintado = -1;
     let opacidadPuesta = "";
+    let rafCuadro = 0;
+    let anchoSecuencia = 0;
+    let altoSecuencia = 0;
+    let dprSecuencia = 1;
     const ctxSecuencia = canvasSecuencia.getContext("2d");
-
-    const pintarCuadro = (pedido: number) => {
-      // La mejor imagen disponible (exacta, vecina o mini mientras llega).
-      const img = secuencia.mejor(pedido);
-      const i = pedido;
-      if (!img || !ctxSecuencia) return false;
+    const dimensionarSecuencia = () => {
       // Sin más resolución que la del fotograma: más píxeles no añaden
       // detalle y cada uno hay que subirlo a la GPU en cada scroll.
       // Se mide con la escala real de «cover»: en vertical la imagen se
       // amplía por su altura y un píxel de origen ocupa más de uno de CSS.
       // (Con el tamaño del fotograma bueno, no el de la imagen que toque:
       // así el lienzo no cambia de tamaño al pasar de mini a bueno.)
-      const cubre = Math.max(
-        canvasSecuencia.clientWidth / ANCHO_FOTOGRAMA,
-        canvasSecuencia.clientHeight / ALTO_FOTOGRAMA,
-      );
-      const dpr = Math.min(window.devicePixelRatio || 1, Math.max(1, 1 / cubre));
       const ancho = canvasSecuencia.clientWidth;
       const alto = canvasSecuencia.clientHeight;
+      const cubre = Math.max(ancho / ANCHO_FOTOGRAMA, alto / ALTO_FOTOGRAMA);
+      const dpr = Math.min(window.devicePixelRatio || 1, Math.max(1, 1 / cubre));
+      anchoSecuencia = ancho;
+      altoSecuencia = alto;
+      dprSecuencia = dpr;
       const w = Math.round(ancho * dpr);
       const h = Math.round(alto * dpr);
       if (canvasSecuencia.width !== w || canvasSecuencia.height !== h) {
         canvasSecuencia.width = w;
         canvasSecuencia.height = h;
       }
-      ctxSecuencia.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    dimensionarSecuencia();
+
+    const pintarCuadro = (pedido: number) => {
+      // Las dimensiones se miden al redimensionar, nunca después de escribir
+      // estilos durante el scroll. Se conserva la resolución original.
+      const img = secuencia.mejor(pedido);
+      if (!img || !ctxSecuencia) return false;
+      const ancho = anchoSecuencia;
+      const alto = altoSecuencia;
+      ctxSecuencia.setTransform(dprSecuencia, 0, 0, dprSecuencia, 0, 0);
       // Mismo recorte que la foto: cover con el punto focal compartido. En
       // pantallas verticales el recorte se desliza con la figura, que en el
       // vídeo acaba en el lado derecho: si no, se saldría de cuadro.
@@ -274,7 +283,7 @@ export function Retrato() {
         dw,
         dh,
       );
-      cuadroPintado = i;
+      cuadroPintado = pedido;
       avancePintado = avanceSecuencia;
       return true;
     };
@@ -292,10 +301,14 @@ export function Retrato() {
     const secuencia = new SecuenciaFotogramas(
       FOTOGRAMAS,
       fotograma,
-      (i) => {
-        // Si llega algo para el fotograma pedido (o casi), se repinta.
-        if (enSecuencia && Math.abs(i - cuadroPedido) <= 2)
-          pintarCuadro(cuadroPedido);
+      () => {
+        // Varias descargas pueden completarse juntas. Pintar una sola vez
+        // en el próximo frame, usando el destino actual, evita ráfagas.
+        if (!enSecuencia || rafCuadro) return;
+        rafCuadro = requestAnimationFrame(() => {
+          rafCuadro = 0;
+          if (enSecuencia && cerca && !cancelado) pintarCuadro(cuadroPedido);
+        });
       },
       8,
       (i) => `${RETRATO}secuencia-mini/f${String(i).padStart(3, "0")}.jpg`,
@@ -312,9 +325,16 @@ export function Retrato() {
       const avance =
         largo > 0 ? Math.min(1, Math.max(0, -caja.top / largo)) : 0;
       const base = Math.min(1, avance / TRAMO_REVELADO);
+      if (avance > 0 && !zona.hasAttribute("data-intro-terminada"))
+        zona.setAttribute("data-intro-terminada", "");
+      if (avance > 0 && temporizadorInsinuar) {
+        clearTimeout(temporizadorInsinuar);
+        temporizadorInsinuar = 0;
+        m.salir();
+      }
       // La foto se ve primero. Preparar la secuencia solo cuando el scroll
       // se acerca al cambio evita descargarla si la persona usa el menú.
-      if (avance > TRAMO_REVELADO * 0.4) secuencia.empezar();
+      if (avance > 0) secuencia.empezar();
       // El CSS de la portada deriva de aquí lo que aparece con el scroll.
       recorrido.style.setProperty("--avance", avance.toFixed(4));
       // Y lo avisa: quien solo necesita saber cuándo cambia algo (el párrafo
@@ -350,7 +370,7 @@ export function Retrato() {
         // los teléfonos lentos justo cuando entra el túnel.
         if (
           cuadroPedido !== cuadroPintado ||
-          (canvasSecuencia.clientWidth < canvasSecuencia.clientHeight &&
+          (anchoSecuencia < altoSecuencia &&
             Math.abs(avanceSecuencia - avancePintado) > 0.0005)
         )
           pintarCuadro(cuadroPedido);
@@ -405,9 +425,14 @@ export function Retrato() {
           if (!c) secuencia.soltar();
         });
       // Tras la entrada, una pasada sola por la cara enseña el gesto.
-      temporizadorInsinuar = window.setTimeout(() => {
-        if (!zona.matches(":hover") && !enSecuencia) m?.insinuar();
-      }, 1400);
+      // En móvil el barrido de entrada ya enseña la segunda identidad.
+      // Superponer otra máscara de canvas cargaba el hilo durante 1,5 s.
+      if (!celular) {
+        temporizadorInsinuar = window.setTimeout(() => {
+          if (cerca && !zona.matches(":hover") && !enSecuencia && window.scrollY === 0)
+            m?.insinuar();
+        }, 2100);
+      }
     };
 
     if (imagen.complete && imagen.naturalWidth) arrancar();
@@ -415,6 +440,7 @@ export function Retrato() {
 
     const observador = new ResizeObserver(() => {
       m?.redimensionar();
+      dimensionarSecuencia();
       if (cuadroPintado >= 0) pintarCuadro(cuadroPedido);
     });
     observador.observe(canvas);
@@ -429,6 +455,7 @@ export function Retrato() {
 
     return () => {
       cancelado = true;
+      cancelAnimationFrame(rafCuadro);
       dejarDeVigilar();
       secuencia.detener();
       clearTimeout(temporizadorPulsacion);
@@ -461,6 +488,10 @@ export function Retrato() {
       tabIndex={0}
       role="img"
       aria-label={di(textos.retratoAria)}
+      onAnimationEnd={(evento) => {
+        if (evento.animationName === "retrato-intro-fundido")
+          evento.currentTarget.setAttribute("data-intro-terminada", "");
+      }}
     >
       <img
         className="retrato-normal"
@@ -494,14 +525,16 @@ export function Retrato() {
       />
       {/* Intro: por detrás de la línea de escaneo asoma el cyborg, en una
           franja que baja con ella y se va al terminar. */}
-      <img
-        className="retrato-intro"
-        src={`${RETRATO}alter.jpg`}
-        alt=""
-        aria-hidden="true"
-        draggable={false}
-        style={{ objectPosition: `${FOCO.x * 100}% ${FOCO.y * 100}%` }}
-      />
+      <div className="retrato-intro" aria-hidden="true">
+        <img
+          className="retrato-intro-imagen"
+          src={`${RETRATO}alter.jpg`}
+          alt=""
+          draggable={false}
+          decoding="async"
+          style={{ objectPosition: `${FOCO.x * 100}% ${FOCO.y * 100}%` }}
+        />
+      </div>
       <span className="retrato-escaner" aria-hidden="true" />
     </div>
   );

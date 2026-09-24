@@ -665,3 +665,17 @@ ffmpeg -i video3.mp4 \
 ```
 
 Si cambia el número de fotogramas, ajusta `FOTOGRAMAS` en `Cierre.tsx`.
+
+## Comprobar rendimiento
+
+`npm run build` seguido de `node scripts/rendimiento.mjs` mide la compilación
+con Chromium, en móvil y escritorio, con CPU ralentizada 4×. Informa de la
+carga inicial y los tiempos de fotograma, estilos y layout por sección.
+Ejecutarlo sin otras pruebas abiertas para comparar resultados. Es una
+simulación local, no una garantía de FPS en todos los teléfonos.
+
+La portada prepara la secuencia al empezar a desplazarse; conserva los
+fotogramas originales y limita cuántos retiene en memoria. La apertura móvil
+usa un barrido por transformaciones, sin superponer la demostración automática
+del canvas. El efecto al tocar sigue disponible. `tests/performance.spec.ts`
+comprueba esas restricciones de carga, repintados y recuperación de memoria.

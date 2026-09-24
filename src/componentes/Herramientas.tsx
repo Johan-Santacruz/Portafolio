@@ -16,6 +16,7 @@ const ICONOS = `${import.meta.env.BASE_URL}iconos/`;
  *  llevados a los de la página). Ver README, «Movimiento». */
 const AGUJERO = `${import.meta.env.BASE_URL}imagenes/agujero/`;
 const AGUJERO_MINI = `${import.meta.env.BASE_URL}imagenes/agujero-mini/`;
+const AGUJERO_MOVIL = `${import.meta.env.BASE_URL}imagenes/agujero-movil/`;
 const FOTOGRAMAS = 52;
 /** Fotogramas del corte entre lo técnico y el criterio (de `video8.mp4`). */
 const CORTE = `${import.meta.env.BASE_URL}imagenes/corte/`;
@@ -159,7 +160,8 @@ export function Herramientas() {
     let pendiente = false;
     const reducido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     // En el celular no hay túnel (ver telefono.ts): la sección entra
-    // directamente con el lector; y el agujero negro es un fundido a negro.
+    // directamente con el lector. El agujero negro sí está, con sus
+    // fotogramas del celular.
     const celular = esCelular();
     // Fase de las placas del primer grupo: «tunel» mientras vuelan, «aterrizado»
     // recién llegadas (relevo sin transición) y «lector» en cuanto se mueve
@@ -270,14 +272,20 @@ export function Herramientas() {
       ctx.drawImage(img, (ancho - dw) / 2, (alto - dh) / 2, dw, dh);
       pintadoAgujero = quiero;
     };
+    // En el celular en vertical, el juego de fotogramas del celular (el
+    // centro de cada uno, a 360 × 640; ver scripts/agujero-movil.mjs), y
+    // entero: 52 ligeros caben en memoria y se tienen todos antes de llegar,
+    // así el agujero no se traba esperando a ninguno.
+    const agujeroMovil = celular && window.innerWidth < window.innerHeight;
     const secuencia = new SecuenciaFotogramas(
       FOTOGRAMAS,
-      (i) => `${AGUJERO}f${String(i).padStart(3, "0")}.jpg`,
+      (i) => `${agujeroMovil ? AGUJERO_MOVIL : AGUJERO}f${String(i).padStart(3, "0")}.jpg`,
       (i) => {
         if (pintadoAgujero < 0 || Math.abs(i - pedido) <= 2) pintarAgujero(pedido);
       },
       8,
-      (i) => `${AGUJERO_MINI}f${String(i).padStart(3, "0")}.jpg`,
+      agujeroMovil ? undefined : (i) => `${AGUJERO_MINI}f${String(i).padStart(3, "0")}.jpg`,
+      agujeroMovil ? FOTOGRAMAS : undefined,
     );
     // --- El corte entre lo técnico y el criterio -------------------------
     // Un barrido que deja la pantalla en negro y la devuelve a blanco: marca
@@ -336,11 +344,12 @@ export function Herramientas() {
       ([e]) => {
         if (!e.isIntersecting) return;
         vigiaAgujero.disconnect();
-        // Sin tramo para el agujero (movimiento reducido) o en el celular,
-        // que en su lugar funde a negro sin fotogramas, nada que descargar.
-        if (!celular && (sondaAgujero?.offsetHeight ?? 0) >= 1) secuencia.empezar();
+        // Sin tramo para el agujero (movimiento reducido), nada que descargar.
+        if ((sondaAgujero?.offsetHeight ?? 0) >= 1) secuencia.empezar();
       },
-      { rootMargin: "0px 0px 100% 0px" },
+      // En el celular con más antelación: los 52 tienen que estar listos
+      // cuando se llega, y la red del teléfono tarda más.
+      { rootMargin: celular ? "0px 0px 300% 0px" : "0px 0px 100% 0px" },
     );
     if (sondaAgujero) vigiaAgujero.observe(sondaAgujero);
 

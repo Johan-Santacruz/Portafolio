@@ -51,6 +51,10 @@ export class SecuenciaFotogramas {
     private alCargar: (i: number) => void,
     concurrencia = 8,
     private urlMini?: (i: number) => string,
+    /** Buenos que se guardan a cada lado del visible (RADIO por defecto). Una
+     *  secuencia corta y ligera puede guardarse entera: así se precarga toda
+     *  antes de llegar y nunca se pide nada en pleno scroll. */
+    private radio = RADIO,
   ) {
     this.cuadros = Array(total).fill(null);
     this.minis = Array(total).fill(null);
@@ -71,7 +75,7 @@ export class SecuenciaFotogramas {
   /** Los buenos que faltan alrededor del centro, del más cercano al más lejano. */
   private ventana() {
     const r: number[] = [];
-    for (let d = 0; d <= RADIO; d++) {
+    for (let d = 0; d <= this.radio; d++) {
       for (const n of d ? [this.centro + d, this.centro - d] : [this.centro]) {
         if (n >= 0 && n < this.total && this.cuadros[n] === null && !this.enCamino[n])
           r.push(n);
@@ -134,7 +138,7 @@ export class SecuenciaFotogramas {
     // Los buenos que se han quedado lejos, fuera: así la memoria no crece
     // con lo que se va viendo.
     for (let n = 0; n < this.total; n++) {
-      if ((this.cuadros[n] !== null || this.enCamino[n]) && Math.abs(n - i) > RADIO + HOLGURA)
+      if ((this.cuadros[n] !== null || this.enCamino[n]) && Math.abs(n - i) > this.radio + HOLGURA)
         this.quitar(n);
     }
     this.cola = this.ventana();

@@ -666,11 +666,11 @@
 /* Modo celular (ver src/retrato/telefono.ts): sin túnel. La sección entra
    directamente con su cabecera, el lector y las placas de «Lenguajes». El
    túnel pesaba más que todo lo demás junto en un teléfono de gama media, y
-   en pantalla pequeña no aportaba tanto. */
+   en pantalla pequeña no aportaba tanto. El agujero negro sí se queda, con
+   sus fotogramas del celular (ver Herramientas.tsx). */
 @media (pointer: coarse) and (max-width: 960px) and (max-height: 960px) {
   .herramientas {
     --tunel: 0svh;
-    --agujero: 45svh;
     --corte-tramo: 0svh;
     --llegada: 1 !important;
   }
@@ -678,25 +678,6 @@
   .herr-destino,
   .herr-corte {
     display: none;
-  }
-  /* Y en vez del agujero negro, un fundido a negro: sin sus 52 fotogramas,
-     la capa del agujero es solo su fondo, que se oscurece con el scroll, y
-     las piezas se apagan en su sitio en vez de caer al centro. Sobre ese
-     negro se teclea `ls ./proyectos` y emergen los proyectos, como en
-     escritorio. */
-  .herr-agujero {
-    background: #0b0c0e;
-    opacity: var(--traga);
-  }
-  .herramientas[data-traga] .herr-cabecera,
-  .herramientas[data-traga] .herr-marca,
-  .herramientas[data-traga] .herr-riel,
-  .herramientas[data-traga] .herr-palabras li,
-  .herramientas[data-traga] .herr-grupo[data-estado="activo"] .herr-placa,
-  .herramientas[data-traga] .herr-grupo[data-estado="activo"] .herr-criterio > li,
-  .herramientas[data-traga] .herr-grupo[data-estado="activo"] .herr-consola {
-    transform: none;
-    opacity: clamp(0, 1 - var(--traga) * 1.6, 1);
   }
 }
 @media (prefers-reduced-motion: reduce) {

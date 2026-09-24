@@ -25,6 +25,22 @@ test.describe('presupuesto móvil', () => {
     await page.locator('.cabecera a[href="#proyectos"]').tap();
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(1000);
   });
+
+  test('la apertura táctil no repinta el lienzo continuamente sin interacción', async ({ page }) => {
+    await page.addInitScript(() => {
+      const original = CanvasRenderingContext2D.prototype.drawImage;
+      (window as Window & { repintados: number }).repintados = 0;
+      CanvasRenderingContext2D.prototype.drawImage = function (...args: Parameters<typeof original>) {
+        if (this.canvas.classList.contains('retrato-alter'))
+          (window as Window & { repintados: number }).repintados++;
+        return original.apply(this, args);
+      };
+    });
+    await page.goto('/');
+    await expect(page.locator('.retrato')).toHaveAttribute('data-listo', 'true');
+    await page.waitForTimeout(3300);
+    expect(await page.evaluate(() => (window as Window & { repintados: number }).repintados)).toBeLessThan(4);
+  });
 });
 
 for (const touch of [true, false]) {
