@@ -377,6 +377,23 @@ test("las herramientas pasan por el lector una categoría cada vez", async ({
   expect(esquemas.some((e) => e.choca)).toBe(false);
   expect(Math.min(...esquemas.map((e) => e.alto))).toBeGreaterThan(40);
 
+  // Cada habilidad es una placa de acero con el texto en claro, como las de
+  // las herramientas técnicas, y no una casilla blanca de una tabla.
+  const acero = await page.evaluate(() =>
+    [...document.querySelectorAll(".herr-criterio > li")].map((li) => {
+      const estilo = getComputedStyle(li);
+      const [r, g, b] = getComputedStyle(li.querySelector("h4")!)
+        .color.match(/\d+/g)!
+        .map(Number);
+      return {
+        metal: estilo.backgroundImage.includes("linear-gradient"),
+        chaflan: estilo.clipPath.startsWith("polygon"),
+        claro: (r + g + b) / 3 > 200,
+      };
+    }),
+  );
+  expect(acero.every((p) => p.metal && p.chaflan && p.claro)).toBe(true);
+
   // Y subir vuelve atrás: no hay estado.
   await page.evaluate((y) => window.scrollTo(0, y), inicio);
   await expect.poll(activos).toEqual(["Lenguajes"]);

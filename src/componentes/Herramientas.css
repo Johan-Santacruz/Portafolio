@@ -90,12 +90,8 @@
 /* Las piezas de tinta oscura se vuelven claras al entrar en el agujero: si
    no, se perderían contra el negro justo cuando son más visibles. */
 .herramientas[data-traga] .herr-cabecera h2,
-.herramientas[data-traga] .herr-grupo[data-estado="activo"] .herr-criterio h4,
 .herramientas[data-traga] .herr-grupo[data-estado="activo"] .herr-consola p {
   color: color-mix(in srgb, #eef0f2 calc(var(--s, 0) * 100%), var(--tinta));
-}
-.herramientas[data-traga] .herr-grupo[data-estado="activo"] .herr-criterio p {
-  color: color-mix(in srgb, #eef0f2 calc(var(--s, 0) * 100%), rgba(23, 24, 21, 0.55));
 }
 /* El filo no cae: se va con su fila. */
 .herramientas[data-traga] .herr-filo {
@@ -791,6 +787,7 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   grid-auto-rows: minmax(0, 1fr);
+  gap: clamp(8px, 0.9vw, 14px);
   height: 100%;
 }
 .herr-grupo .herr-criterio > li {
@@ -799,8 +796,36 @@
   /* El número arriba, la palabra y su frase abajo: la casilla se ocupa
      entera en vez de amontonarse en el centro. */
   grid-template-rows: auto minmax(0, 1fr) auto auto;
-  padding: clamp(14px, 2.4svh, 28px) clamp(12px, 1.4vw, 26px);
-  border-left: 1px solid rgba(23, 24, 21, 0.12);
+  padding: clamp(16px, 2.6svh, 30px) clamp(16px, 1.6vw, 28px)
+    clamp(14px, 2.2svh, 26px) clamp(20px, 1.9vw, 32px);
+  /* Cada habilidad, una placa de acero de la misma familia que las de las
+     herramientas técnicas: la trama de líneas, el degradado del metal, el
+     filo lima a la izquierda y el chaflán. Antes era una tabla blanca de
+     líneas grises y parecía otra página; ahora es el mismo capítulo. */
+  color: #eef0f2;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.04) 0 1px,
+      transparent 1px 4px
+    ),
+    linear-gradient(145deg, #2c3137, #16181c 72%);
+  box-shadow:
+    inset 3px 0 0 var(--accent),
+    inset 0 0 0 1px rgba(238, 240, 242, 0.06);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 18px) 0,
+    100% 18px,
+    100% 100%,
+    18px 100%,
+    0 calc(100% - 18px)
+  );
+  /* Solo el color y el filo se animan al pasar el ratón: la posición y la
+     opacidad las lleva el scroll y no deben arrastrar retraso. */
+  transition:
+    background 0.35s ease,
+    box-shadow 0.35s ease;
   /* --- El armado --------------------------------------------------------------
      Las casillas nacen del centro de la pantalla, donde se apaga la luz del
      corte, y salen girando y creciendo hasta su sitio, cada una a su turno.
@@ -830,10 +855,19 @@
     rotate(calc((1 - var(--e)) * var(--giro)));
   opacity: clamp(0, var(--t) * 3, 1);
 }
-/* La primera de cada fila abre a ras del margen, como la cabecera. */
-.herr-criterio > li:nth-child(4n + 1) {
-  border-left: 0;
-  padding-left: 0;
+/* Al pasar por encima, la placa se enciende: el metal aclara y el filo lima
+   engorda, como las placas de herramientas al tocarlas. */
+.herr-criterio > li:hover {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.05) 0 1px,
+      transparent 1px 4px
+    ),
+    linear-gradient(145deg, #353b42, #1b1e22 72%);
+  box-shadow:
+    inset 6px 0 0 var(--accent),
+    inset 0 0 0 1px rgba(199, 255, 74, 0.18);
 }
 /* Fuera de su capítulo no se ven, pase lo que pase con --arma. */
 .herr-grupo:not([data-estado="activo"]) .herr-criterio > li {
@@ -875,22 +909,23 @@
   aspect-ratio: 16 / 9;
   overflow: visible;
   fill: none;
-  stroke: rgba(23, 24, 21, 0.62);
+  stroke: rgba(238, 240, 242, 0.7);
   stroke-width: 1.4;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 .herr-glifo .tenue {
-  stroke: rgba(23, 24, 21, 0.22);
+  stroke: rgba(238, 240, 242, 0.22);
 }
 .herr-glifo .grueso {
   stroke-width: 3;
 }
 .herr-glifo .acento {
-  /* El lima de la casa es muy claro para un trazo fino sobre papel: este
-     aguanta el contraste y sigue siendo el mismo color. */
-  stroke: #8cc21a;
+  /* Sobre el acero, el lima de la casa tal cual, y con un halo: es la
+     conclusión del esquema. */
+  stroke: var(--accent);
   stroke-width: 2.4;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent) 45%, transparent));
 }
 .herr-glifo > * {
   /* Cada trazo, a su turno (--j) en la segunda mitad de la llegada de su
@@ -902,10 +937,10 @@
 }
 /* Al pasar por encima se asienta: el trazo gana tinta y el acento, brillo. */
 .herr-criterio > li:hover .herr-glifo {
-  stroke: rgba(23, 24, 21, 0.9);
+  stroke: rgba(238, 240, 242, 0.95);
 }
 .herr-criterio > li:hover .herr-glifo .acento {
-  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 80%, transparent));
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 85%, transparent));
 }
 /* En un teléfono bajo no queda sitio: el esquema encogería hasta ser una
    mancha de pocos píxeles, y es peor que no ponerlo. En los altos (la
@@ -914,11 +949,6 @@
   .herr-glifo {
     display: none;
   }
-}
-/* Mientras el agujero se traga la sección, el trazo se aclara como el texto
-   para no perderse contra el negro. */
-.herramientas[data-traga] .herr-grupo[data-estado="activo"] .herr-glifo {
-  stroke: color-mix(in srgb, #eef0f2 calc(var(--s, 0) * 100%), rgba(23, 24, 21, 0.62));
 }
 
 /* La palabra, con la misma tipografía condensada del lector: se lee como
@@ -932,7 +962,7 @@
   line-height: 0.92;
   letter-spacing: 0.005em;
   text-transform: uppercase;
-  color: var(--tinta);
+  color: #eef0f2;
 }
 .herr-criterio p {
   grid-row: 4;
@@ -946,14 +976,18 @@
      casilla más estrecha, en cualquiera de los dos idiomas. */
   min-height: 4.35em;
   text-wrap: pretty;
-  color: rgba(23, 24, 21, 0.55);
+  color: rgba(238, 240, 242, 0.64);
 }
-/* Un filo que se dibuja sobre cada casilla al entrar. */
+/* Un bisel lima que se traza por el canto de arriba de la placa al llegar. */
 .herr-filo {
   position: absolute;
   inset: 0 0 auto;
   height: 1px;
-  background: rgba(23, 24, 21, 0.16);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--accent) 70%, transparent),
+    transparent 75%
+  );
   transform-origin: 0 50%;
   transform: scaleX(clamp(0, (var(--t, 1) - 0.4) / 0.5, 1));
 }
@@ -986,23 +1020,16 @@
     grid-row: auto;
     padding-right: 0;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
   .herr-grupo .herr-criterio > li {
-    padding: clamp(8px, 1.6svh, 18px) 14px;
+    padding: clamp(8px, 1.4svh, 16px) 10px clamp(7px, 1.2svh, 14px) 14px;
     /* Rejilla de 2 × 4: el centro, entre las dos columnas y entre las filas
        1 y 2. */
     --col: var(--c2);
     --fila: var(--f2);
     --cc: 0.5;
     --cf: 1.5;
-  }
-  .herr-criterio > li:nth-child(4n + 1) {
-    border-left: 1px solid rgba(23, 24, 21, 0.12);
-    padding-left: 14px;
-  }
-  .herr-criterio > li:nth-child(odd) {
-    border-left: 0;
-    padding-left: 0;
   }
   .herr-criterio h4 {
     font-size: clamp(18px, 5.4vw, 30px);

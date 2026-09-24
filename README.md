@@ -144,6 +144,16 @@ riguroso, un documento bajo la lupa, aprobado. Ocupan el hueco que antes
 quedaba vacío en las ocho casillas y hacía que la pantalla pareciera una
 tabla.
 
+Cada casilla es una placa de acero de la misma familia que las de las
+herramientas técnicas: la trama de líneas, el degradado del metal, el filo
+lima a la izquierda y el chaflán. Antes eran casillas blancas separadas por
+líneas grises, y aunque el armado fuera vistoso, en reposo la pantalla seguía
+pareciendo una tabla de otra página. Sobre el acero el texto va en claro, y
+el esquema en claro con su pieza en lima y un halo. Al pasar el ratón la
+placa aclara y el filo engorda. Como las placas ya son oscuras, cuando el
+agujero se traga la sección no hace falta aclarar su texto: solo la cabecera
+y la consola, que siguen sobre el blanco.
+
 **El armado.** Las casillas no aparecen con un fundido: nacen del centro de
 la pantalla, justo donde se retira la luz del corte, y salen girando y
 creciendo hasta su sitio, cada una a su turno, mientras su esquema se dibuja
