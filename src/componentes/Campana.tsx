@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { perfil } from "../datos/perfil";
 import { useIdioma } from "../idioma/idioma";
 import { textos } from "../idioma/textos";
 import { Retrato } from "./Retrato";
@@ -33,16 +34,21 @@ export function Campana() {
             </div>
             {/* Entra por el lado libre cuando la figura ya se ha ido al otro
                 (ver --avance en el CSS). */}
-            {/* Línea de comandos mínima, sin caja: la orden, el nombre que se
-                teclea con el scroll y el rol como comentario. */}
+            {/* Línea de comandos mínima, sin caja: la orden, lo que responde
+                (el perfil de la hoja de vida, tecleado con el scroll) y el rol
+                como comentario. El nombre completo es el título de la página
+                para quien no la ve; a la vista va dentro del perfil. */}
             <div className="hero-cli">
               <Orden texto="whoami" ini={0.55} fin={0.6} />
-              <h1 id="titulo-hero" className="cli-nombre">
-                <span className="cli-tecleo" style={{ "--ini": 0.61, "--fin": 0.76, "--letras": 15 } as CSSProperties}>
-                  Johan Santacruz
-                </span>
-                <span className="cli-cursor" aria-hidden="true" />
+              <h1 id="titulo-hero" className="solo-lector">
+                {perfil.nombre}
               </h1>
+              <Salida
+                texto={di(perfil.presentacion)}
+                enfasis={di(perfil.presentacionEnfasis)}
+                ini={0.62}
+                fin={0.86}
+              />
               <p className="cli-rol">
                 <span aria-hidden="true">// </span>
                 {di(textos.rol1)}
@@ -60,6 +66,50 @@ export function Campana() {
         <Cierre />
       </main>
     </>
+  );
+}
+
+/**
+ * Lo que responde una orden: un párrafo que se teclea letra a letra entre
+ * `ini` y `fin` del recorrido. Cada letra va en su propio span, así el
+ * párrafo ya está repartido en líneas desde el principio y no salta mientras
+ * se escribe; las que faltan son transparentes y la primera de ellas hace de
+ * cursor, un bloque lima. Al acabar queda el cursor parpadeando al final.
+ * Los lectores de pantalla leen el texto entero, no letra a letra.
+ */
+function Salida({
+  texto,
+  enfasis,
+  ini,
+  fin,
+}: {
+  texto: string;
+  enfasis?: string;
+  ini: number;
+  fin: number;
+}) {
+  const letras = Array.from(texto);
+  const desde = enfasis ? texto.indexOf(enfasis) : -1;
+  const hasta = desde < 0 ? -1 : desde + (enfasis?.length ?? 0);
+  return (
+    <p
+      className="cli-perfil"
+      style={{ "--ini": ini, "--fin": fin, "--n": letras.length } as CSSProperties}
+    >
+      <span className="solo-lector">{texto}</span>
+      <span aria-hidden="true">
+        {letras.map((letra, i) => (
+          <span
+            key={i}
+            className={i >= desde && i < hasta ? "cli-fuerte" : undefined}
+            style={{ "--i": i } as CSSProperties}
+          >
+            {letra}
+          </span>
+        ))}
+        <span className="cli-cursor" />
+      </span>
+    </p>
   );
 }
 

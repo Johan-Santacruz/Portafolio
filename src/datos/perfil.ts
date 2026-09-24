@@ -15,6 +15,19 @@ export const perfil = {
   nombre: "Johan Camilo Balanta Santacruz",
   nombreCorto: "Johan Balanta",
   rol: { es: "Ingeniero de software", en: "Software engineer" },
+
+  /**
+   * La portada: lo que responde `whoami`. Es el perfil de la hoja de vida en
+   * primera persona y en tres frases: quién, qué hago ahora y qué más he
+   * hecho. Se teclea letra a letra, así que conviene que no crezca mucho: en
+   * un teléfono de 320 px ya ocupa media pantalla.
+   */
+  presentacion: {
+    es: "Soy Johan Camilo Balanta, estudiante de octavo semestre de Ingeniería de Sistemas en la Universidad de San Buenaventura, Cali. Trabajo como desarrollador RPA en Familia Insurances, donde automatizo procesos e integro APIs e inteligencia artificial. Investigo en el grupo PADIA, publiqué en IEEE y compito en hackatones dentro y fuera del país.",
+    en: "I'm Johan Camilo Balanta, an eighth-semester Systems Engineering student at Universidad de San Buenaventura, Cali. I work as an RPA developer at Familia Insurances, where I automate processes and integrate APIs and artificial intelligence. I do research with the PADIA group, have published in IEEE and compete in hackathons at home and abroad.",
+  },
+  // Lo que va en negrita dentro de `presentacion`. Debe existir tal cual.
+  presentacionEnfasis: { es: "Johan Camilo Balanta", en: "Johan Camilo Balanta" },
   // Igual en los dos idiomas.
   ubicacion: "Cali, Colombia",
 

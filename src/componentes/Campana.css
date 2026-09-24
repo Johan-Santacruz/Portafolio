@@ -26,9 +26,10 @@
   inset: 0;
 }
 /* --- Línea de comandos ------------------------------------------------------
-   Sin caja: entra cuando la figura se ha ido a la derecha. La orden y el
-   nombre se teclean letra a letra con el scroll (ancho en ch, redondeado a
-   caracteres enteros) y el rol aparece al final, como un comentario. */
+   Sin caja: entra cuando la figura se ha ido a la derecha. La orden se teclea
+   letra a letra con el scroll (ancho en ch, redondeado a caracteres
+   enteros), después lo que responde, el perfil, y el rol aparece al final,
+   como un comentario. */
 .hero-cli {
   position: absolute;
   z-index: 2;
@@ -52,8 +53,7 @@
   color: #6a8f00;
   font-weight: 700;
 }
-.term-tecleo,
-.cli-tecleo {
+.term-tecleo {
   --t: clamp(0, (var(--avance) - var(--ini)) / (var(--fin) - var(--ini)), 1);
   display: inline-block;
   overflow: hidden;
@@ -62,23 +62,49 @@
   width: calc(var(--t) * var(--letras) * 1ch);
   width: round(down, calc(var(--t) * var(--letras) * 1ch), 1ch);
 }
-.cli-nombre {
-  display: flex;
-  align-items: flex-end;
-  margin-top: 6px;
+/* El perfil, como salida de `whoami`. --k es cuántas letras van escritas. */
+.cli-perfil {
+  --t: clamp(0, (var(--avance) - var(--ini)) / (var(--fin) - var(--ini)), 1);
+  --k: calc(var(--t) * var(--n));
+  /* Hasta donde empieza la cara, que se va a la derecha mientras se teclea. */
+  max-width: min(36vw, 30em);
+  margin-top: 12px;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-weight: 700;
-  font-size: clamp(30px, 4.2vw, 68px);
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+  font-weight: 500;
+  font-size: clamp(14px, 1.45vw, 22px);
+  line-height: 1.62;
+  letter-spacing: -0.01em;
+  opacity: clamp(0, (var(--avance) - var(--ini)) * 400, 1);
 }
-.cli-cursor {
-  width: 0.55ch;
-  height: 0.95em;
-  margin: 0 0 0.1em 0.12ch;
+.cli-perfil > [aria-hidden] > span {
+  /* d < 0: ya escrita. 0 ≤ d < 1: la siguiente, que hace de cursor. */
+  --d: calc(var(--i) - var(--k));
+  --escrita: clamp(0, (0 - var(--d)) * 1000, 1);
+  --cursor: calc(
+    clamp(0, (1 - var(--d)) * 1000, 1) * clamp(0, (var(--d) + 0.001) * 1000, 1)
+  );
+  color: rgb(23 24 21 / calc(var(--escrita) * 0.74));
+  background: color-mix(in srgb, var(--accent) calc(var(--cursor) * 100%), transparent);
+  /* Un halo del blanco de la foto, para leerse donde el texto pisa la
+     armadura. Solo en las escritas: la sombra se pinta aunque la letra
+     sea transparente, y delataría lo que falta por teclear. */
+  text-shadow: 0 0 6px rgb(253 253 254 / calc(var(--escrita) * 0.9));
+}
+/* El nombre, en negrita y más oscuro: es lo primero que se lee. */
+.cli-perfil > [aria-hidden] > .cli-fuerte {
+  font-weight: 800;
+  color: rgb(29 31 34 / var(--escrita));
+}
+/* Acabado el párrafo, el cursor se queda parpadeando detrás. */
+.cli-perfil > [aria-hidden] > .cli-cursor {
+  display: inline-block;
+  width: 0.6ch;
+  height: 1.1em;
+  margin-left: 0.2ch;
+  vertical-align: -0.2em;
   background: var(--accent);
   box-shadow: 0 0 0 1px rgba(23, 24, 21, 0.25);
-  opacity: clamp(0, (var(--avance) - 0.6) * 400, 1);
+  opacity: clamp(0, (var(--t) - 0.999) * 1000, 1);
   animation: hero-latido 1s steps(2, jump-none) infinite;
 }
 .cli-rol {
@@ -86,8 +112,8 @@
   line-height: 1.6;
   font-size: clamp(13px, 1.05vw, 16px);
   color: rgba(23, 24, 21, 0.62);
-  opacity: clamp(0, (var(--avance) - 0.76) / 0.06, 1);
-  translate: 0 calc((1 - clamp(0, (var(--avance) - 0.76) / 0.06, 1)) * 8px);
+  opacity: clamp(0, (var(--avance) - 0.86) / 0.05, 1);
+  translate: 0 calc((1 - clamp(0, (var(--avance) - 0.86) / 0.05, 1)) * 8px);
 }
 .cli-rol span {
   color: #6a8f00;
@@ -97,7 +123,7 @@
     opacity: 0;
   }
 }
-@media (max-width: 760px) {
+@media (max-width: 760px) and (orientation: portrait) {
   .hero-cli {
     left: 20px;
     right: 20px;
@@ -105,8 +131,10 @@
     bottom: 48px;
     translate: none;
   }
-  .cli-nombre {
-    font-size: clamp(26px, 8vw, 34px);
+  .cli-perfil {
+    max-width: none;
+    font-size: 12.5px;
+    line-height: 1.55;
   }
   .cli-rol {
     font-size: 12px;
@@ -117,16 +145,17 @@
     --subida-l: clamp(0, (var(--avance) - 0.5) / 0.1, 1);
     /* Curva suave: arranca y frena despacio. */
     --subida: calc(var(--subida-l) * var(--subida-l) * (3 - 2 * var(--subida-l)));
-    translate: 0 calc(var(--subida) * -16svh);
-    /* Borde inferior fundido solo mientras sube: no deja un corte recto. */
+    translate: 0 calc(var(--subida) * -1 * var(--sube, 16svh));
+    /* Borde inferior fundido solo mientras sube: no deja un corte recto. El
+       perfil ocupa más que el nombre de antes, así que se funde más arriba. */
     -webkit-mask-image: linear-gradient(
       to bottom,
-      #000 calc(100% - var(--subida) * 28%),
+      #000 calc(100% - var(--subida) * 40%),
       transparent 100%
     );
     mask-image: linear-gradient(
       to bottom,
-      #000 calc(100% - var(--subida) * 28%),
+      #000 calc(100% - var(--subida) * 40%),
       transparent 100%
     );
   }
@@ -135,11 +164,48 @@
     content: "";
     position: absolute;
     inset: auto 0 0;
-    height: 34%;
+    height: 42%;
     z-index: 1;
     pointer-events: none;
     background: linear-gradient(to top, rgba(253, 253, 254, 0.92) 40%, transparent);
     opacity: clamp(0, (var(--avance) - 0.5) / 0.06, 1);
+  }
+}
+/* Teléfonos bajos: el perfil ya dice lo que decían las dos líneas del rol,
+   y sin ellas el texto empieza por debajo de la barbilla. El retrato sube
+   un poco más. */
+@media (max-width: 760px) and (orientation: portrait) and (max-height: 720px) {
+  .hero-retrato {
+    --sube: 22svh;
+  }
+  .hero-cli {
+    bottom: 28px;
+  }
+  .cli-rol {
+    display: none;
+  }
+}
+@media (max-width: 360px) and (orientation: portrait) {
+  .cli-perfil {
+    font-size: 12px;
+  }
+}
+/* Móvil en horizontal: como en escritorio, el texto a la izquierda y la
+   figura a la derecha; abajo y a todo el ancho pasaba por encima de la cara.
+   Se aprieta para caber en 360-430 px de alto. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .hero-cli {
+    top: calc(50% + 22px);
+  }
+  .cli-perfil {
+    /* La cara empieza hacia el 45 % del ancho. */
+    max-width: min(38vw, 32em);
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .cli-rol {
+    display: none;
   }
 }
 @media (pointer: coarse) {

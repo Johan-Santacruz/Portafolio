@@ -70,6 +70,17 @@ pulsado o arrastrando en horizontal; con teclado, al enfocar el retrato).
   portada las recorta con `object-fit: cover` y el punto focal (`FOCO` en
   `Retrato.tsx`) es el mismo para las dos.
 
+Al final del recorrido, con la figura ya a la derecha, entra una línea de
+comandos: se teclea `whoami` y responde con el perfil de la hoja de vida en
+primera persona (`presentacion` en `src/datos/perfil.ts`, con el nombre en
+negrita). Se teclea letra a letra con el scroll: cada letra es un span con su
+índice, transparente hasta que le toca, y la primera sin escribir hace de
+cursor lima; así el párrafo está repartido en líneas desde el principio y no
+salta mientras se escribe. Los lectores de pantalla leen el texto entero de
+una vez, y el nombre completo es el `h1` de la página, fuera de la vista. En
+los teléfonos bajos y en horizontal las dos líneas de rol que siguen no se
+muestran: el perfil ya lo dice y sin ellas el texto no pisa la cara.
+
 El alter ego actual es una imagen generada con IA (image-to-image a partir
 de la foto) y alineada con `scripts/alinear-alter.mjs`, que escala y desplaza
 la imagen hasta que sus pupilas caen sobre las de `normal.jpg`:

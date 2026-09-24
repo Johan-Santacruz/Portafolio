@@ -495,17 +495,36 @@ test("los proyectos se encienden al pasar por el centro y abren su ficha", async
   await expect(abridor).toBeFocused();
 });
 
-test("la línea de comandos de la portada teclea el nombre al bajar", async ({
+test("la línea de comandos de la portada teclea el perfil al bajar", async ({
   page,
 }) => {
   await page.goto("/");
-  const nombre = page.locator(".cli-tecleo");
-  expect(await nombre.evaluate((e) => e.getBoundingClientRect().width)).toBe(0);
+  // `whoami` responde con el perfil de la hoja de vida, letra a letra: cada
+  // una es un span, transparente hasta que le toca.
+  const letras = page.locator(".cli-perfil > [aria-hidden] > span:not(.cli-cursor)");
+  const escritas = () =>
+    letras.evaluateAll(
+      (ls) =>
+        ls.filter((l) => {
+          const partes = getComputedStyle(l).color.match(/[\d.]+/g)!;
+          return partes.length < 4 || Number(partes[3]) > 0.5;
+        }).length,
+    );
+  expect(await escritas()).toBe(0);
   await page.evaluate(() => {
     const h = document.querySelector(".campana-hero")!;
     window.scrollTo(0, h.getBoundingClientRect().height - innerHeight);
   });
-  await expect.poll(() => nombre.evaluate((e) => e.getBoundingClientRect().width)).toBeGreaterThan(200);
+  const total = await letras.count();
+  expect(total).toBeGreaterThan(200);
+  await expect.poll(escritas).toBe(total);
+  // Quien no ve la pantalla oye el párrafo entero, y el nombre es el título.
+  await expect(page.locator(".cli-perfil .solo-lector")).toContainText(
+    "Johan Camilo Balanta, estudiante de octavo semestre",
+  );
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Johan Camilo Balanta Santacruz",
+  );
   await expect(page.locator(".cli-rol")).toContainText("Ingeniero de Sistemas");
   const tecleo = page.locator(".term-tecleo").first();
   await expect.poll(() => tecleo.evaluate((e) => e.getBoundingClientRect().width)).toBeGreaterThan(20);
