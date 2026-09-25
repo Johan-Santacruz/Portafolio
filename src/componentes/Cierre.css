@@ -106,17 +106,6 @@
     animation: none;
   }
 }
-/* Modo celular (ver src/retrato/telefono.ts): la trayectoria no llega en
-   niebla, así que el velo blanco de la figura se retira antes. Si no, la
-   figura seguía tapada mientras la sección subía y la pantalla quedaba un
-   rato en blanco. */
-@media (pointer: coarse) and (max-width: 960px) and (max-height: 960px) {
-  .cierre-niebla {
-    --velo: clamp(0, 1 - var(--avance) / 0.06, 1);
-    --bruma: clamp(0, 1 - (var(--avance) - 0.02) / 0.22, 1);
-  }
-}
-
 /* --- Texto --------------------------------------------------------------------- */
 .cierre-texto {
   position: absolute;
@@ -298,6 +287,43 @@
 @media (pointer: coarse) {
   .cierre {
     --recorrido: 130svh;
+  }
+}
+/* Modo celular (ver src/retrato/telefono.ts): la trayectoria no llega en
+   niebla, así que el velo blanco de la figura se retira antes. Si no, la
+   figura seguía tapada mientras la sección subía y la pantalla quedaba un
+   rato en blanco. Va detrás de las entradas y del recorrido táctil de
+   arriba para poder cambiarlos. */
+@media (pointer: coarse) and (max-width: 960px) and (max-height: 960px) {
+  .cierre {
+    /* La figura ya está salida (un solo fotograma), así que no hace falta el
+       recorrido largo para verla salir de la niebla: con 130svh el texto
+       tardaba casi dos pantallas en aparecer. Queda un respiro al final. El
+       solape es la cola de la trayectoria, que en el celular mide lo mismo. */
+    --recorrido: 16svh;
+    margin-top: -40svh;
+    /* El texto va abajo, así que entra mientras la sección sube (--llegada),
+       ya a la vista, y está entero cuando la sección llega arriba. */
+    --texto: clamp(0, (var(--llegada) - 0.42) / 0.2, 1);
+  }
+  .cierre-niebla {
+    --velo: clamp(0, 1 - var(--avance) / 0.06, 1);
+    --bruma: clamp(0, 1 - (var(--avance) - 0.02) / 0.22, 1);
+  }
+  .cierre-texto h2 span {
+    --entrada: clamp(0, (var(--llegada) - 0.5 - var(--linea) * 0.04) / 0.16, 1);
+  }
+  .cierre-copy {
+    --entrada: clamp(0, (var(--llegada) - 0.6) / 0.16, 1);
+  }
+  .cierre-acciones {
+    --entrada: clamp(0, (var(--llegada) - 0.66) / 0.16, 1);
+  }
+  .cierre-enlaces {
+    --entrada: clamp(0, (var(--llegada) - 0.72) / 0.16, 1);
+  }
+  .cierre-pie {
+    --entrada: clamp(0, (var(--llegada) - 0.76) / 0.18, 1);
   }
 }
 

@@ -202,6 +202,13 @@
   border-top: 1px solid rgba(238, 240, 242, 0.13);
   overflow: hidden;
 }
+/* La línea y el detalle de cada banda, en su propia capa: al abrirse una y
+   cerrarse otra se mueven y cambian de opacidad en cada fotograma, y sin
+   capa se repintaba la lista entera. */
+.tray-linea,
+.tray-detalle {
+  will-change: transform, opacity;
+}
 /* El filo lima de la banda abierta. */
 .tray-pase::before {
   content: "";
@@ -634,15 +641,68 @@
     display: none;
   }
 }
-/* Modo celular (ver src/retrato/telefono.ts): sin la niebla. El fondo ya vira
-   al blanco del cierre y el contenido se apaga; con eso basta. */
+/* Modo celular (ver src/retrato/telefono.ts): sin la niebla, y la salida
+   corta. Del último pase al contacto había casi dos pantallas de scroll. */
 @media (pointer: coarse) and (max-width: 960px) and (max-height: 960px) {
   .trayectoria {
-    /* Sin niebla que ver, la salida es más corta: si no, quedaba un rato la
-       pantalla en blanco antes de que llegara el contacto. */
-    --niebla: 36svh;
+    --niebla: 24svh;
+    /* La cola es lo que el contacto se solapa por encima (su margen negativo
+       en Cierre.css tiene que ser el mismo). */
+    --cola: 40svh;
+    /* El fondo, fijo: virarlo al blanco con color-mix repintaba la pantalla
+       entera en cada fotograma de la salida. */
+    background:
+      repeating-linear-gradient(
+        0deg,
+        rgba(255, 255, 255, 0.018) 0 1px,
+        transparent 1px 4px
+      ),
+      #0f1113;
   }
   .trayectoria[data-niebla] .tray-velo {
     display: none;
+  }
+  /* En su lugar, una capa blanca por encima que se funde: solo cambia su
+     opacidad, que aplica la GPU sin repintar nada. */
+  .tray-fijo {
+    opacity: 1;
+  }
+  .tray-fijo::after {
+    content: "";
+    position: absolute;
+    z-index: 4;
+    inset: 0;
+    pointer-events: none;
+    background: #fdfdfe;
+    opacity: clamp(0, var(--fin) / 0.7, 1);
+    will-change: opacity;
+  }
+}
+/* En el celular --p salta de un pase al siguiente (ver Trayectoria.tsx), y
+   son estas transiciones las que abren una banda y cierran la otra. */
+@media (pointer: coarse) and (max-width: 960px) and (max-height: 960px) and (prefers-reduced-motion: no-preference) {
+  .tray-pase {
+    transition:
+      flex-grow 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.4s ease;
+  }
+  .tray-pase::before,
+  .tray-linea,
+  .tray-contador-n b {
+    transition: opacity 0.4s ease;
+  }
+  .tray-detalle {
+    transition:
+      opacity 0.4s ease 0.08s,
+      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.08s;
+  }
+  .tray-indice,
+  .tray-anio {
+    transition: color 0.4s ease;
+  }
+  .tray-riel span {
+    transition:
+      width 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 0.4s ease;
   }
 }

@@ -92,6 +92,7 @@ export function Trayectoria() {
     const lienzo = raiz.querySelector<HTMLCanvasElement>(".tray-niebla");
     const ctx = lienzo?.getContext("2d") ?? null;
     const total = listaPases.length;
+    const celular = esCelular();
     let activa = -1;
     let pintado = -1;
     let pedido = 0;
@@ -134,14 +135,31 @@ export function Trayectoria() {
         if (!e.isIntersecting) return;
         vigiaNiebla.disconnect();
         // En el celular no hay niebla: el paso al blanco del cierre lo hace
-        // el propio fondo, que ya vira al blanco (ver --fin en el CSS).
-        if (!esCelular()) secuencia.empezar();
+        // una capa blanca que se funde con --fin (ver el modo celular en el
+        // CSS).
+        if (!celular) secuencia.empezar();
       },
       { rootMargin: "0px" },
     );
     vigiaNiebla.observe(raiz);
 
     // --- El carril y la salida -----------------------------------------------
+    // --p solo lo usan las bandas y el contador (dentro de .tray-marco) y el
+    // riel: escrito en la raíz, se recalculaban los 125 elementos de la
+    // sección en cada fotograma. Y cada variable solo se escribe si cambia.
+    const marco = raiz.querySelector<HTMLElement>(".tray-marco");
+    const riel = raiz.querySelector<HTMLElement>(".tray-riel");
+    const ultimos = new WeakMap<HTMLElement, Map<string, string>>();
+    const poner = (nombre: string, valor: string, ...en: (HTMLElement | null)[]) => {
+      for (const el of en.length ? en : [raiz]) {
+        if (!el) continue;
+        let previos = ultimos.get(el);
+        if (!previos) ultimos.set(el, (previos = new Map()));
+        if (previos.get(nombre) === valor) continue;
+        previos.set(nombre, valor);
+        el.style.setProperty(nombre, valor);
+      }
+    };
     const medir = () => {
       pendiente = false;
       const alto = window.innerHeight;
@@ -157,7 +175,11 @@ export function Trayectoria() {
         (avance - PAUSA_INICIO) / (1 - PAUSA_INICIO - PAUSA_FINAL),
       );
       const p = conReposo(tramo * (total - 1));
-      raiz.style.setProperty("--p", p.toFixed(4));
+      // En el celular, --p va de pase en pase y el CSS anima el cambio: al
+      // bajar entre dos pases no hay nada que recalcular ni que repintar.
+      // Seguirlo fotograma a fotograma recolocaba las cinco bandas en cada
+      // uno, y en un teléfono de gama media se notaba.
+      poner("--p", celular ? String(Math.round(p)) : p.toFixed(4), marco, riel);
       const nueva = Math.round(p);
       if (nueva !== activa) {
         activa = nueva;
@@ -173,14 +195,11 @@ export function Trayectoria() {
       // Salida: una pantalla de niebla, desde que los pases se acaban hasta
       // que el contacto llena la pantalla.
       const fin = limitar((alto + cola + niebla - caja.bottom) / niebla);
-      raiz.style.setProperty("--fin", fin.toFixed(4));
+      poner("--fin", fin.toFixed(4));
       // La capa lleva «screen»: dejarla puesta obliga a recomponer la
       // pantalla entera aunque no se vea, incluso desde otras secciones.
       raiz.toggleAttribute("data-niebla", fin > 0);
-      raiz.style.setProperty(
-        "--velo",
-        (1 - limitar((alto + cola - caja.bottom) / (alto * 0.5))).toFixed(4),
-      );
+      poner("--velo", (1 - limitar((alto + cola - caja.bottom) / (alto * 0.5))).toFixed(4));
       const cuadro = Math.round(fin * (FOTOGRAMAS - 1));
       if (cuadro !== pedido) {
         pedido = cuadro;

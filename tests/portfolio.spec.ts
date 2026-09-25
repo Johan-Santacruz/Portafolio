@@ -772,7 +772,11 @@ test("la trayectoria pasa las credenciales y abre la hoja de vida", async ({
       alto: innerHeight,
     };
   });
-  const p = () => tray.evaluate((s) => Number(s.style.getPropertyValue("--p")));
+  // --p se escribe en el marco de las bandas (y en el riel), no en la raíz.
+  const p = () =>
+    tray.evaluate((s) =>
+      Number(s.querySelector<HTMLElement>(".tray-marco")!.style.getPropertyValue("--p")),
+    );
   const activo = () =>
     tray.locator('.tray-pase[data-estado="activa"] .tray-donde').textContent();
 
@@ -1065,7 +1069,11 @@ test("en el móvil, también apaisado, el pase abierto de la trayectoria se lee 
     const seccion = page.locator("#trayectoria");
     await seccion.evaluate((s) => window.scrollTo(0, s.offsetTop + 20));
     await expect
-      .poll(() => seccion.evaluate((s) => Number(getComputedStyle(s).getPropertyValue("--p"))))
+      .poll(() =>
+        seccion.evaluate((s) =>
+          Number(getComputedStyle(s.querySelector(".tray-marco")!).getPropertyValue("--p")),
+        ),
+      )
       .toBeLessThan(0.01);
     // Cada pieza del pase abierto, entera: ni recortada por la banda o la
     // pantalla ni debajo de la línea de idiomas.

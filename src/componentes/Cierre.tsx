@@ -110,7 +110,9 @@ export function Cierre() {
       // Llegada: de 0 cuando la sección asoma por abajo a 1 cuando toca arriba.
       const llegada = Math.min(1, Math.max(0, 1 - caja.top / alto));
       raiz.style.setProperty("--llegada", llegada.toFixed(4));
-      raiz.toggleAttribute("data-texto", avance > 0.62);
+      // En el celular el texto entra con la llegada (ver el modo celular en
+      // Cierre.css).
+      raiz.toggleAttribute("data-texto", celular ? llegada > 0.45 : avance > 0.62);
       // El vídeo ocupa el 85 % del recorrido; el resto, quieto al final.
       const t = Math.min(1, avance / 0.85);
       pedido = celular ? 0 : Math.round(t * (FOTOGRAMAS - 1));
