@@ -16,8 +16,15 @@ let lenis: Lenis | null = null;
 export function activarScrollSuave() {
   const fino = window.matchMedia("(hover: hover) and (pointer: fine)");
   const reducido = window.matchMedia("(prefers-reduced-motion: reduce)");
-  if (!fino.matches || reducido.matches) return;
+  if (reducido.matches) return;
   if (/[?&]suave=0/.test(location.search)) return;
+  // En táctil, de momento solo a prueba, con `?suave=1` en la dirección:
+  // Lenis sustituye el scroll nativo del teléfono (que ya va fuera del hilo
+  // principal) por uno hecho en JavaScript, y en un gama media puede ir con
+  // retraso respecto al dedo o pelear con la barra del navegador. Se deja
+  // así para compararlo en teléfonos de verdad antes de ponerlo por defecto.
+  const tactilDePrueba = !fino.matches && /[?&]suave=1/.test(location.search);
+  if (!fino.matches && !tactilDePrueba) return;
   lenis = new Lenis({
     autoRaf: true,
     lerp: 0.1,
@@ -26,6 +33,10 @@ export function activarScrollSuave() {
     anchors: true,
     // Dentro de las ventanas de proyecto, scroll nativo.
     prevent: (nodo) => !!nodo.closest("dialog"),
+    // El dedo con inercia suave, como la rueda en escritorio.
+    ...(tactilDePrueba
+      ? { syncTouch: true, syncTouchLerp: 0.085, touchInertiaExponent: 1.7 }
+      : {}),
   });
 }
 
