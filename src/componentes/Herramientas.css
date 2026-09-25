@@ -18,9 +18,12 @@
   --corte-tramo: 42svh;
   /* Tramo fijo del túnel antes del lector (la sonda lo mide en px). */
   --tunel: 105svh;
-  /* Cola: una pantalla más al final, en la que Proyectos se desliza por
-     encima de esta (se solapa con margen negativo, ver Proyectos.css). */
-  --cola: 100svh;
+  /* Cola: lo que queda tras el agujero, en lo que Proyectos se desliza por
+     encima de esta (se solapa una pantalla con margen negativo, ver
+     Proyectos.css). Es algo menos de esa pantalla, así que los proyectos
+     empiezan a salir del agujero cuando lleva dos tercios: con la cola
+     entera, al cerrarse quedaba un rato la pantalla negra sin nada. */
+  --cola: calc(100svh - 0.35 * var(--agujero));
   --n: 6;
   --tinta: #1d1f22;
   --fila: 0.9em;

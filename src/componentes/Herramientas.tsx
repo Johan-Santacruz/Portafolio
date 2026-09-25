@@ -42,7 +42,8 @@ const CORTES = 32;
 const DURACION_TUNEL = 1100;
 /** El corte y, sin soltar, el armado de las habilidades blandas. */
 const DURACION_CORTE = 1500;
-const DURACION_AGUJERO = 1200;
+/** El agujero y, sin soltar, la llegada de los proyectos. */
+const DURACION_AGUJERO = 1900;
 
 /** Tramos del recorrido que la lista se queda quieta al empezar y al acabar. */
 const PAUSA_INICIO = 0.06;
@@ -588,8 +589,10 @@ export function Herramientas() {
       const traga = limitar((-caja.top - tunel - largo) / Math.max(1, agujero));
       if (traga > 0 && !medidas) medirSuccion();
       if (traga > 0.002 && traga < 0.9) {
+        // Hasta el final de la cola, con los proyectos ya en su sitio: si se
+        // parara al cerrarse el agujero, dejaría la pantalla en negro.
         gestoAgujero = lanzar(
-          inicio + tunel + largo + agujero,
+          inicio + tunel + largo + agujero + cola,
           DURACION_AGUJERO,
           gestoAgujero,
         );

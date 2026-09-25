@@ -698,13 +698,28 @@ test("las secciones se solapan y se funden sin borde", async ({ page }) => {
   expect(Math.abs(trayFin - cierreInicio - alto * 0.65)).toBeLessThan(3);
   const v = (sel: string, n: string) =>
     page.locator(sel).evaluate((s, n) => Number(s.style.getPropertyValue(n)), n);
-  // Cuando Proyectos asoma, el agujero negro ya se ha tragado Herramientas
-  // y ha dejado la pantalla en ese mismo negro.
+  // Proyectos asoma con el agujero negro ya bien abierto, y cuando este se
+  // cierra los proyectos ya están saliendo de él: no queda un rato la
+  // pantalla negra sin nada.
   await page.evaluate((y) => window.scrollTo(0, y), proyInicio - alto);
+  await expect.poll(() => v("#proyectos", "--cubre")).toBeLessThan(0.02);
+  await expect.poll(() => v("#herramientas", "--traga")).toBeGreaterThan(0.6);
+  await expect.poll(() => v("#herramientas", "--traga")).toBeLessThan(0.7);
+  const cierraAgujero = await page.evaluate(() => {
+    const h = document.querySelector<HTMLElement>("#herramientas")!;
+    const s = h.querySelector<HTMLElement>(".herr-sonda-agujero")!;
+    return h.offsetTop + s.offsetTop + s.offsetHeight - innerHeight;
+  });
+  await page.evaluate((y) => window.scrollTo(0, y), cierraAgujero + 2);
   await expect.poll(() => v("#herramientas", "--traga")).toBeGreaterThan(0.99);
   await expect(page.locator(".herr-agujero")).toHaveCSS("opacity", "1");
   await expect(page.locator(".herr-final-tecleo")).toHaveText("ls ./proyectos");
-  await expect.poll(() => v("#proyectos", "--cubre")).toBeLessThan(0.02);
+  await expect.poll(() => v("#proyectos", "--cubre")).toBeGreaterThan(0.2);
+  await expect
+    .poll(() =>
+      page.locator(".proy-emerge").evaluate((e) => Number(getComputedStyle(e).opacity)),
+    )
+    .toBeGreaterThan(0.5);
   // A media cubierta, las estelas se van encendiendo con la sección.
   await page.evaluate((y) => window.scrollTo(0, y), proyInicio - alto / 2);
   await expect.poll(() => v("#proyectos", "--cubre")).toBeCloseTo(0.5, 1);

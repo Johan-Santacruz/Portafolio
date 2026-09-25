@@ -18,6 +18,9 @@
   /* Solape: la sección se desliza por encima de la última pantalla de
      Herramientas, que le deja esa cola ya apagada a este mismo negro. */
   --solape: 100svh;
+  /* Aire de arriba: el contenido crece desde el centro de la pantalla, que
+     queda a esta distancia menos de su borde (ver .proy-emerge). */
+  --arriba: clamp(80px, 14svh, 160px);
   position: relative;
   z-index: 2;
   margin-top: calc(-1 * var(--solape));
@@ -29,7 +32,7 @@
     ),
     rgb(15 17 19 / var(--fondo));
   color: var(--texto);
-  padding: clamp(80px, 14svh, 160px) 0 clamp(60px, 12svh, 120px);
+  padding: var(--arriba) 0 clamp(60px, 12svh, 120px);
   font-family: "Chakra Petch", var(--display);
   overflow: clip;
   isolation: isolate;
@@ -77,12 +80,23 @@
 .proy-emerge {
   position: relative;
   z-index: 1;
-  transform-origin: 50% 50svh;
+  /* El centro de la pantalla, que es donde está el agujero. */
+  transform-origin: 50% calc(50svh - var(--arriba));
+}
+/* Y mientras sale, el contenido va por encima del borde de la sección, que
+   todavía está subiendo: recortado ahí, solo se veía la franja de abajo y
+   al cerrarse el agujero la pantalla seguía casi toda negra. */
+.proyectos[data-emerge] {
+  overflow-y: visible;
 }
 .proyectos[data-emerge] .proy-emerge {
   transform: translate3d(0, calc((var(--cubre) - 1) * 100svh), 0)
     scale(calc(0.42 + var(--cubre) * 0.58));
-  opacity: clamp(0, (var(--cubre) - 0.04) / 0.3, 1);
+  /* Aparece deprisa: la sección asoma con el agujero a dos tercios (ver
+     --cola en Herramientas.css), pero el contenido espera a que el negro
+     llene la pantalla, para no verse sobre el anillo, y ya se ve del todo
+     cuando el agujero se cierra. */
+  opacity: clamp(0, (var(--cubre) - 0.1) / 0.12, 1);
   will-change: transform, opacity;
 }
 /* El aire lateral va en el contenido, no en la sección. */
