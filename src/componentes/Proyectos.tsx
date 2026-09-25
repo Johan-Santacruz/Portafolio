@@ -8,7 +8,6 @@ import { useIdioma } from "../idioma/idioma";
 import { textos } from "../idioma/textos";
 import { Icono } from "./Icono";
 import { vigilarCercania } from "../retrato/cercania";
-import { esCelular } from "../retrato/telefono";
 import "./Proyectos.css";
 
 const ICONOS = `${import.meta.env.BASE_URL}iconos/`;
@@ -114,11 +113,10 @@ export function Proyectos() {
     const video = fondo.current;
     if (!raiz || !video) return;
     const reducido = window.matchMedia("(prefers-reduced-motion: reduce)");
-    // En el celular se queda en su imagen fija (el póster): descodificar
-    // vídeo detrás de todo gastaba batería y fluidez sin aportar tanto.
-    const celular = esCelular();
+    // También en el celular: son las estelas que se encienden cuando los
+    // proyectos terminan de salir del agujero negro, y el vídeo pesa 100 KB.
     const observador = new IntersectionObserver(([entrada]) => {
-      if (entrada.isIntersecting && !reducido.matches && !celular) {
+      if (entrada.isIntersecting && !reducido.matches) {
         if (!video.getAttribute("src")) video.src = `${MEDIA}estelas.mp4`;
         void video.play().catch(() => {});
       }

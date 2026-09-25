@@ -108,7 +108,11 @@ export function deslizarHasta(y: number, ms: number) {
   const paso = (t: number) => {
     if (!vivo) return;
     const k = Math.min(1, (t - t0) / ms);
-    window.scrollTo(0, desde + (y - desde) * suave(k));
+    // Cada paso, al instante: con `scroll-behavior: smooth` en la página
+    // (global.css), cada llamada arrancaba un deslizamiento nativo que la
+    // siguiente cortaba antes de moverse, y la página se quedaba quieta
+    // hasta el último paso. Pasa en el teléfono, que no lleva Lenis.
+    window.scrollTo({ top: desde + (y - desde) * suave(k), behavior: "instant" });
     if (k < 1) requestAnimationFrame(paso);
     else soltar();
   };

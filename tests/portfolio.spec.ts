@@ -1197,7 +1197,7 @@ test.describe("en el teléfono", () => {
     expect(await page.evaluate(() => window.scrollY)).toBe(inicio - 100);
   });
 
-  test("en el celular no hay túnel, niebla ni vídeo, y el agujero usa sus fotogramas ligeros", async ({
+  test("en el celular no hay túnel ni niebla, y el agujero usa sus fotogramas ligeros", async ({
     page,
   }) => {
     await page.addInitScript(() => performance.setResourceTimingBufferSize(5000));
@@ -1226,12 +1226,66 @@ test.describe("en el teléfono", () => {
     expect(de("niebla"), "fotogramas de la niebla").toBe(0);
     // Del cierre, solo la figura ya salida.
     expect(de("cierre"), "fotogramas del cierre").toBe(1);
+    // Las estelas de Proyectos sí se reproducen, pero solo con la sección a
+    // la vista: aquí, al final de la página, están paradas.
     expect(
       await page.locator(".proy-fondo video").evaluate((v: HTMLVideoElement) => v.paused),
     ).toBe(true);
     // Y el contacto llega igual.
     await expect(page.locator("#contacto")).toHaveAttribute("data-texto", "");
     await expect(page.getByRole("link", { name: /Escríbeme/ })).toBeVisible();
+  });
+
+  test("en el teléfono, el agujero negro se reproduce solo al soltar el dedo", async ({ page }) => {
+    await page.goto("/");
+    await sinCarga(page);
+    await page.evaluate(() => document.fonts.ready);
+    const { boca, proyectos } = await page.evaluate(() => {
+      const h = document.querySelector<HTMLElement>("#herramientas")!;
+      const s = h.querySelector<HTMLElement>(".herr-sonda-agujero")!;
+      return {
+        boca: h.offsetTop + s.offsetTop - innerHeight,
+        proyectos: document.querySelector<HTMLElement>("#proyectos")!.offsetTop,
+      };
+    });
+    await page.evaluate((y) => window.scrollTo({ top: y, behavior: "instant" }), boca - 120);
+    await page.waitForTimeout(500);
+    // Un dedo de verdad: arrastra hasta meterse un poco en el agujero y se
+    // suelta, sin inercia.
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send("Input.synthesizeScrollGesture", {
+      x: 200,
+      y: 600,
+      yDistance: -260,
+      speed: 900,
+      gestureSourceType: "touch",
+      preventFling: true,
+    });
+    const alSoltar = await page.evaluate(() => window.scrollY);
+    expect(alSoltar).toBeLessThan(proyectos - 300);
+    // Sin tocar nada más, sigue solo hasta dejar los proyectos en su sitio, y
+    // de forma continua: no se queda quieto y salta al final.
+    const recorrido: number[] = await page.evaluate(
+      () =>
+        new Promise((r) => {
+          const ys: number[] = [];
+          const t0 = performance.now();
+          const f = () => {
+            ys.push(window.scrollY);
+            if (performance.now() - t0 < 2600) requestAnimationFrame(f);
+            else r(ys);
+          };
+          requestAnimationFrame(f);
+        }),
+    );
+    expect(Math.abs(recorrido[recorrido.length - 1] - proyectos)).toBeLessThan(3);
+    const saltoMayor = Math.max(...recorrido.slice(1).map((y, i) => y - recorrido[i]));
+    expect(saltoMayor, "el deslizamiento salta en vez de avanzar").toBeLessThan(80);
+    await expect
+      .poll(() =>
+        page.locator("#proyectos").evaluate((s: HTMLElement) => Number(s.style.getPropertyValue("--cubre"))),
+      )
+      .toBeGreaterThan(0.99);
   });
 
   test("en el teléfono, tocar una palabra del lector lleva a su categoría", async ({ page }) => {

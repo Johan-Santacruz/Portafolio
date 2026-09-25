@@ -91,6 +91,8 @@ export function Herramientas() {
     const riel = raiz.querySelector<HTMLElement>(".herr-riel");
     const tunelCapa = raiz.querySelector<HTMLElement>(".tunel");
     const rejillaCriterio = raiz.querySelector<HTMLElement>(".herr-criterio");
+    // La orden del final: solo ella usa --cubre, y con el lienzo, --traga.
+    const final = raiz.querySelector<HTMLElement>(".herr-final");
 
     // El destino («LENGUAJES» al fondo del túnel) acaba exactamente donde está
     // la primera palabra del lector: se mide esa posición y desde dónde sale
@@ -141,11 +143,27 @@ export function Herramientas() {
       " .herr-grupo[data-estado='activo'] .herr-criterio > li," +
       " .herr-grupo[data-estado='activo'] .herr-consola";
     let medidas = false;
+    // En el celular no cae pieza a pieza (cada casilla a su tiempo y con su
+    // giro se veía desordenado): la cabecera y la rejilla se encogen enteras
+    // hacia el centro, como una lámina que el agujero absorbe (`absorber`).
+    let laminas: { el: HTMLElement; ax: number; ay: number; puesto: string }[] = [];
     const medirSuccion = () => {
       if (!fijo) return;
       const f = fijo.getBoundingClientRect();
       const cx = f.left + f.width / 2;
       const cy = f.top + f.height / 2;
+      if (celular) {
+        laminas = [".herr-cabecera", ".herr-bandeja"].flatMap((sel) => {
+          const el = raiz.querySelector<HTMLElement>(sel);
+          if (!el) return [];
+          // Sin la transformación que lleve ya, o se mediría encogida.
+          el.style.transform = "";
+          const r = el.getBoundingClientRect();
+          return [{ el, ax: cx - (r.left + r.width / 2), ay: cy - (r.top + r.height / 2), puesto: "" }];
+        });
+        medidas = true;
+        return;
+      }
       raiz.querySelectorAll<HTMLElement>(PIEZAS).forEach((el, i) => {
         const r = el.getBoundingClientRect();
         el.style.setProperty("--ax", `${(cx - (r.left + r.width / 2)).toFixed(1)}px`);
@@ -193,6 +211,28 @@ export function Herramientas() {
     const limitar = (v: number) => Math.min(1, Math.max(0, v));
     // Curva suave (arranca y frena despacio).
     const suave = (v: number) => v * v * (3 - 2 * v);
+    // La lámina del celular: se encoge hacia el centro con una curva suave al
+    // empezar y al acabar, y se apaga en la segunda mitad, ya dentro del
+    // negro. Desplazar cada una k veces su vector al centro y escalarla por
+    // 1 − k es encoger todo el conjunto a la vez, sin que se separen. Se
+    // escribe directamente su transform: son dos elementos, y así no hay
+    // variables que recalcular en los de dentro.
+    const absorber = (traga: number) => {
+      const u = limitar(traga / 0.72);
+      const k = 0.8 * suave(u);
+      const opacidad = 1 - limitar((u - 0.4) / 0.45);
+      for (const l of laminas) {
+        const transform =
+          k > 0
+            ? `translate3d(${(l.ax * k).toFixed(1)}px, ${(l.ay * k).toFixed(1)}px, 0) scale(${(1 - k).toFixed(4)})`
+            : "";
+        const puesto = `${transform}|${opacidad.toFixed(3)}`;
+        if (puesto === l.puesto) continue;
+        l.puesto = puesto;
+        l.el.style.transform = transform;
+        l.el.style.opacity = k > 0 ? opacidad.toFixed(3) : "";
+      }
+    };
 
     // --- Animaciones que se reproducen solas ---------------------------------
     // El corte y el agujero son largos: en vez de avanzar a tirones según
@@ -226,14 +266,46 @@ export function Herramientas() {
       if (["ArrowDown", "PageDown", "Down", " ", "Spacebar"].includes(ev.key))
         marcarGesto();
     };
+    // El dedo: si está puesto y hacia dónde arrastró por última vez.
+    let dedoPuesto = false;
+    let dedoY = 0;
+    let dedoBaja = false;
+    const alTocar = (ev: TouchEvent) => {
+      dedoPuesto = true;
+      dedoY = ev.touches?.[0]?.clientY ?? dedoY;
+    };
+    const alArrastrar = (ev: TouchEvent) => {
+      const y = ev.touches?.[0]?.clientY ?? dedoY;
+      // El dedo sube: la página baja.
+      if (y !== dedoY) dedoBaja = y < dedoY;
+      dedoY = y;
+      marcarGesto();
+    };
+    // Al soltar se mira si hay que lanzar algo, aunque la página no se mueva.
+    const alSoltar = () => {
+      dedoPuesto = false;
+      alScroll();
+    };
     window.addEventListener("wheel", alRodar, { passive: true });
-    window.addEventListener("touchmove", marcarGesto, { passive: true });
+    window.addEventListener("touchstart", alTocar, { passive: true });
+    window.addEventListener("touchmove", alArrastrar, { passive: true });
+    window.addEventListener("touchend", alSoltar, { passive: true });
+    window.addEventListener("touchcancel", alSoltar, { passive: true });
     window.addEventListener("keydown", alTeclado);
-    // En pantallas táctiles, nunca: el dedo ya lleva la página, y que
-    // siguiera bajando sola después de soltarlo confundía.
+    // En pantallas táctiles, casi nunca: el dedo ya lleva la página, y que
+    // siguiera bajando sola después de soltarlo confundía. Salvo el agujero
+    // negro (`tactilVale`): seguido con el dedo se veía a tirones, y se
+    // entiende mejor entero. Ahí se lanza al soltar, si el último arrastre
+    // era hacia abajo; mientras el dedo está puesto, manda él, y volver a
+    // tocar la pantalla lo corta (ver deslizarHasta).
     const tactil = window.matchMedia("(pointer: coarse)");
-    const lanzar = (hasta: number, ms: number, usado: number) => {
-      if (reducidoMedia.matches || tactil.matches || deslizando()) return usado;
+    const lanzar = (hasta: number, ms: number, usado: number, tactilVale = false) => {
+      if (reducidoMedia.matches || deslizando()) return usado;
+      if (tactil.matches) {
+        if (!tactilVale || dedoPuesto || !dedoBaja) return usado;
+        if (ultimoGesto === usado || performance.now() - ultimoGesto > 1200) return usado;
+        return deslizarHasta(hasta, ms) ? ultimoGesto : usado;
+      }
       // Un gesto, un lanzamiento: con el trackpad llegan decenas de eventos
       // de rueda por cada empujón.
       if (ultimoGesto === usado) return usado;
@@ -248,14 +320,22 @@ export function Herramientas() {
     const ctx = lienzo?.getContext("2d") ?? null;
     let pintadoAgujero = -1;
     let pedido = 0;
+    // Las medidas del lienzo, guardadas: leerlas en cada fotograma, justo
+    // después de escribir las variables del scroll, obligaba a recalcular el
+    // estilo a mitad del fotograma. Se vuelven a tomar al redimensionar.
+    let dimsLienzo: { ancho: number; alto: number; fijo: number } | null = null;
     const pintarAgujero = (quiero: number) => {
       const img = secuencia.mejor(quiero);
       if (!img || !lienzo || !ctx) return;
+      dimsLienzo ??= {
+        ancho: lienzo.clientWidth,
+        alto: lienzo.clientHeight,
+        fijo: fijo?.clientHeight || lienzo.clientHeight,
+      };
+      const { ancho, alto } = dimsLienzo;
       // Sin más resolución que la del fotograma (ver Retrato.tsx).
-      const cubreCaja = Math.max(lienzo.clientWidth / 1280, lienzo.clientHeight / 720);
+      const cubreCaja = Math.max(ancho / 1280, alto / 720);
       const dpr = Math.min(window.devicePixelRatio || 1, Math.max(1, 1 / cubreCaja));
-      const ancho = lienzo.clientWidth;
-      const alto = lienzo.clientHeight;
       const w = Math.round(ancho * dpr);
       const h = Math.round(alto * dpr);
       if (lienzo.width !== w || lienzo.height !== h) {
@@ -269,7 +349,7 @@ export function Herramientas() {
       // cae el contenido, y la imagen cubre también lo que sobra por debajo.
       const iw = img.width;
       const ih = img.height;
-      const cy = Math.min(alto, fijo?.clientHeight || alto) / 2;
+      const cy = Math.min(alto, dimsLienzo.fijo) / 2;
       const escala = Math.max(ancho / iw, (2 * Math.max(cy, alto - cy)) / ih);
       const dw = iw * escala;
       const dh = ih * escala;
@@ -486,7 +566,7 @@ export function Herramientas() {
       const anchoCorte = sondaCorte?.offsetHeight ?? 0;
       const inicio = raiz.offsetTop;
       const cubre = limitar((alto + cola - caja.bottom) / Math.max(1, cola));
-      poner("--cubre", cubre.toFixed(4));
+      poner("--cubre", cubre.toFixed(4), final);
       const pt = limitar((alto - caja.top) / (alto + tunel));
       poner("--pt", pt.toFixed(4), tunelCapa, destino);
       const ahora = performance.now();
@@ -595,9 +675,16 @@ export function Herramientas() {
           inicio + tunel + largo + agujero + cola,
           DURACION_AGUJERO,
           gestoAgujero,
+          true,
         );
       } else if (traga <= 0.002) gestoAgujero = 0;
-      poner("--traga", traga.toFixed(4));
+      // En el celular, --traga solo en el lienzo y la orden del final: las
+      // piezas no la usan (ver `absorber`), y en la raíz obligaba a
+      // recalcular la sección entera en cada fotograma del agujero.
+      if (celular) {
+        poner("--traga", traga.toFixed(4), lienzo, final);
+        absorber(traga);
+      } else poner("--traga", traga.toFixed(4));
       raiz.toggleAttribute("data-traga", traga > 0);
       const cuadro = Math.round(traga * (FOTOGRAMAS - 1));
       if (cuadro !== pedido) {
@@ -668,7 +755,17 @@ export function Herramientas() {
       pendiente = true;
       requestAnimationFrame(pintar);
     };
+    let anchoPrevio = window.innerWidth;
     const alRedimensionar = () => {
+      // En el celular, la barra del navegador aparece y se esconde al bajar y
+      // cambia el alto de la ventana; nada de lo que se mide depende de eso
+      // (va en svh), y volver a medirlo a mitad del agujero daba un tirón.
+      if (celular && window.innerWidth === anchoPrevio) {
+        alScroll();
+        return;
+      }
+      anchoPrevio = window.innerWidth;
+      dimsLienzo = null;
       lineasPintadas = "";
       colocarDestino();
       medidas = false;
@@ -690,7 +787,10 @@ export function Herramientas() {
     window.addEventListener("resize", alRedimensionar);
     return () => {
       window.removeEventListener("wheel", alRodar);
-      window.removeEventListener("touchmove", marcarGesto);
+      window.removeEventListener("touchstart", alTocar);
+      window.removeEventListener("touchmove", alArrastrar);
+      window.removeEventListener("touchend", alSoltar);
+      window.removeEventListener("touchcancel", alSoltar);
       window.removeEventListener("keydown", alTeclado);
       dejarDeVigilar();
       vigiaAgujero.disconnect();

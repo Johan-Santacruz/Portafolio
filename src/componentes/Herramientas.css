@@ -698,6 +698,32 @@
     display: none;
   }
 }
+/* Modo celular, al entrar en el agujero: las piezas no caen cada una por su
+   lado (a destiempo y con su giro, la rejilla se veía rota). Herramientas.tsx
+   (`absorber`) encoge enteras la cabecera y la rejilla hacia el centro, con
+   su transform escrito directamente; aquí solo se anula la caída suelta. */
+@media (pointer: coarse) and (max-width: 960px) and (max-height: 960px) {
+  .herramientas[data-traga] .herr-cabecera,
+  .herramientas[data-traga] .herr-marca,
+  .herramientas[data-traga] .herr-riel,
+  .herramientas[data-traga] .herr-grupo[data-estado="activo"] .herr-placa,
+  .herramientas[data-traga] .herr-grupo[data-estado="activo"] .herr-criterio > li,
+  .herramientas[data-traga] .herr-grupo[data-estado="activo"] .herr-consola {
+    transform: none;
+    opacity: 1;
+  }
+  .herramientas[data-traga] .herr-palabras li {
+    transform: translate3d(calc(var(--luz) * 10px), 0, 0);
+  }
+  .herramientas[data-traga] .herr-cabecera,
+  .herramientas[data-traga] .herr-bandeja {
+    will-change: transform, opacity;
+  }
+  /* La rejilla del plano queda debajo del lienzo del agujero: fuera. */
+  .herramientas[data-traga] .herr-fijo::before {
+    opacity: 0;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .herramientas {
     --corte-tramo: 0svh;
