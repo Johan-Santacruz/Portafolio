@@ -116,7 +116,12 @@ export class SecuenciaFotogramas {
 
   empezar() {
     this.activa = true;
-    this.seguir();
+    // Si se soltó antes de empezar (la sección estaba lejos al abrir la
+    // página), la cola está vacía: se rehace desde el último pedido. Si no,
+    // no se cargaba nada hasta que cambiara el fotograma pedido, y una
+    // secuencia que había que tener lista de antemano llegaba sin cargar.
+    if (this.suelta) this.pedir(this.centro);
+    else this.seguir();
   }
 
   detener() {

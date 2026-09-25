@@ -1174,7 +1174,7 @@ test.describe("en el teléfono", () => {
     expect(await page.evaluate(() => window.scrollY)).toBe(inicio - 100);
   });
 
-  test("en el celular no hay túnel, agujero, niebla ni vídeo, y no se bajan sus fotogramas", async ({
+  test("en el celular no hay túnel, niebla ni vídeo, y el agujero usa sus fotogramas ligeros", async ({
     page,
   }) => {
     await page.addInitScript(() => performance.setResourceTimingBufferSize(5000));
@@ -1194,7 +1194,11 @@ test.describe("en el teléfono", () => {
       performance.getEntriesByType("resource").map((r) => r.name),
     );
     const de = (carpeta: string) => bajadas.filter((n) => n.includes(`/imagenes/${carpeta}`)).length;
-    expect(de("agujero"), "fotogramas del agujero").toBe(0);
+    // El agujero sí está, con su juego del celular (ligero y entero), no con
+    // el de escritorio.
+    expect(de("agujero/"), "fotogramas del agujero de escritorio").toBe(0);
+    expect(de("agujero-mini"), "minis del agujero").toBe(0);
+    expect(de("agujero-movil"), "fotogramas del agujero del celular").toBe(52);
     expect(de("corte"), "fotogramas del corte").toBe(0);
     expect(de("niebla"), "fotogramas de la niebla").toBe(0);
     // Del cierre, solo la figura ya salida.

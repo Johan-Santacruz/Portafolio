@@ -77,6 +77,15 @@
   opacity: calc(1 - clamp(0, (var(--s0) - 0.55) / 0.35, 1));
   transition: none;
 }
+/* Dentro de cada pieza que cae nada usa el avance del agujero, pero lo
+   heredaba: en cada fotograma del agujero se recalculaban los textos y los
+   esquemas de las ocho casillas (unos 90 elementos) y en un teléfono lento se
+   trababa. Fijado aquí, el recálculo se para en la pieza. */
+.herramientas[data-traga] :is(.herr-placa, .herr-criterio > li, .herr-palabras li) > * {
+  --traga: 0;
+  --s0: 0;
+  --s: 0;
+}
 /* La palabra encendida ya llevaba su propio desplazamiento. */
 .herramientas[data-traga] .herr-palabras li {
   transform: translate3d(

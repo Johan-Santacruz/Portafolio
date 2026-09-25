@@ -62,6 +62,15 @@
 .proy-lista {
   position: relative;
 }
+/* La lista y los reconocimientos no usan --cubre ni --fondo, pero los
+   heredaban: mientras la sección entra, cambian en cada fotograma y se
+   recalculaban sus cien elementos. Fijados aquí, el recálculo se para en su
+   contenedor. (La cabecera sí los usa: su rótulo releva a la orden.) */
+.proy-lista,
+.proy-pie {
+  --cubre: 1;
+  --fondo: 1;
+}
 /* Mientras la sección entra, su contenido no se desplaza con el scroll: se
    compensa el avance y se escala desde el centro de la pantalla, así que los
    proyectos salen del fondo del agujero negro en vez de subir desde abajo. */
