@@ -262,14 +262,17 @@ export function Herramientas() {
         lienzo.height = h;
       }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      // Como object-fit: cover, centrado: el agujero nace en el centro de la
-      // pantalla y acaba cubriéndola entera.
+      // Como object-fit: cover: el agujero nace en el centro de la pantalla
+      // y acaba cubriéndola entera. El lienzo puede ser más alto que la
+      // pantalla fija (ver el CSS): el centro es el de ella, que es adonde
+      // cae el contenido, y la imagen cubre también lo que sobra por debajo.
       const iw = img.width;
       const ih = img.height;
-      const escala = Math.max(ancho / iw, alto / ih);
+      const cy = Math.min(alto, fijo?.clientHeight || alto) / 2;
+      const escala = Math.max(ancho / iw, (2 * Math.max(cy, alto - cy)) / ih);
       const dw = iw * escala;
       const dh = ih * escala;
-      ctx.drawImage(img, (ancho - dw) / 2, (alto - dh) / 2, dw, dh);
+      ctx.drawImage(img, (ancho - dw) / 2, cy - dh / 2, dw, dh);
       pintadoAgujero = quiero;
     };
     // En el celular en vertical, el juego de fotogramas del celular (el

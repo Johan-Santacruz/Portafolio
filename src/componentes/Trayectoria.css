@@ -663,15 +663,22 @@
     display: none;
   }
   /* En su lugar, una capa blanca por encima que se funde: solo cambia su
-     opacidad, que aplica la GPU sin repintar nada. */
+     opacidad, que aplica la GPU sin repintar nada. Es fija y del alto de la
+     pantalla grande (lvh), no de la parte fija de la sección (100svh): al
+     bajar, el navegador esconde su barra, la pantalla crece y por debajo
+     quedaba una franja oscura. */
   .tray-fijo {
     opacity: 1;
   }
-  .tray-fijo::after {
+  .trayectoria[data-niebla]::after {
     content: "";
-    position: absolute;
+    position: fixed;
     z-index: 4;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100lvh;
     pointer-events: none;
     background: #fdfdfe;
     opacity: clamp(0, var(--fin) / 0.7, 1);
