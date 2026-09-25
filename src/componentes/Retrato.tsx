@@ -317,13 +317,26 @@ export function Retrato() {
     // --- Recorrido con scroll ------------------------------------------------
     const recorrido = zona.closest<HTMLElement>("[data-recorrido]");
     let pendiente = false;
+    // Dónde empieza el recorrido y cuánto mide, guardado: pedir su caja en
+    // cada fotograma, justo después de que otra sección escribiera sus
+    // estilos (el túnel, al final de la portada), obligaba a recalcularlos a
+    // mitad del fotograma. Solo cambia si cambia su tamaño.
+    let inicioRecorrido = 0;
+    let altoRecorrido = 0;
+    const tomarMedidas = () => {
+      if (!recorrido) return;
+      const caja = recorrido.getBoundingClientRect();
+      inicioRecorrido = caja.top + window.scrollY;
+      altoRecorrido = caja.height;
+    };
+    tomarMedidas();
     const medir = () => {
       pendiente = false;
       if (!recorrido || !m) return;
-      const caja = recorrido.getBoundingClientRect();
-      const largo = caja.height - window.innerHeight;
+      const arriba = inicioRecorrido - window.scrollY;
+      const largo = altoRecorrido - window.innerHeight;
       const avance =
-        largo > 0 ? Math.min(1, Math.max(0, -caja.top / largo)) : 0;
+        largo > 0 ? Math.min(1, Math.max(0, -arriba / largo)) : 0;
       const base = Math.min(1, avance / TRAMO_REVELADO);
       if (avance > 0 && !zona.hasAttribute("data-intro-terminada"))
         zona.setAttribute("data-intro-terminada", "");
@@ -453,9 +466,15 @@ export function Retrato() {
     };
     media.addEventListener("change", alCambiarMovimiento);
 
+    const vigiaTamano = new ResizeObserver(() => {
+      tomarMedidas();
+      alScroll();
+    });
+    if (recorrido) vigiaTamano.observe(recorrido);
     return () => {
       cancelado = true;
       cancelAnimationFrame(rafCuadro);
+      vigiaTamano.disconnect();
       dejarDeVigilar();
       secuencia.detener();
       clearTimeout(temporizadorPulsacion);

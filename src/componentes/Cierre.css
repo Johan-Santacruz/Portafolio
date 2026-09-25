@@ -101,6 +101,11 @@
     transform: translate3d(5%, -2%, 0) scale(1.08);
   }
 }
+/* Lejos, en pausa: aunque no se vea, una animación en marcha tiene al
+   compositor produciendo fotogramas. */
+.cierre[data-lejos] .cierre-niebla span {
+  animation-play-state: paused;
+}
 @media (prefers-reduced-motion: reduce) {
   .cierre-niebla span {
     animation: none;

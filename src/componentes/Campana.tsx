@@ -94,26 +94,51 @@ function Salida({
   const desde = enfasis ? texto.indexOf(enfasis) : -1;
   const hasta = desde < 0 ? -1 : desde + (enfasis?.length ?? 0);
   const total = letras.length;
-  // Cuántas letras van escritas (--k), escrito solo cuando cambia. Si cada
-  // letra lo calculara a partir de --avance, las casi 200 se recalculaban en
-  // cada fotograma de la portada, y en un teléfono de gama media eso era
-  // la mitad del tiempo de cada fotograma.
+  // Cada letra lleva su estado (data-e: «e» escrita, «c» la del cursor, sin
+  // él por escribir), y al avanzar solo se tocan las que cambian: una o dos
+  // por fotograma. Con un contador común (--k) del que dependían todas, cada
+  // letra nueva recalculaba las casi 200, y al bajar deprisa con la rueda eso
+  // pasaba en casi cada fotograma: en un portátil modesto se perdía uno de
+  // cada seis.
   const escritas = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     const capa = escritas.current;
     const portada = capa?.closest("[data-recorrido]");
     if (!capa || !portada) return;
+    const spans = Array.from(capa.children) as HTMLElement[];
+    const cursor = spans[total];
+    const estado = (i: number, k: number) => (i < k ? "e" : i === k ? "c" : null);
     let k = -1;
+    const escribir = (nuevo: number) => {
+      const a = k < 0 ? 0 : Math.min(k, nuevo);
+      const b = k < 0 ? total - 1 : Math.min(total - 1, Math.max(k, nuevo));
+      for (let i = a; i <= b; i++) {
+        const e = estado(i, nuevo);
+        if (spans[i].getAttribute("data-e") === e) continue;
+        if (e) spans[i].setAttribute("data-e", e);
+        else spans[i].removeAttribute("data-e");
+      }
+      // Acabado el párrafo, el cursor se queda parpadeando detrás.
+      cursor?.toggleAttribute("data-e", nuevo >= total);
+      k = nuevo;
+    };
+    escribir(0);
+    // Fuera de la pantalla, el cursor deja de parpadear (ver Campana.css).
+    const vista = new IntersectionObserver(([e]) =>
+      capa.toggleAttribute("data-lejos", !e.isIntersecting),
+    );
+    vista.observe(capa);
     const alAvanzar = (e: Event) => {
       const avance = (e as CustomEvent<number>).detail;
       const t = Math.min(1, Math.max(0, (avance - ini) / (fin - ini)));
       const nuevo = Math.ceil(t * total);
-      if (nuevo === k) return;
-      k = nuevo;
-      capa.style.setProperty("--k", String(k));
+      if (nuevo !== k) escribir(nuevo);
     };
     portada.addEventListener("avance", alAvanzar);
-    return () => portada.removeEventListener("avance", alAvanzar);
+    return () => {
+      vista.disconnect();
+      portada.removeEventListener("avance", alAvanzar);
+    };
   }, [ini, fin, total]);
   // En el celular, entero y con un fundido: tecleado letra a letra, con el
   // scroll rápido del dedo cambiaba una letra en casi cada fotograma y las

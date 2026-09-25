@@ -25,8 +25,8 @@ export function activarScrollSuave() {
   // así para compararlo en teléfonos de verdad antes de ponerlo por defecto.
   const tactilDePrueba = !fino.matches && /[?&]suave=1/.test(location.search);
   if (!fino.matches && !tactilDePrueba) return;
-  lenis = new Lenis({
-    autoRaf: true,
+  const l = new Lenis({
+    autoRaf: false,
     lerp: 0.1,
     wheelMultiplier: 0.9,
     // Los enlaces de la cabecera (#herramientas…) también se deslizan.
@@ -38,6 +38,26 @@ export function activarScrollSuave() {
       ? { syncTouch: true, syncTouchLerp: 0.085, touchInertiaExponent: 1.7 }
       : {}),
   });
+  // Su bucle, solo mientras hay algo que mover. Con `autoRaf` pedía un
+  // fotograma 60 veces por segundo aunque la página estuviera quieta, y cada
+  // uno recalculaba de paso las animaciones de CSS en marcha: el portátil no
+  // descansaba nunca. Todo lo que Lenis anima (la rueda, los enlaces, los
+  // deslizamientos automáticos) pasa por su `scrollTo`, que lo despierta.
+  let raf = 0;
+  const bucle = (t: number) => {
+    l.raf(t);
+    raf = l.isScrolling === "smooth" ? requestAnimationFrame(bucle) : 0;
+  };
+  const scrollTo = l.scrollTo.bind(l);
+  l.scrollTo = (...args: Parameters<Lenis["scrollTo"]>) => {
+    scrollTo(...args);
+    if (raf) return;
+    // Sin tiempo acumulado: si no, el primer paso tras el reposo mediría
+    // todo lo que estuvo parado y la animación saltaría al final.
+    l.time = 0;
+    raf = requestAnimationFrame(bucle);
+  };
+  lenis = l;
 }
 
 /** Curva suave: arranca y frena despacio. */

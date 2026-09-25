@@ -133,6 +133,8 @@ export function Cierre() {
     medir();
     const dejarDeVigilar = vigilarCercania(raiz, (c) => {
       cerca = c;
+      // Lejos, la bruma deja de derivar (ver Cierre.css).
+      raiz.toggleAttribute("data-lejos", !c);
       medir();
       // Lejos, sus fotogramas sobran en memoria (ver secuencia.ts).
       if (!c) secuencia.soltar();

@@ -1356,3 +1356,48 @@ test.describe("navegar por las herramientas", () => {
     expect(await p()).toBe(3);
   });
 });
+
+test("en reposo, la página no pide fotogramas ni deja animaciones ocultas en marcha", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  // Cuenta cada fotograma que pide la página (Lenis incluido).
+  await page.addInitScript(() => {
+    const w = window as unknown as { __raf: number };
+    const pedir = window.requestAnimationFrame.bind(window);
+    w.__raf = 0;
+    window.requestAnimationFrame = (cb) => {
+      w.__raf++;
+      return pedir(cb);
+    };
+  });
+  await page.goto("/");
+  await sinCarga(page);
+  // Quieta en medio de las herramientas, con el lector parado.
+  await page.evaluate(() => {
+    const h = document.querySelector<HTMLElement>("#herramientas")!;
+    const sonda = h.querySelector<HTMLElement>(".herr-sonda")!;
+    window.scrollTo({ top: h.offsetTop + sonda.offsetTop + 300, behavior: "instant" });
+  });
+  await page.waitForTimeout(2500);
+  const pedidos = () => page.evaluate(() => (window as unknown as { __raf: number }).__raf);
+  const antes = await pedidos();
+  await page.waitForTimeout(2000);
+  // Con el bucle de Lenis siempre en marcha eran 120 en estos 2 s.
+  expect((await pedidos()) - antes, "fotogramas pedidos en 2 s de reposo").toBeLessThan(5);
+  // Y ningún cursor ni bruma animándose donde no se ve: aunque no se vean,
+  // obligan a recalcular su estilo en cada fotograma que se pinte.
+  const ocultas = await page.evaluate(() =>
+    document
+      .getAnimations()
+      .filter((a) => a.playState === "running")
+      .map((a) => {
+        const t = (a.effect as KeyframeEffect).target as Element;
+        const r = t.getBoundingClientRect();
+        const fuera = r.bottom < 0 || r.top > innerHeight;
+        return fuera ? (a as CSSAnimation).animationName : null;
+      })
+      .filter(Boolean),
+  );
+  expect(ocultas, "animaciones en marcha fuera de la pantalla").toEqual([]);
+});

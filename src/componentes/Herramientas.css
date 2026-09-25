@@ -219,6 +219,11 @@
   height: 1.1em;
   margin: auto 0 auto 2px;
   background: var(--accent);
+}
+/* Parpadea solo cuando la orden está a la vista: al final del agujero. Una
+   animación en marcha, aunque no se vea, obliga a recalcular su estilo en
+   cada fotograma que se pinte. */
+.herramientas[data-traga]:not([data-lejos]) .herr-final-orden::after {
   animation: herr-cursor 1s steps(2, jump-none) infinite;
 }
 
@@ -623,6 +628,10 @@
   margin: auto 0 auto 2px;
   background: var(--accent);
   box-shadow: 0 0 0 1px rgba(23, 24, 21, 0.25);
+}
+/* Solo el de la consola que se ve, y con la sección cerca (lo mismo que la
+   orden del final). */
+.herramientas:not([data-lejos]) .herr-grupo[data-estado="activo"] .herr-orden::after {
   animation: herr-cursor 1s steps(2, jump-none) infinite;
 }
 @keyframes herr-cursor {

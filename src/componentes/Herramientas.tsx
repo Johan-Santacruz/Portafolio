@@ -241,6 +241,10 @@ export function Herramientas() {
     // prueba— no cuenta) y una vez por pasada.
     const reducidoMedia = window.matchMedia("(prefers-reduced-motion: reduce)");
     let ultimoY = window.scrollY;
+    // La posición leída al empezar `pintar`, antes de escribir nada: leer
+    // `scrollY` después de escribir estilos obliga a recalcularlos al
+    // momento, y aquí se leía al final de cada fotograma.
+    let yAhora = ultimoY;
     // Cada tramo recuerda con qué gesto se lanzó, no si se lanzó ya. Si el
     // lector se echa atrás y el deslizamiento se corta, el siguiente gesto
     // hacia abajo es otro y el tramo se vuelve a lanzar; antes, un intento
@@ -311,7 +315,7 @@ export function Herramientas() {
       if (ultimoGesto === usado) return usado;
       if (performance.now() - ultimoGesto > 1200) return usado;
       // La página tiene que estar bajando de verdad: quieta o subiendo, no.
-      const salto = window.scrollY - ultimoY;
+      const salto = yAhora - ultimoY;
       if (salto <= 0 || salto > window.innerHeight * 0.5) return usado;
       return deslizarHasta(hasta, ms) ? ultimoGesto : usado;
     };
@@ -378,16 +382,16 @@ export function Herramientas() {
     const ctxCorte = lienzoCorte?.getContext("2d") ?? null;
     let pintadoCorte = -1;
     let pedidoCorte = 0;
+    let dimsCorte: [number, number] | null = null;
     const pintarCorte = (quiero: number) => {
       const img = secuenciaCorte.mejor(quiero);
       if (!img || !lienzoCorte || !ctxCorte) return;
-      const cubreCaja = Math.max(
-        lienzoCorte.clientWidth / 1280,
-        lienzoCorte.clientHeight / 720,
-      );
+      // Su tamaño, guardado, como el de las líneas del túnel.
+      dimsCorte ??= [lienzoCorte.clientWidth, lienzoCorte.clientHeight];
+      const [ancho, alto] = dimsCorte;
+      if (!ancho || !alto) dimsCorte = null;
+      const cubreCaja = Math.max(ancho / 1280, alto / 720);
       const dpr = Math.min(window.devicePixelRatio || 1, Math.max(1, 1 / cubreCaja));
-      const ancho = lienzoCorte.clientWidth;
-      const alto = lienzoCorte.clientHeight;
       const w = Math.round(ancho * dpr);
       const h = Math.round(alto * dpr);
       if (lienzoCorte.width !== w || lienzoCorte.height !== h) {
@@ -447,6 +451,7 @@ export function Herramientas() {
     const lineas = raiz.querySelector<HTMLCanvasElement>(".tunel-lineas");
     const ctxLineas = lineas?.getContext("2d") ?? null;
     let lineasPintadas = "";
+    let dimsLineas: [number, number] | null = null;
     const PERSPECTIVA = 700;
     const VIAJE = 4600;
     const pintarLineas = (pt: number, vel: number) => {
@@ -454,9 +459,15 @@ export function Herramientas() {
       const clave = `${pt.toFixed(4)}|${vel.toFixed(2)}`;
       if (clave === lineasPintadas) return;
       lineasPintadas = clave;
-      const ancho = lineas.clientWidth;
-      const alto = lineas.clientHeight;
-      if (!ancho || !alto) return;
+      // Su tamaño, guardado (ver `tomarMedidas`): leerlo aquí, después de
+      // escribir las variables del túnel, recalculaba el estilo en cada
+      // fotograma. Oculto mide 0 y no se guarda.
+      dimsLineas ??= [lineas.clientWidth, lineas.clientHeight];
+      const [ancho, alto] = dimsLineas;
+      if (!ancho || !alto) {
+        dimsLineas = null;
+        return;
+      }
       // En el teléfono, a densidad 1: son líneas finas y tenues, y a doble
       // densidad subir el lienzo a la GPU en cada fotograma costaba más que
       // el resto del túnel en uno de gama media.
@@ -551,20 +562,38 @@ export function Herramientas() {
       irSuave(destinoDe(i), Math.min(1400, 450 + 160 * pasos));
     };
 
+    // Las medidas de la sección, guardadas. Leer su caja y sus sondas en cada
+    // fotograma obligaba a recalcular a mitad del fotograma los estilos que
+    // otra sección acababa de escribir (la portada, mientras entra el
+    // túnel). Solo cambian si cambia el tamaño: se vuelven a tomar al
+    // redimensionar.
+    let med = { vista: 0, inicio: 0, altoSeccion: 0, tunel: 0, cola: 0, agujero: 0, anchoCorte: 0 };
+    const tomarMedidas = () => {
+      med = {
+        // Arriba de la sección en la página: para la caja en pantalla…
+        vista: raiz.getBoundingClientRect().top + window.scrollY,
+        // …y para los destinos de los deslizamientos, como antes.
+        inicio: raiz.offsetTop,
+        altoSeccion: raiz.offsetHeight,
+        tunel: sonda?.offsetTop ?? 0,
+        cola: sonda?.offsetHeight ?? 0,
+        agujero: sondaAgujero?.offsetHeight ?? 0,
+        anchoCorte: sondaCorte?.offsetHeight ?? 0,
+      };
+    };
+    tomarMedidas();
     const pintar = () => {
       pendiente = false;
-      const caja = raiz.getBoundingClientRect();
+      yAhora = window.scrollY;
+      const arriba = med.vista - yAhora;
+      const caja = { top: arriba, bottom: arriba + med.altoSeccion, height: med.altoSeccion };
       const alto = window.innerHeight;
       // Primero el túnel: arranca en cuanto la sección asoma por abajo y
       // termina tras recorrer su tramo fijo (--tunel). La sonda también mide
       // la cola (--cola): la última pantalla, que Proyectos cubre al llegar.
-      const tunel = sonda?.offsetTop ?? 0;
-      const cola = sonda?.offsetHeight ?? 0;
-      const agujero = sondaAgujero?.offsetHeight ?? 0;
       // Cubierta: de 0 cuando Proyectos asoma por abajo a 1 cuando tapa la
       // pantalla; la sección se hunde un poco y se oscurece por debajo.
-      const anchoCorte = sondaCorte?.offsetHeight ?? 0;
-      const inicio = raiz.offsetTop;
+      const { tunel, cola, agujero, anchoCorte, inicio } = med;
       const cubre = limitar((alto + cola - caja.bottom) / Math.max(1, cola));
       poner("--cubre", cubre.toFixed(4), final);
       const pt = limitar((alto - caja.top) / (alto + tunel));
@@ -582,7 +611,7 @@ export function Herramientas() {
       // El túnel es el tramo más largo de todos: en cuanto se pide bajar se
       // recorre entero solo.
       if (pt > 0.02 && pt < 0.9) {
-        gestoTunel = lanzar(raiz.offsetTop + tunel, DURACION_TUNEL, gestoTunel);
+        gestoTunel = lanzar(inicio + tunel, DURACION_TUNEL, gestoTunel);
       } else if (pt <= 0.02) gestoTunel = 0;
       ultimoPt = pt;
       ultimoT = ahora;
@@ -692,7 +721,7 @@ export function Herramientas() {
         secuencia.pedir(pedido);
       }
       if (traga > 0 && pedido !== pintadoAgujero) pintarAgujero(pedido);
-      ultimoY = window.scrollY;
+      ultimoY = yAhora;
       ultimoP = p;
       ultimoCorte = corte;
       ultimaTraga = traga;
@@ -765,17 +794,31 @@ export function Herramientas() {
         return;
       }
       anchoPrevio = window.innerWidth;
+      tomarMedidas();
       dimsLienzo = null;
+      dimsLineas = null;
+      dimsCorte = null;
       lineasPintadas = "";
       colocarDestino();
       medidas = false;
       alScroll();
     };
     colocarDestino();
-    document.fonts?.ready.then(colocarDestino);
+    document.fonts?.ready.then(() => {
+      tomarMedidas();
+      colocarDestino();
+    });
+    // Y si cambia el alto de la sección (sus tramos van en svh).
+    const vigiaTamano = new ResizeObserver(() => {
+      tomarMedidas();
+      alScroll();
+    });
+    vigiaTamano.observe(raiz);
     pintar();
     const dejarDeVigilar = vigilarCercania(raiz, (c) => {
       cerca = c;
+      // Lejos, sus cursores dejan de parpadear (ver Herramientas.css).
+      raiz.toggleAttribute("data-lejos", !c);
       pintar();
       // Lejos, sus fotogramas sobran en memoria (ver secuencia.ts).
       if (!c) {
@@ -793,6 +836,7 @@ export function Herramientas() {
       window.removeEventListener("touchcancel", alSoltar);
       window.removeEventListener("keydown", alTeclado);
       dejarDeVigilar();
+      vigiaTamano.disconnect();
       vigiaAgujero.disconnect();
       vigiaCorte.disconnect();
       secuencia.detener();
