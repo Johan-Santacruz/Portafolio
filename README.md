@@ -625,12 +625,13 @@ Si cambia el número de fotogramas, ajusta `FOTOGRAMAS` en `Proyectos.tsx`.
 
 ## Publicación
 
-Sitio estático: `npm run build` genera `dist/` (unos 4,4 MB, la mayoría video).
+Se publica en Cloudflare Workers al empujar a `main`. `npm run build` genera
+`dist/client/` (los archivos del sitio, unos 4,4 MB, la mayoría video) y
+`dist/portafolio/` (el Worker). `npm run preview` lo sirve en local tal cual.
 
-En Cloudflare Pages, conectando este repositorio:
-
-- Build command: `npm run build`
-- Output directory: `dist`
+El Worker (`worker/index.ts`) solo redirige de HTTP a HTTPS; el resto lo sirve
+el servicio de archivos estáticos. Pasan por él las páginas, no las imágenes,
+el video ni `/assets/` (`run_worker_first` en `wrangler.jsonc`).
 
 `public/_headers` fija el caché: eterno para `/assets/` (llevan hash en el
 nombre) y una semana para video e imágenes. También las cabeceras de seguridad

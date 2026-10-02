@@ -5,7 +5,19 @@
   "observability": {
     "enabled": true
   },
+  // Redirige de HTTP a HTTPS; el resto, a los archivos estáticos.
+  "main": "./worker/index.ts",
   "assets": {
-    "not_found_handling": "single-page-application"
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    // Solo las páginas pasan por el Worker; los archivos pesados, directos.
+    "run_worker_first": [
+      "/*",
+      "!/assets/*",
+      "!/imagenes/*",
+      "!/media/*",
+      "!/iconos/*",
+      "!/documentos/*"
+    ]
   }
 }

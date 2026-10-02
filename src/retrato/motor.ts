@@ -47,6 +47,16 @@ const PUNTOS_BLOB = 72;
 
 const limitar = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 
+/**
+ * La pasada automática (`insinuar`) se corta si el equipo no puede con ella:
+ * un fotograma de más de LENTO_UNO ms, o dos seguidos de más de LENTO ms (a
+ * 60 fps hay 16,7 por fotograma). Sin GPU la máscara se pinta en la CPU y en
+ * un equipo lento cada fotograma pasaba de 50 ms: 1,5 s de tirones con la
+ * página sin responder, para enseñar un gesto que nadie ha pedido.
+ */
+const LENTO = 12;
+const LENTO_UNO = 30;
+
 export class MotorRetrato {
   private ctx: CanvasRenderingContext2D;
   private ancho = 0;
@@ -84,6 +94,9 @@ export class MotorRetrato {
     null;
   private guionDesde = 0;
   private alFinGuion: (() => void) | null = null;
+  /** El guion en marcha es la pasada automática: se vigila lo que cuesta. */
+  private vigilarCoste = false;
+  private lentos = 0;
 
   private raf = 0;
   private ultimoFrame = 0;
@@ -215,6 +228,8 @@ export class MotorRetrato {
         y: this.alto * (0.42 - Math.sin(p * Math.PI) * 0.07),
       };
     }, alTerminar);
+    this.vigilarCoste = this.guion !== null;
+    this.lentos = 0;
   }
 
   /** Con el foco del teclado la máscara orbita sola sobre la cara. */
@@ -243,6 +258,7 @@ export class MotorRetrato {
   ) {
     this.guionDesde = performance.now();
     this.alFinGuion = alTerminar ?? null;
+    this.vigilarCoste = false;
     const inicio = guion(0);
     if (!inicio) return;
     this.punteroFino = false;
@@ -253,6 +269,25 @@ export class MotorRetrato {
     }
     this.guion = guion;
     this.activar();
+  }
+
+  /** Corta la pasada automática en seco: sin la salida animada, que serían
+   *  otro medio segundo de fotogramas igual de caros. */
+  private cortarPasada() {
+    const fin = this.alFinGuion;
+    this.guion = null;
+    this.alFinGuion = null;
+    this.vigilarCoste = false;
+    this.radio = 0;
+    this.radioVel = 0;
+    this.particulas = [];
+    this.estela = [];
+    this.cortes = [];
+    if (this.activo) {
+      this.activo = false;
+      this.alCambiar?.(false);
+    }
+    fin?.();
   }
 
   private activar() {
@@ -295,9 +330,16 @@ export class MotorRetrato {
         fin?.();
       }
     }
+    const vigilar = this.vigilarCoste && this.guion !== null;
+    const antes = vigilar ? performance.now() : 0;
     this.simular(dt, ahora);
     this.dibujar();
     this.publicar();
+    if (vigilar) {
+      const coste = performance.now() - antes;
+      this.lentos = coste > LENTO ? this.lentos + 1 : 0;
+      if (coste > LENTO_UNO || this.lentos >= 2) this.cortarPasada();
+    }
 
     const vivo =
       this.activo || this.radio > 0.5 || this.particulas.length > 0;

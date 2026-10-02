@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { perfil } from "../datos/perfil";
 import { esCelular } from "../retrato/telefono";
@@ -12,8 +12,26 @@ import { Trayectoria } from "./Trayectoria";
 import { Cierre } from "./Cierre";
 import "./Campana.css";
 
+/**
+ * Cuántas tandas de secciones montan después de la portada (ver Campana).
+ * Herramientas y Proyectos van juntas: el túnel coloca su última orden donde
+ * está el rótulo de Proyectos, y lo mide al montar.
+ */
+const TANDAS = 3;
+
 export function Campana() {
   const { di } = useIdioma();
+  // La página entera de una vez (unos mil elementos) se maquetaba en una sola
+  // tarea, y en un portátil lento bloqueaba el hilo más de 100 ms. Primero la
+  // cabecera y la portada; el resto, una tanda por tarea. Cada tanda se añade
+  // debajo de lo que ya hay, así que nada de lo montado (ni lo que ha medido)
+  // cambia de sitio. Todo llega mientras sigue la pantalla de carga.
+  const [tanda, setTanda] = useState(0);
+  useEffect(() => {
+    if (tanda >= TANDAS) return;
+    const siguiente = window.setTimeout(() => setTanda(tanda + 1));
+    return () => clearTimeout(siguiente);
+  }, [tanda]);
   return (
     <>
       <a className="saltar" href="#contenido">
@@ -62,10 +80,14 @@ export function Campana() {
           </div>
         </section>
 
-        <Herramientas />
-        <Proyectos />
-        <Trayectoria />
-        <Cierre />
+        {tanda >= 1 && (
+          <>
+            <Herramientas />
+            <Proyectos />
+          </>
+        )}
+        {tanda >= 2 && <Trayectoria />}
+        {tanda >= 3 && <Cierre />}
       </main>
     </>
   );

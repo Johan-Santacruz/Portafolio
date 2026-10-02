@@ -19,7 +19,6 @@ export function Cabecera() {
   const [marca, setMarca] = useState({ x: 0, ancho: 0 });
 
   useEffect(() => {
-    const secciones = APARTADOS.map(a => document.getElementById(a.id));
     let posiciones: number[] = [];
     let raf = 0;
     const medir = () => {
@@ -35,14 +34,22 @@ export function Cabecera() {
       if (!raf) raf = requestAnimationFrame(medir);
     };
     // Las secciones conservan su altura durante el recorrido. Solo volver a
-    // medir al cambiar el diseño (fuentes, idioma, tamaño u orientación).
+    // medir al cambiar el diseño (fuentes, idioma, tamaño u orientación) o
+    // al llegar una sección: montan por tandas (ver Campana), así que se
+    // buscan cada vez y se vigila también el contenedor, que crece con ellas.
+    const observador = new ResizeObserver(() => colocar());
     const colocar = () => {
       const y = window.scrollY;
-      posiciones = secciones.map(el => el ? el.getBoundingClientRect().top + y : Infinity);
+      posiciones = APARTADOS.map(a => {
+        const el = document.getElementById(a.id);
+        if (!el) return Infinity;
+        observador.observe(el);
+        return el.getBoundingClientRect().top + y;
+      });
       alScroll();
     };
-    const observador = new ResizeObserver(colocar);
-    secciones.forEach(el => { if (el) observador.observe(el); });
+    const contenedor = document.getElementById("contenido");
+    if (contenedor) observador.observe(contenedor);
     colocar();
     window.addEventListener("scroll", alScroll, { passive: true });
     window.addEventListener("resize", colocar);

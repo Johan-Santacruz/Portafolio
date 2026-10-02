@@ -678,6 +678,8 @@ test("las secciones se solapan y se funden sin borde", async ({ page }) => {
   // Con movimiento reducido no hay agujero negro y la sección mide menos.
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
+  // Las secciones montan por tandas tras la portada: la última es el cierre.
+  await page.locator("#contacto").waitFor({ state: "attached" });
   // Con las tipografías cargadas: la página encoge unos px al llegar.
   await page.evaluate(() => document.fonts.ready);
   const { herrFin, proyInicio, trayFin, cierreInicio, alto } = await page.evaluate(() => {
