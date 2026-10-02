@@ -42,7 +42,11 @@ scroll suave de escritorio, para comparar con el nativo.
 - `src/componentes/Campana.tsx`: estructura, textos, ventanas y trabajos.
 - `src/componentes/Campana.css`: composición, geometría y versión móvil.
 - `src/estilos/global.css`: papel `#f4f0e7`, tinta `#171815`, lima `#c7ff4a`,
-  tipografías Instrument Sans / Newsreader y revelados de 0,75 segundos.
+  tipografías y revelados de 0,75 segundos.
+- `src/estilos/fuentes.css` y `src/estilos/fuentes/`: las tipografías (Instrument
+  Sans, Chakra Petch, Saira Extra Condensed y JetBrains Mono) servidas desde el
+  propio dominio. Salen de `node scripts/fuentes.mjs`; para cambiar de familia
+  o de peso, edita el script y vuelve a ejecutarlo.
 - `src/ganchos/useCampana.ts`: revelados y ciclo de reproducción del video.
 - `src/datos/perfil.ts`: identidad, presentación, correo y disponibilidad.
 
@@ -629,7 +633,15 @@ En Cloudflare Pages, conectando este repositorio:
 - Output directory: `dist`
 
 `public/_headers` fija el caché: eterno para `/assets/` (llevan hash en el
-nombre) y una semana para video e imágenes. Netlify entiende el mismo archivo.
+nombre) y una semana para video e imágenes. También las cabeceras de seguridad
+(HSTS, `X-Frame-Options`, `Referrer-Policy`, `nosniff`). Netlify entiende el
+mismo archivo.
+
+Para buscadores: `public/sitemap.xml`, `public/robots.txt`, los datos
+estructurados (JSON-LD) de `index.html` y, dentro de `#root`, un resumen de la
+página en HTML que leen los robots que no ejecutan JavaScript y que React
+reemplaza al montar. Si cambian el dominio o los datos de `src/datos/`,
+actualiza también esos archivos.
 
 Para publicar en una subruta (GitHub Pages bajo `/portafolio/`), cambia `base`
 en `vite.config.ts` antes de compilar: las rutas de video e imágenes la usan.

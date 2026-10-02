@@ -2,3 +2,5 @@
 # vista previa al compartir el enlace.
 User-agent: *
 Allow: /
+
+Sitemap: https://portafolio.camilobalanta17.workers.dev/sitemap.xml

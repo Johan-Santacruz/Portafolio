@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Una sola página: el portafolio entero vive en la raíz. Si cambia el
+     dominio, cámbialo aquí, en robots.txt y en index.html. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://portafolio.camilobalanta17.workers.dev/</loc>
+  </url>
+</urlset>

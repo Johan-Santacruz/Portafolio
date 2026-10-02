@@ -952,7 +952,7 @@ test("el botón de la cabecera pasa la página a inglés y lo recuerda", async (
     await page
       .locator('meta[name="description"]')
       .getAttribute("content"),
-  ).toContain("software engineer");
+  ).toContain("Systems Engineering student");
 
   // La elección sobrevive a recargar, y ya desde la pantalla de carga.
   await page.reload();

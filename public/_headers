@@ -1,6 +1,17 @@
-# Cabeceras de caché para Cloudflare Pages (y Netlify).
-# Los archivos de /assets/ llevan hash en el nombre: se pueden cachear para
-# siempre. El resto cambia sin cambiar de nombre, así que va a una semana.
+# Cabeceras para los archivos estáticos (Cloudflare Workers y Pages).
+
+# Seguridad, en todas las respuestas: solo por HTTPS durante un año, la
+# página no se puede incrustar en un marco ajeno (clickjacking), a otros
+# sitios solo les llega el dominio de donde viene la visita y el navegador no
+# adivina tipos de archivo.
+/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Content-Type-Options: nosniff
+
+# Caché. Los archivos de /assets/ llevan hash en el nombre: se pueden cachear
+# para siempre. El resto cambia sin cambiar de nombre, así que va a una semana.
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 

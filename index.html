@@ -6,7 +6,7 @@
     <title>Johan Balanta — Ideas que toman forma</title>
     <meta
       name="description"
-      content="Portafolio de Johan Camilo Balanta Santacruz, estudiante de Ingeniería de Sistemas en Cali: desarrollo web, automatización de procesos con RPA, APIs e inteligencia artificial. Proyectos, trayectoria y contacto."
+      content="Johan Camilo Balanta, estudiante de Ingeniería de Sistemas en Cali: desarrollo web, automatización con RPA, APIs e inteligencia artificial."
     />
     <link rel="canonical" href="https://portafolio.camilobalanta17.workers.dev/" />
     <!-- Vista previa al compartir el enlace (WhatsApp, LinkedIn, X, Slack…).
@@ -64,20 +64,44 @@
     <link rel="apple-touch-icon" href="/icono-180.png" />
     <link rel="preload" as="image" href="/logo.png" />
     <link rel="preload" as="image" href="/imagenes/retrato/normal.jpg" fetchpriority="high" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wdth,wght@0,75..100,400..700&amp;display=swap"
-    />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@1,400&amp;display=swap"
-    />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&amp;family=Saira+Extra+Condensed:wght@700&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap"
-    />
+    <!-- Datos estructurados: quién es y dónde encontrarlo, para buscadores.
+         Si cambian el correo o los enlaces en src/datos/perfil.ts, cámbialos
+         aquí también. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "ProfilePage",
+        "url": "https://portafolio.camilobalanta17.workers.dev/",
+        "name": "Johan Balanta — Ideas que toman forma",
+        "inLanguage": "es",
+        "mainEntity": {
+          "@type": "Person",
+          "@id": "https://portafolio.camilobalanta17.workers.dev/#persona",
+          "name": "Johan Camilo Balanta Santacruz",
+          "alternateName": "Johan Balanta",
+          "description": "Estudiante de Ingeniería de Sistemas en Cali. Desarrollo web, automatización de procesos con RPA, APIs e inteligencia artificial.",
+          "image": "https://portafolio.camilobalanta17.workers.dev/imagenes/retrato/normal.jpg",
+          "email": "mailto:camilobalanta1@gmail.com",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Cali",
+            "addressCountry": "CO"
+          },
+          "knowsAbout": [
+            "Desarrollo web",
+            "Automatización de procesos (RPA)",
+            "APIs",
+            "Inteligencia artificial",
+            "Python",
+            "React"
+          ],
+          "sameAs": [
+            "https://github.com/Johan-Santacruz",
+            "https://www.linkedin.com/in/johan-santacruz-366a641aa/"
+          ]
+        }
+      }
+    </script>
     <style>
       /* Pantalla de carga: va en el HTML para que se vea antes de que llegue
          nada más. La retira `retrato/carga.ts` cuando la portada está lista. */
@@ -150,7 +174,48 @@
           animation: none;
         }
       }
+      /* El resumen en HTML de #root: solo se ve sin JavaScript. Con él, va
+         oculto aunque lo tape la pantalla de carga: si se pinta, su párrafo
+         cuenta como el elemento más grande (LCP) y Lighthouse, que simula
+         la carga en vez de mirarla, lo da por pintado casi 1,5 s tarde. */
+      .sin-js {
+        visibility: hidden;
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 56px 22px;
+        line-height: 1.6;
+      }
+      .sin-js h1 {
+        font-size: 2rem;
+        line-height: 1.15;
+      }
+      .sin-js h2 {
+        margin-top: 40px;
+        font-size: 1.25rem;
+      }
+      .sin-js p,
+      .sin-js nav {
+        margin-top: 16px;
+      }
+      .sin-js-rol {
+        color: #626259;
+      }
+      .sin-js a {
+        text-decoration: underline;
+      }
     </style>
+    <!-- Sin JavaScript nadie retira la pantalla de carga: se quita y se
+         enseña el resumen en HTML de #root. -->
+    <noscript>
+      <style>
+        #carga {
+          display: none;
+        }
+        .sin-js {
+          visibility: visible;
+        }
+      </style>
+    </noscript>
   </head>
   <body>
     <div id="carga" aria-hidden="true">
@@ -158,7 +223,7 @@
         <img
           class="carga-logo"
           src="/logo.png"
-          alt=""
+          alt="Johan Balanta"
           width="360"
           height="225"
           decoding="sync"
@@ -193,13 +258,53 @@
         if (d)
           d.setAttribute(
             "content",
-            "Johan Balanta, software engineer in Cali, Colombia. Digital experiences, custom software and automation built with intent.",
+            "Johan Camilo Balanta, Systems Engineering student in Cali, Colombia: web development, RPA process automation, APIs and artificial intelligence.",
           );
         var t = document.getElementById("carga-texto");
         if (t) t.textContent = "loading";
       })();
     </script>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Resumen de la página en HTML: lo leen los buscadores y los robots
+           que no ejecutan JavaScript, y es lo que ve quien lo tiene
+           desactivado. React lo reemplaza entero al montar, tapado aún por
+           la pantalla de carga. Si cambian los datos de src/datos/,
+           cámbialos aquí también. -->
+      <main class="sin-js">
+        <h1>Johan Camilo Balanta Santacruz</h1>
+        <p class="sin-js-rol">
+          Ingeniero de Sistemas · Full-Stack · IA · Automatización · Cali, Colombia
+        </p>
+        <p>
+          Soy Johan Camilo Balanta, estudiante de Ingeniería de Sistemas en Cali. Me gusta
+          el desarrollo web, automatizar procesos y conectar APIs e inteligencia artificial
+          para resolver problemas reales.
+        </p>
+        <nav aria-label="Secciones">
+          <a href="#herramientas">Con qué construyo</a> ·
+          <a href="#proyectos">Lo que he construido</a> ·
+          <a href="#trayectoria">Dónde he estado</a> ·
+          <a href="#contacto">Contacto</a>
+        </nav>
+        <h2>Lo que he construido</h2>
+        <ul>
+          <li><b>SENDA</b>: un testimonio en video convertido en una ruta de atención.</li>
+          <li><b>CLARA</b>: inventario de cocina dictado en voz alta y validado al instante.</li>
+          <li><b>Oculus Auditor</b>: detección de opacidad en contratos públicos del SECOP II.</li>
+          <li><b>Nimbus</b>: alerta temprana de lluvia para San Cristóbal, Galápagos.</li>
+          <li><b>AgentX</b>: recepción y clasificación automática de incidentes.</li>
+          <li><b>AgenteIA</b>: un ERP para mipymes que se maneja hablando con Fina.</li>
+          <li><b>Tritec</b>: practicar algoritmos con corrección automática en el navegador.</li>
+        </ul>
+        <h2>Contacto</h2>
+        <p>
+          <a href="mailto:camilobalanta1@gmail.com">camilobalanta1@gmail.com</a> ·
+          <a href="https://github.com/Johan-Santacruz">GitHub</a> ·
+          <a href="https://www.linkedin.com/in/johan-santacruz-366a641aa/">LinkedIn</a> ·
+          <a href="/documentos/hoja-de-vida-johan-balanta.pdf">Hoja de vida (PDF)</a>
+        </p>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

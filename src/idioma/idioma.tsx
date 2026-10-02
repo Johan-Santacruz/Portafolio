@@ -47,12 +47,12 @@ const CABECERA: Record<Idioma, { titulo: string; descripcion: string }> = {
   es: {
     titulo: "Johan Balanta — Ideas que toman forma",
     descripcion:
-      "Johan Balanta, ingeniero de software en Cali. Diseño y desarrollo de experiencias digitales, software a medida y automatización con intención.",
+      "Johan Camilo Balanta, estudiante de Ingeniería de Sistemas en Cali: desarrollo web, automatización con RPA, APIs e inteligencia artificial.",
   },
   en: {
     titulo: "Johan Balanta — Ideas that take shape",
     descripcion:
-      "Johan Balanta, software engineer in Cali, Colombia. Digital experiences, custom software and automation built with intent.",
+      "Johan Camilo Balanta, Systems Engineering student in Cali, Colombia: web development, RPA process automation, APIs and artificial intelligence.",
   },
 };
 
